@@ -5,7 +5,7 @@
 **Project:** HabLog (DebboProject V3) - Habbo Hotel Private Server Emulator
 **Decompiler:** VB Decompiler v12.8.9443.43130
 **Mode:** P-code (`CompilationType = 1`)
-**Status:** 34/37 files completed (~44,076 lines done, ~220,124 remaining)
+**Status:** 35/37 files completed (~56,861 lines done, ~207,339 remaining)
 
 ---
 
@@ -250,14 +250,14 @@ sContent = oTextStream.ReadAll
 | frmSettings.frm | 5,689 | Main settings form |
 | clsmCipher.cls | 6,013 | RC4 stream cipher |
 | modEncoding.bas | 8,396 | VL64/B64 encoding |
+| frmTab_housekeeping_extras3.frm | 12,785 | Housekeeping admin panel |
 
-### Remaining (3 files)
+### Remaining (2 files)
 | File | Lines | Priority |
 |------|-------|----------|
 | modHabFunc.bas | 139,759 | CRITICAL - Main server logic |
 | frmMain.frm | 50,924 | CRITICAL - Main form |
 | modPathFind.bas | 18,265 | HIGH - Pathfinding |
-| frmTab_housekeeping_extras3.frm | 12,785 | MEDIUM |
 
 ---
 
@@ -271,7 +271,7 @@ sContent = oTextStream.ReadAll
 6. **Save** the translated file back
 7. **Update** this file's progress section
 
-**Next file:** frmTab_housekeeping_extras3.frm (12,785 lines)
+**Next file:** modPathFind.bas (18,265 lines)
 
 ---
 
