@@ -38,6 +38,17 @@ These procedure addresses map to functions. Use these translations:
 |------------------|--------------|--------|-----------|
 | `Proc_4_0_B22150` | `GetINI` | modINI | `GetINI(Section, Key, File) As String` |
 | `Proc_4_1_B1EBF0` | `WriteINI` | modINI | `WriteINI(Section, Key, Value, File)` |
+| `Proc_2_7_B2228C` | `RemoveUserFromRoom` | modHabFunc | `RemoveUserFromRoom(RoomId, Data)` |
+| `Proc_2_8_B229C4` | `RemoveUserFromPublicRoom` | modHabFunc | `RemoveUserFromPublicRoom(RoomId, Data)` |
+
+## CRITICAL: User Data Structure (gUserData)
+
+The `gUserData()` array holds per-socket user session data. Known fields:
+| Field | Type | Purpose |
+|-------|------|---------|
+| `.RoomId` | Double | Current room ID (0 if not in room) |
+| `.RoomSlot` | String | Room slot identifier |
+| `.State` | Integer | User state/status |
 
 ## CRITICAL: API Constants
 
@@ -111,7 +122,7 @@ Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hW
 
 ## Translation Status
 
-### Completed Files (17 files)
+### Completed Files (19 files)
 | File | P-Code Lines | Description |
 |------|-------------|-------------|
 | frmFirstRun.frm | ~100 | Splash screen with timer |
@@ -131,8 +142,12 @@ Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hW
 | frmTab_publicroom_layout.frm | 289 | Layout editor |
 | frmAlert.frm | 307 | Alert/message form |
 | frmUpdateUser.frm | 395 | Change user mission |
+| frmBan.frm | 466 | Ban user for 24 hours |
+| frmCredits.frm | 487 | Add credits to user |
+| frmTabTutorial.frm | 552 | Tutorial chatbot form |
+| frmUpdate.frm | 643 | User account update utility |
 
-### Remaining Files (22 files, ~265,000 p-code lines)
+### Remaining Files (18 files, ~262,000 p-code lines)
 
 **Large Files (>5000 lines):**
 | File | P-Code Lines | Priority |
@@ -160,10 +175,6 @@ Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hW
 **Small Files (<1000 lines):**
 | File | P-Code Lines |
 |------|-------------|
-| frmBan.frm | 466 |
-| frmCredits.frm | 487 |
-| frmTabTutorial.frm | 552 |
-| frmUpdate.frm | 643 |
 | frmTab_userlock.frm | 686 |
 | frmTab_publicroom_infobus.frm | 723 |
 | frmLoaderGenerator.frm | 786 |
@@ -237,4 +248,4 @@ Next i
 7. Save the translated file back
 8. Update the "Completed Files" section above
 
-**Next file to translate:** frmBan.frm (466 lines)
+**Next file to translate:** frmTab_userlock.frm (686 lines)
