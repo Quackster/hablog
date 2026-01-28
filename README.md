@@ -5,7 +5,7 @@
 **Project:** HabLog (DebboProject V3) - Habbo Hotel Private Server Emulator
 **Decompiler:** VB Decompiler v12.8.9443.43130
 **Mode:** P-code (`CompilationType = 1`)
-**Status:** 29/37 files completed (~16,601 lines done, ~247,599 remaining)
+**Status:** 34/37 files completed (~44,076 lines done, ~220,124 remaining)
 
 ---
 
@@ -245,19 +245,19 @@ sContent = oTextStream.ReadAll
 | modSpeech.bas | 1,887 | Speech commands |
 | modFuncs.bas | 1,932 | Utility functions |
 | modKonsole.bas | 2,026 | Console/messaging |
+| modEncryption.bas | 2,210 | MD5 hashing/encryption |
+| modSettings.bas | 5,167 | Settings tab management |
+| frmSettings.frm | 5,689 | Main settings form |
+| clsmCipher.cls | 6,013 | RC4 stream cipher |
+| modEncoding.bas | 8,396 | VL64/B64 encoding |
 
-### Remaining (8 files)
+### Remaining (3 files)
 | File | Lines | Priority |
 |------|-------|----------|
 | modHabFunc.bas | 139,759 | CRITICAL - Main server logic |
 | frmMain.frm | 50,924 | CRITICAL - Main form |
 | modPathFind.bas | 18,265 | HIGH - Pathfinding |
-| modEncoding.bas | 8,396 | HIGH - Habbo encoding |
-| clsmCipher.cls | 6,013 | HIGH - Encryption |
 | frmTab_housekeeping_extras3.frm | 12,785 | MEDIUM |
-| frmSettings.frm | 5,689 | MEDIUM |
-| modSettings.bas | 5,167 | MEDIUM |
-| modEncryption.bas | 2,210 | MEDIUM |
 
 ---
 
@@ -271,7 +271,7 @@ sContent = oTextStream.ReadAll
 6. **Save** the translated file back
 7. **Update** this file's progress section
 
-**Next file:** modEncryption.bas (2,210 lines)
+**Next file:** frmTab_housekeeping_extras3.frm (12,785 lines)
 
 ---
 
