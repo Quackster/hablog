@@ -5,7 +5,7 @@
 **Project:** HabLog (DebboProject V3) - Habbo Hotel Private Server Emulator
 **Decompiler:** VB Decompiler v12.8.9443.43130
 **Mode:** P-code (`CompilationType = 1`)
-**Status:** 28/37 files completed (~14,575 lines done, ~249,625 remaining)
+**Status:** 29/37 files completed (~16,601 lines done, ~247,599 remaining)
 
 ---
 
@@ -244,8 +244,9 @@ sContent = oTextStream.ReadAll
 | frmTab_publicroom_booteditor.frm | 1,756 | Bot editor |
 | modSpeech.bas | 1,887 | Speech commands |
 | modFuncs.bas | 1,932 | Utility functions |
+| modKonsole.bas | 2,026 | Console/messaging |
 
-### Remaining (9 files)
+### Remaining (8 files)
 | File | Lines | Priority |
 |------|-------|----------|
 | modHabFunc.bas | 139,759 | CRITICAL - Main server logic |
@@ -257,7 +258,6 @@ sContent = oTextStream.ReadAll
 | frmSettings.frm | 5,689 | MEDIUM |
 | modSettings.bas | 5,167 | MEDIUM |
 | modEncryption.bas | 2,210 | MEDIUM |
-| modKonsole.bas | 2,026 | MEDIUM |
 
 ---
 
@@ -271,7 +271,7 @@ sContent = oTextStream.ReadAll
 6. **Save** the translated file back
 7. **Update** this file's progress section
 
-**Next file:** modFuncs.bas (1,932 lines)
+**Next file:** modEncryption.bas (2,210 lines)
 
 ---
 
