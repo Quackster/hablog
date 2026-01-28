@@ -1,192 +1,128 @@
-# VB6 P-Code Reverse Engineering Task
+# VB6 P-Code Reverse Engineering - HabLog Project
 
-## Project Overview
-- **Project Name:** HabLog (DebboProject V3)
-- **Original Executable:** Resource (Final).exe
-- **Decompiler Used:** VB Decompiler v12.8.9443.43130
-- **Compilation Mode:** P-code (`CompilationType = 1` in VBP)
+## Quick Reference
 
-## Your Role
-You are reverse-engineering a VB6 p-code executable into compilable VB6 source code. The decompiler produced partial output with raw p-code opcodes in function bodies that need manual translation to proper VB6 syntax.
-
-## Technical Requirements
-- Output must compile in VB6 IDE without errors
-- Preserve procedure order, control flow, data types, form/module boundaries
-- Avoid refactoring or "cleanups" unless required for correctness
-- Match original control opcodes wherever possible
+**Project:** HabLog (DebboProject V3) - Habbo Hotel Private Server Emulator
+**Decompiler:** VB Decompiler v12.8.9443.43130
+**Mode:** P-code (`CompilationType = 1`)
+**Status:** 25/37 files completed (~9,000 lines done, ~255,200 remaining)
 
 ---
 
-## CRITICAL: Global Variable Mappings
+## 1. Global Variables (MemVar Mappings)
 
-These memory variables appear throughout the p-code. Always use these translations:
+Use these translations whenever you see `MemVar_` in p-code:
 
-| P-Code Symbol | VB6 Variable | Type | Purpose |
-|---------------|--------------|------|---------|
-| `MemVar_C0F044` | `gAppPath` | String | Application path |
-| `MemVar_C0F03C` | `gSettingsFile` | String | Settings file path |
+| P-Code Symbol | VB6 Name | Type | Description |
+|---------------|----------|------|-------------|
+| `MemVar_C0F044` | `gAppPath` | String | Application base path |
+| `MemVar_C0F03C` | `gSettingsFile` | String | Path to settings.ini |
 | `MemVar_C0F018` | `frmMain` | Form | Main form reference |
-| `MemVar_C0F040` | `gFSO` | FileSystemObject | File system object |
-| `MemVar_C0F100` | `gUsernames()` | String Array | Username array by socket index |
-| `MemVar_C10514` | (Global object) | Object | VB6 Global object |
+| `MemVar_C0F040` | `gFSO` | FileSystemObject | Global FSO instance |
+| `MemVar_C0F100` | `gUserData()` | UDT Array | Per-socket user session data |
+| `MemVar_C10514` | `Global` | Object | VB6 Global object (for Unload, App, etc.) |
+| `MemVar_C0F2DC` | `frmAlert` | Form | Alert form reference |
+| `MemVar_C0F2F0` | `frmBan` | Form | Ban form reference |
+| `MemVar_C0F304` | `frmCredits` | Form | Credits form reference |
+| `MemVar_C0F32C` | `frmLoaderGenerator` | Form | Loader generator form |
+| `MemVar_C0F340` | `frmUpdateUser` | Form | Update user form |
+| `MemVar_C0F354` | `frmWelcome` | Form | Welcome/About form |
+| `MemVar_C0F2B4` | `frmAutoClose` | Form | Auto close scheduler form |
 
-## CRITICAL: Function Mappings
+---
 
-These procedure addresses map to functions. Use these translations:
+## 2. Function Signatures (Proc Mappings)
 
-| P-Code Procedure | VB6 Function | Module | Signature |
-|------------------|--------------|--------|-----------|
-| `Proc_4_0_B22150` | `GetINI` | modINI | `GetINI(Section, Key, File) As String` |
-| `Proc_4_1_B1EBF0` | `WriteINI` | modINI | `WriteINI(Section, Key, Value, File)` |
-| `Proc_2_7_B2228C` | `RemoveUserFromRoom` | modHabFunc | `RemoveUserFromRoom(RoomId, Data)` |
-| `Proc_2_8_B229C4` | `RemoveUserFromPublicRoom` | modHabFunc | `RemoveUserFromPublicRoom(RoomId, Data)` |
+Use these translations whenever you see `Proc_` calls:
 
-## CRITICAL: User Data Structure (gUserData)
+### Core Functions
+| P-Code | Function | Module | Signature |
+|--------|----------|--------|-----------|
+| `Proc_4_0_B22150` | `GetINI` | modINI | `GetINI(Section As String, Key As String, File As String) As String` |
+| `Proc_4_1_B1EBF0` | `WriteINI` | modINI | `WriteINI(Section As String, Key As String, Value As String, File As String)` |
+| `Proc_7_0_B258E0` | `GetLocaleString` | modLocale | `GetLocaleString(Key As String) As String` |
+| `Proc_2_20_B1B384` | `SendData` | modHabFunc | `SendData(SocketIndex As Integer, Data As String)` |
 
-The `gUserData()` array holds per-socket user session data. Known fields:
-| Field | Type | Purpose |
-|-------|------|---------|
-| `.RoomId` | Double | Current room ID (0 if not in room) |
-| `.RoomSlot` | String | Room slot identifier |
-| `.State` | Integer | User state/status |
+### Room Functions
+| P-Code | Function | Module | Signature |
+|--------|----------|--------|-----------|
+| `Proc_2_7_B2228C` | `RemoveUserFromRoom` | modHabFunc | `RemoveUserFromRoom(RoomId As Double, Data As String)` |
+| `Proc_2_8_B229C4` | `RemoveUserFromPublicRoom` | modHabFunc | `RemoveUserFromPublicRoom(RoomId As Long, Data As String)` |
 
-## CRITICAL: API Constants
+### User Functions
+| P-Code | Function | Module | Signature |
+|--------|----------|--------|-----------|
+| `Proc_3_1_B...` | `GetUserName` | modUseronline | `GetUserName(UserNum As Variant) As String` |
 
-Always declare these in forms that use window positioning or dragging:
+---
 
+## 3. User Data Structure (gUserData UDT)
+
+The `gUserData()` array is indexed by socket number. Known fields:
+
+```vb
+Type UserDataType
+    RoomId As Double           ' Private room ID (0 = not in room) - global_224
+    PublicRoomId As Integer    ' Public room ID (0 = not in room) - global_4
+    RoomSlot As String         ' Room slot identifier - global_420
+    State As Integer           ' User state/status - global_280
+    Username As String         ' Username - global_204
+End Type
+```
+
+**P-Code field references:**
+- `MemLdFPR8 global_224` = `.RoomId`
+- `MemLdI2 global_4` = `.PublicRoomId`
+- `MemLdStr global_420` = `.RoomSlot`
+- `MemLdI2 global_280` = `.State`
+- `MemLdRfVar global_204` = `.Username`
+
+---
+
+## 4. Habbo Protocol Packets
+
+Common packet headers used when sending data to clients:
+
+| Packet | Purpose | Example |
+|--------|---------|---------|
+| `@R` | Room exit | `SendData i, "@R" & Chr$(1)` |
+| `@]` | User left room | `Chr$(1) & "@]" & RoomSlot` |
+| `@y1` | Position update | `SendData i, "@y1"` |
+| `AO` | Poll question | `"AO" & Question & Chr$(&HD) & Answers` |
+| `AP` | Poll results | `"AP" & Results & Chr$(2)` |
+| `BK` | Broadcast/Kick message | `"BK" & Message & Chr$(1)` |
+| `I` | Hotel view | `"I" & GetLocaleString("hotel_view")` |
+
+---
+
+## 5. frmMain Controls Reference
+
+Controls accessed via `VCallAd Control_ID_`:
+
+| Control | Type | Purpose |
+|---------|------|---------|
+| `frmMain.Sock()` | WinSock Array | Client socket connections |
+| `frmMain.SockI` | Property | Current socket count |
+| `frmMain.lstUsers` | ListBox | Online users list |
+| `frmMain.lstServers(0)` | WinSock | Server listening socket |
+| `frmMain.chkForeground` | CheckBox | Topmost window setting |
+| `frmMain.tmrAutoClose` | Timer | Auto close scheduler timer |
+
+**Socket state 7 = Connected**
+
+---
+
+## 6. Standard Code Patterns
+
+### Draggable Borderless Form
 ```vb
 Private Const WM_NCLBUTTONDOWN As Long = &HA1
 Private Const HTCAPTION As Long = 2
-Private Const HWND_TOPMOST As Long = -1
-Private Const HWND_NOTOPMOST As Long = -2
-Private Const SWP_NOSIZE As Long = 1
-Private Const SWP_NOMOVE As Long = 2
-Private Const SWP_FLAGS As Long = SWP_NOSIZE Or SWP_NOMOVE
 
-Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" _
+    (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 Private Declare Function ReleaseCapture Lib "user32" () As Long
-Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
-```
 
----
-
-## P-Code Opcode Translation Reference
-
-### Control Flow
-| Opcode | VB6 Equivalent |
-|--------|----------------|
-| `BranchF loc_xxx` | `If ... Then` (branch if false) |
-| `BranchT loc_xxx` | Loop continuation or `If` (branch if true) |
-| `Branch loc_xxx` | `GoTo` or `Else` branch |
-| `ForI4` / `NextI4` | `For...Next` loop (Long counter) |
-| `ForVar` / `NextStepVar` | `For Each...Next` or `For...Next Step` |
-| `OnErrorGoto loc_xxx` | `On Error GoTo label` |
-| `ExitProc` / `ExitProcHresult` | `Exit Sub` or `Exit Function` |
-
-### Object/Property Access
-| Opcode | VB6 Equivalent |
-|--------|----------------|
-| `FLdPrThis` / `FLdPr Me` | `Me` |
-| `VCallAd Control_ID_xxx` | `Me.xxx` (control access) |
-| `ImpAdLdRf MemVar_xxx` | Load global variable |
-| `ImpAdLdI4 MemVar_xxx` | Load global variable (Long) |
-| `NewIfNullPr TypeName` | Create object if null |
-
-### Literals and Data
-| Opcode | VB6 Equivalent |
-|--------|----------------|
-| `LitVarStr var_xx, "string"` | String constant |
-| `LitStr "string"` | String literal |
-| `LitI4 value` | Long constant |
-| `LitI2_Byte value` | Integer/Byte constant |
-| `LitI2_Byte &HFF` | `True` (-1) |
-| `LitI2_Byte 0` | `False` (0) |
-
-### Function Calls
-| Opcode | VB6 Equivalent |
-|--------|----------------|
-| `ImpAdCallFPR4 FuncName(...)` | Function call |
-| `ImpAdCallI2 FuncName()` | Function call (returns Integer) |
-| `VarLateMemLdVar var, .Property` | Late-bound property access |
-
-### String/Variant Operations
-| Opcode | VB6 Equivalent |
-|--------|----------------|
-| `ConcatStr` | String concatenation (`&`) |
-| `ConcatVar` | Variant concatenation |
-| `EqStr` | String comparison (`=`) |
-| `CStrVarVal` | `CStr()` conversion |
-| `CVarStr` | Convert to Variant string |
-
----
-
-## Translation Status
-
-### Completed Files (19 files)
-| File | P-Code Lines | Description |
-|------|-------------|-------------|
-| frmFirstRun.frm | ~100 | Splash screen with timer |
-| frmAgree.frm | 75 | EULA agreement form |
-| frmWelcome.frm | 325 | Welcome/About form with tabs |
-| modINI.bas | ~60 | INI file read/write functions |
-| modPowerOff.bas | 142 | Windows shutdown privilege |
-| modForm.bas | 41 | Form transparency functions |
-| modLocale.bas | 109 | Locale/language string loading |
-| modKey.bas | 3 | Encryption key storage |
-| modMySQL.bas | 123 | MySQL/ADODB database connectivity |
-| modBobba.bas | 183 | Bobba word filter (profanity) |
-| modUseronline.bas | 234 | Online user tracking |
-| EncryptionTools.cls | 57 | Encryption tools wrapper |
-| modIcon.bas | 0 | Empty file |
-| frmTab_publicroom_battleball.frm | 281 | BattleBall editor |
-| frmTab_publicroom_layout.frm | 289 | Layout editor |
-| frmAlert.frm | 307 | Alert/message form |
-| frmUpdateUser.frm | 395 | Change user mission |
-| frmBan.frm | 466 | Ban user for 24 hours |
-| frmCredits.frm | 487 | Add credits to user |
-| frmTabTutorial.frm | 552 | Tutorial chatbot form |
-| frmUpdate.frm | 643 | User account update utility |
-
-### Remaining Files (18 files, ~262,000 p-code lines)
-
-**Large Files (>5000 lines):**
-| File | P-Code Lines | Priority |
-|------|-------------|----------|
-| modHabFunc.bas | 139,759 | Critical - Main server logic |
-| frmMain.frm | 50,924 | Critical - Main form |
-| modPathFind.bas | 18,265 | High - Pathfinding |
-| frmTab_housekeeping_extras3.frm | 12,785 | Medium |
-| modEncoding.bas | 8,396 | High - Habbo encoding |
-| clsmCipher.cls | 6,013 | High - Encryption cipher |
-| modSettings.bas | 5,167 | Medium |
-| frmSettings.frm | 5,689 | Medium |
-
-**Medium Files (1000-5000 lines):**
-| File | P-Code Lines |
-|------|-------------|
-| modKonsole.bas | 2,026 |
-| modEncryption.bas | 2,210 |
-| modSpeech.bas | 1,887 |
-| modFuncs.bas | 1,932 |
-| modHabboClub.bas | 1,434 |
-| frmAutoClose.frm | 1,429 |
-| frmTab_publicroom_booteditor.frm | 1,756 |
-
-**Small Files (<1000 lines):**
-| File | P-Code Lines |
-|------|-------------|
-| frmTab_userlock.frm | 686 |
-| frmTab_publicroom_infobus.frm | 723 |
-| frmLoaderGenerator.frm | 786 |
-| frmWelcomes.frm | 915 |
-
----
-
-## Common Patterns in This Codebase
-
-### Draggable Borderless Form Pattern
-All borderless forms use this pattern for dragging:
-```vb
 Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 1 Then
         ReleaseCapture
@@ -197,9 +133,20 @@ Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y A
 End Sub
 ```
 
-### Topmost Window Pattern
-Forms check INI setting for topmost:
+### Topmost Window Toggle
 ```vb
+Private Const HWND_TOPMOST As Long = -1
+Private Const HWND_NOTOPMOST As Long = -2
+Private Const SWP_NOSIZE As Long = 1
+Private Const SWP_NOMOVE As Long = 2
+Private Const SWP_FLAGS As Long = SWP_NOSIZE Or SWP_NOMOVE
+
+Private Declare Function SetWindowPos Lib "user32" _
+    (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, _
+     ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, _
+     ByVal wFlags As Long) As Long
+
+' In Form_Load:
 If GetINI("server", "foreground", gSettingsFile) = "Y" Then
     SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
 Else
@@ -207,45 +154,131 @@ Else
 End If
 ```
 
-### INI File Operations
+### Socket Loop (Find User)
 ```vb
-' Read from INI
-sValue = GetINI("section", "key", gAppPath & "configuration\settings.ini")
-
-' Write to INI
-WriteINI "section", "key", sValue, gAppPath & "configuration\settings.ini"
-```
-
-### Socket Loop Pattern
-When iterating sockets to find/message users:
-```vb
+Dim i As Variant
 For i = 1 To frmMain.SockI
     If LCase(sTargetUser) = LCase(gUsernames(i)) And frmMain.Sock(CInt(i)).State = 7 Then
-        frmMain.Sock(CInt(i)).SendData sMessage
+        SendData CInt(i), sPacket
     End If
 Next i
 ```
 
+### FSO File Operations
+```vb
+Dim oTextStream As Object
+' Write mode (2 = ForWriting, True = Create)
+Set oTextStream = gFSO.OpenTextFile(sPath, 2, True, 0)
+oTextStream.Write sContent
+
+' Read mode (1 = ForReading)
+Set oTextStream = gFSO.OpenTextFile(sPath, 1, False, 0)
+sContent = oTextStream.ReadAll
+```
+
 ---
 
-## Project Dependencies
-- WinSock (mswinsck.ocx) - Socket communication
-- MSINET - Internet transfer control
-- TabCtl - Tab controls
-- ADODB - MySQL connectivity via ADO
-- Scripting.FileSystemObject - File operations
+## 7. P-Code Opcode Quick Reference
+
+### Control Flow
+| Opcode | Meaning |
+|--------|---------|
+| `BranchF loc_xxx` | Branch if FALSE (If...Then) |
+| `BranchT loc_xxx` | Branch if TRUE (loop continue) |
+| `Branch loc_xxx` | Unconditional jump (Else/GoTo) |
+| `ForVar`/`NextStepVar` | For...Next loop |
+| `ExitProcHresult` | Exit Sub/Function |
+
+### Data Operations
+| Opcode | Meaning |
+|--------|---------|
+| `LitStr "text"` | String literal |
+| `LitI4 value` | Long integer |
+| `LitI2_Byte &HFF` | True (-1) |
+| `LitI2_Byte 0` | False (0) |
+| `ConcatStr` | String concatenation (&) |
+| `EqStr` | String comparison (=) |
+
+### Object Access
+| Opcode | Meaning |
+|--------|---------|
+| `FLdPrThis` | Me reference |
+| `VCallAd Control_ID_xxx` | Me.xxx control |
+| `ImpAdLdRf MemVar_xxx` | Load global variable |
+| `NewIfNullPr TypeName` | Create if Nothing |
 
 ---
 
-## Instructions for Continuation
+## 8. Translation Progress
 
-1. Read the next file from `src\decompiled\` folder
-2. Translate p-code opcodes to VB6 source using mappings above
-3. Preserve form designer section (BEGIN...END block)
-4. Replace p-code procedure bodies with proper VB6 code
-5. Add `Option Explicit` at the top of code section
-6. Declare necessary API constants and functions
-7. Save the translated file back
-8. Update the "Completed Files" section above
+### Completed (23 files)
+| File | Lines | Type |
+|------|-------|------|
+| modINI.bas | 60 | INI read/write |
+| modPowerOff.bas | 142 | Shutdown privileges |
+| modForm.bas | 41 | Form transparency |
+| modLocale.bas | 109 | Locale strings |
+| modKey.bas | 3 | Encryption key |
+| modMySQL.bas | 123 | Database connectivity |
+| modBobba.bas | 183 | Profanity filter |
+| modUseronline.bas | 234 | User tracking |
+| modIcon.bas | 0 | Empty |
+| EncryptionTools.cls | 57 | Encryption wrapper |
+| frmFirstRun.frm | 100 | Splash screen |
+| frmAgree.frm | 75 | EULA form |
+| frmWelcome.frm | 325 | About form |
+| frmAlert.frm | 307 | Alert dialog |
+| frmBan.frm | 466 | Ban user form |
+| frmCredits.frm | 487 | Add credits form |
+| frmUpdateUser.frm | 395 | Update mission |
+| frmUpdate.frm | 643 | Account updater |
+| frmTabTutorial.frm | 552 | Tutorial chatbot |
+| frmTab_userlock.frm | 686 | User lock settings |
+| frmTab_publicroom_infobus.frm | 723 | Infobus polls |
+| frmTab_publicroom_battleball.frm | 281 | BattleBall editor |
+| frmTab_publicroom_layout.frm | 289 | Layout editor |
+| frmLoaderGenerator.frm | 786 | Loader generator |
+| frmWelcomes.frm | 915 | Setup wizard |
+| frmAutoClose.frm | 1,429 | Auto close scheduler |
+| modHabboClub.bas | 1,434 | Habbo Club gifts |
 
-**Next file to translate:** frmTab_userlock.frm (686 lines)
+### Remaining (12 files)
+| File | Lines | Priority |
+|------|-------|----------|
+| modHabFunc.bas | 139,759 | CRITICAL - Main server logic |
+| frmMain.frm | 50,924 | CRITICAL - Main form |
+| modPathFind.bas | 18,265 | HIGH - Pathfinding |
+| modEncoding.bas | 8,396 | HIGH - Habbo encoding |
+| clsmCipher.cls | 6,013 | HIGH - Encryption |
+| frmTab_housekeeping_extras3.frm | 12,785 | MEDIUM |
+| frmSettings.frm | 5,689 | MEDIUM |
+| modSettings.bas | 5,167 | MEDIUM |
+| modEncryption.bas | 2,210 | MEDIUM |
+| modKonsole.bas | 2,026 | MEDIUM |
+| modFuncs.bas | 1,932 | MEDIUM |
+| modSpeech.bas | 1,887 | MEDIUM |
+| frmTab_publicroom_booteditor.frm | 1,756 | MEDIUM |
+
+---
+
+## 9. Translation Workflow
+
+1. **Read** the p-code file from `src\decompiled\`
+2. **Preserve** the form designer section (VERSION...End block)
+3. **Add** `Option Explicit` after `Attribute VB_Name`
+4. **Translate** each procedure using the mappings above
+5. **Add** required API declarations and constants
+6. **Save** the translated file back
+7. **Update** this file's progress section
+
+**Next file:** modHabboClub.bas (1,434 lines)
+
+---
+
+## 10. Project Dependencies
+
+- **mswinsck.ocx** - WinSock control for TCP/IP
+- **MSINET** - Internet transfer control
+- **TabCtl** - Tab strip controls
+- **ADODB** - MySQL via ADO
+- **Scripting.FileSystemObject** - File operations
