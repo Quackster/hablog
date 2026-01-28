@@ -7,6 +7,8 @@
 **Mode:** P-code (`CompilationType = 1`)
 **Status:** 36/37 files completed (~75,126 lines done, ~189,074 remaining)
 
+Do NOT do any "stubs" or fake implementations, convert everything properly as it should from the original P-Code.
+
 ---
 
 ## 1. Global Variables (MemVar Mappings)
