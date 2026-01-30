@@ -9530,3 +9530,470 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
     ' ... rest of login initialization
 End Function
 
+' HandleCataloguePurchase - Handles catalogue item purchases and gifts
+' Processes buying items from the catalogue, including regular items, posters,
+' deals (bundles), trophies, pets, and gifting items to other users
+' sData format: Chr(13) delimited - Page|Item|CustomText|IsGift|RecipientName|GiftMessage
+Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oFile As Object
+    Dim sParts() As String
+    Dim sUsername As String
+    Dim sRecipientName As String
+    Dim sItemName As String
+    Dim sItemString As String
+    Dim sPageId As String
+    Dim sPageData As String
+    Dim sPageLines() As String
+    Dim sCustomText As String
+    Dim sGiftMessage As String
+    Dim sIsGift As String
+    Dim vCredits As Variant
+    Dim vPrice As Variant
+    Dim vNewCredits As Variant
+    Dim vFurniId As Variant
+    Dim vFurniId2 As Variant
+    Dim vItemIds As String
+    Dim i As Variant
+    Dim j As Variant
+    Dim sLine As String
+    Dim sLineFields() As String
+    Dim sDealItems As String
+    Dim sDealParts() As String
+    Dim sDealItemName As String
+    Dim sPosterNum As String
+    Dim sTransactionLog As String
+    Dim sNature1 As Variant
+    Dim sNature2 As Variant
+    Dim sHand As String
+    Dim sPresentStyle As Variant
+    Dim bBobbaFilter As Boolean
+
+    sUsername = gUserData(SocketIndex).Username
+
+    ' Parse the data packet (Chr(13) delimited)
+    sParts = Split(sData, Chr$(13))
+
+    ' Check if this is a gift purchase
+    sIsGift = sParts(5)
+
+    ' Validate gift recipient if this is a gift
+    If sIsGift <> "0" Then
+        sRecipientName = LCase$(sParts(6))
+
+        ' Check if recipient user folder exists
+        If Not gFSO.FolderExists(gDataPath & "habbos\" & sRecipientName) Then
+            ' Send error message - recipient not found
+            Call SendData("BK" & Replace$(GetConfigValue("no_user_for_gift"), "%user%", sParts(6)) & Chr$(1), SocketIndex)
+            Exit Function
+        End If
+    End If
+
+    ' Parse item string - may be "poster XXXX" or "dealXX" or regular item
+    sItemString = sParts(3)
+
+    ' Handle poster items (format: "poster XXXX")
+    If Left$(Split(sItemString, " ")(0), 6) <> "poster" And InStr(1, sItemString, "deal") = 0 Then
+        ' Regular item or special item - get first word
+        sItemName = Split(sItemString, " ")(0)
+    Else
+        ' This is a poster or deal - need to extract differently
+        If InStr(1, sItemString, "deal") > 0 Then
+            ' Deal item: first word contains deal ID
+            sItemName = Split(sItemString, " ")(0) & " " & Split(sItemString, " ")(1)
+        Else
+            ' Regular: first word is item name
+            sItemName = Split(sItemString, " ")(0)
+        End If
+    End If
+
+    ' Get catalogue page ID
+    sPageId = sParts(1)
+
+    ' Read user's current credits
+    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\credits.txt", 1, False, 0)
+    vCredits = Val(oFile.ReadAll)
+    Set oFile = Nothing
+
+    ' Read catalogue page to find item price
+    Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\" & sPageId & "\page.txt", 1, False, 0)
+    sPageData = oFile.ReadAll
+    Set oFile = Nothing
+
+    ' Parse page lines to find item
+    sPageLines = Split(sPageData, Chr$(13))
+    vPrice = 0
+
+    For i = 0 To UBound(sPageLines)
+        sLine = sPageLines(i)
+        ' Look for product lines starting with "p:"
+        If InStr(1, sLine, "p:") = 1 Then
+            ' Parse product line (Tab delimited): p:itemname, type, price, etc.
+            sLineFields = Split(sLine, Chr$(9))
+
+            ' Check if this is our item (field 8 contains item name)
+            If InStr(1, sLineFields(8), sItemName) > 0 Then
+                ' Field 2 contains the price
+                vPrice = Val(sLineFields(2))
+                Exit For
+            End If
+        End If
+    Next i
+
+    ' Exit if item not found (price < 1)
+    If vPrice < 1 Then
+        Exit Function
+    End If
+
+    ' Check if user has enough credits
+    If vCredits < vPrice Then
+        Exit Function
+    End If
+
+    ' Send purchase acknowledgement if debug checkbox enabled
+    If frmMain.chkAC.Value = 1 Then
+        Call SendData("AC" & Chr$(1), SocketIndex)
+    End If
+
+    ' Deduct credits
+    vNewCredits = vCredits - vPrice
+    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\credits.txt", 2, False, 0)
+    oFile.Write CStr(vNewCredits)
+    Set oFile = Nothing
+
+    ' Log transaction
+    sTransactionLog = Format$(Date, "dd-mm-yyyy") & Chr$(9) & Format$(Time, "hh:mm") & Chr$(9) & _
+                      "-" & CStr(vPrice) & Chr$(9) & "0" & Chr$(9) & Chr$(9) & "stuff_store" & Chr$(13)
+    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\transactions.txt", 8, True, 0)
+    oFile.Write sTransactionLog
+    Set oFile = Nothing
+
+    ' Send updated credits to client
+    Call SendData("@F" & CStr(vNewCredits) & ".0" & Chr$(1), SocketIndex)
+
+    ' Initialize item IDs string for tracking
+    vItemIds = ""
+
+    ' Check bobba filter setting
+    bBobbaFilter = (GetIniValue(gDataPath, "config", "bobba_filter") = "1")
+
+    ' Handle different item types
+    If InStr(1, sItemName, "ovi") = 1 Then
+        ' ====== DOOR ITEMS (ovi) - Creates linked pair ======
+        ' Read and increment furni count
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        vFurniId = Val(oFile.ReadAll) + 1
+        Set oFile = Nothing
+
+        vFurniId2 = vFurniId + 1
+
+        ' Update count
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        oFile.Write CStr(vFurniId2)
+        Set oFile = Nothing
+
+        ' Copy template folders for both door parts
+        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId), True)
+        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId2), True)
+
+        ' Create destination files linking the pair
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\destination.txt", False, True)
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\destination.txt", 2, False, 0)
+        oFile.Write CStr(vFurniId2)
+        Set oFile = Nothing
+
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId2) & "\destination.txt", False, True)
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId2) & "\destination.txt", 2, False, 0)
+        oFile.Write CStr(vFurniId)
+        Set oFile = Nothing
+
+        vItemIds = CStr(vFurniId) & ";" & CStr(vFurniId2) & ";"
+
+    ElseIf InStr(1, sItemName, "deal") = 1 Then
+        ' ====== DEAL BUNDLES ======
+        ' Get deal number from item name (e.g., "deal01" -> "01")
+        Dim sDealNum As String
+        sDealNum = Mid$(sItemName, 5)
+
+        ' Map deal numbers to item lists
+        Select Case sDealNum
+            Case "01": sDealItems = "TUS;TUS;TUS;PYS"
+            Case "02": sDealItems = "OSB;PYN;TUN;TUN"
+            Case "03": sDealItems = "PMP;mmchair;mmchair;BV7"
+            Case "04": sDealItems = "LTP;PL4;RTV"
+            Case "05": sDealItems = "E9P;E9P;E9P;E9P;E9P;E9P;"
+            Case "06": sDealItems = "JAA;JAA;JAA;PPA"
+            Case "07": sDealItems = "E7P;E7P;E7P;E7P;A7P"
+            Case "08": sDealItems = "OSB;PPS;BMB;aurinko;"
+            Case "09": sDealItems = "poster 1002;ANANAS;PUU;PUU"
+            Case "10": sDealItems = "poster 1001;ANANAS;PUU;PUU"
+            Case "97": sDealItems = "petfood1;petfood1;petfood1;petfood1;petfood1;petfood1"
+            Case "98": sDealItems = "petfood2;petfood2;petfood2;petfood2;petfood2;petfood2"
+            Case "99": sDealItems = "petfood3;petfood3;petfood3;petfood3;petfood3;petfood3"
+            Case "96": sDealItems = "petfood4;petfood4;petfood4;petfood4;petfood4;petfood4"
+            Case "104": sDealItems = "queue_red;queue_red;queue_red"
+            Case "105": sDealItems = "queue_red;queue_red;queue_red;queue_red;queue_red"
+            Case "106": sDealItems = "queue_blue;queue_blue;queue_blue"
+            Case "107": sDealItems = "queue_blue;queue_blue;queue_blue;queue_blue;queue_blue"
+            Case "108": sDealItems = "queue_purple;queue_purple;queue_purple"
+            Case "109": sDealItems = "queue_purple;queue_purple;queue_purple;queue_purple;queue_purple"
+            Case "114": sDealItems = "queue_green;queue_green;queue_green"
+            Case "115": sDealItems = "queue_green;queue_green;queue_green;queue_green;queue_green"
+            Case "118": sDealItems = "queue_navy;queue_navy;queue_navy"
+            Case "119": sDealItems = "queue_navy;queue_navy;queue_navy;queue_navy;queue_navy"
+            Case "0111": sDealItems = "hc_rllr;hc_rllr;hc_rllr;hc_rllr;hc_rllr"
+            Case Else: sDealItems = ""
+        End Select
+
+        ' Process each item in the deal
+        sDealParts = Split(sDealItems, ";")
+        For i = 0 To UBound(sDealParts)
+            If sDealParts(i) <> "" Then
+                sDealItemName = Split(sDealParts(i), " ")(0)
+
+                ' Get next furni ID
+                Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+                vFurniId = Val(oFile.ReadAll) + 1
+                Set oFile = Nothing
+
+                ' Check if ID is already in use, increment if needed
+                Do While CStr(FurniIdExists(vFurniId)) <> CStr(vFurniId)
+                    vFurniId = vFurniId + 1
+                Loop
+
+                ' Update count
+                Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+                oFile.Write CStr(vFurniId)
+                Set oFile = Nothing
+
+                ' Copy template
+                Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sDealItemName, gDataPath & "furni\" & CStr(vFurniId), True)
+
+                ' Handle poster customization within deal
+                If sDealItemName = "poster" Then
+                    sPosterNum = Split(sDealParts(i), " ")(1)
+                    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+                    oFile.Write sPosterNum
+                    Set oFile = Nothing
+                End If
+
+                vItemIds = vItemIds & CStr(vFurniId) & ";"
+            End If
+        Next i
+
+    Else
+        ' ====== REGULAR ITEMS ======
+        ' Get custom text (apply bobba filter if enabled)
+        sCustomText = sParts(4)
+        If bBobbaFilter Then
+            sCustomText = BobbaFilter(sCustomText)
+        End If
+
+        ' Remove Chr(1) from custom text
+        sCustomText = Replace$(sCustomText, Chr$(1), "")
+
+        ' Get next furni ID
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        vFurniId = Val(oFile.ReadAll) + 1
+        Set oFile = Nothing
+
+        ' Check if ID is already in use, increment if needed
+        Do While CStr(FurniIdExists(vFurniId)) <> CStr(vFurniId)
+            vFurniId = vFurniId + 1
+        Loop
+
+        ' Update count
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        oFile.Write CStr(vFurniId)
+        Set oFile = Nothing
+
+        ' Copy template folder
+        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId), True)
+
+        ' Handle customization based on item type
+        If sItemName = "l" Or sItemName = "t" Then
+            ' Lamp or Table - write custom text
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+            oFile.Write sCustomText
+            Set oFile = Nothing
+
+        ElseIf sItemName = "poster" Then
+            ' Poster - write poster number to cust.txt
+            sPosterNum = Split(sItemString, " ")(1)
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+            oFile.Write sPosterNum
+            Set oFile = Nothing
+
+        ElseIf InStr(1, sItemName, "prizetrophy") = 1 Then
+            ' Trophy - write date, username, and custom inscription
+            Dim sTrophyData As String
+            sTrophyData = "H" & sUsername & Chr$(9) & _
+                          Format$(Day(Now), "00") & "-" & Format$(Month(Now), "00") & "-" & Year(Now) & Chr$(9) & _
+                          sCustomText
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+            oFile.Write sTrophyData
+            Set oFile = Nothing
+
+        ElseIf sItemName = "pet0" Or sItemName = "pet1" Or sItemName = "pet2" Then
+            ' Pet - write pet data, nature, and birth date
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\petdata.txt", 2, False, 0)
+            oFile.Write sCustomText
+            Set oFile = Nothing
+
+            ' Generate random nature values (0-7 each, must be different)
+            Randomize Timer
+            sNature1 = Int(Rnd() * 8)
+            Do
+                sNature2 = Int(Rnd() * 8)
+            Loop While sNature2 = sNature1
+
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\nature.txt", 2, False, 0)
+            oFile.Write CStr(sNature1) & CStr(sNature2)
+            Set oFile = Nothing
+
+            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\born.txt", 2, False, 0)
+            oFile.Write CStr(Now)
+            Set oFile = Nothing
+        End If
+
+        vItemIds = CStr(vFurniId) & ";"
+    End If
+
+    ' ====== ADD TO INVENTORY OR GIFT ======
+    If sIsGift = "0" Then
+        ' Not a gift - add to user's own hand
+        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 1, False, 0)
+        sHand = oFile.ReadAll
+        Set oFile = Nothing
+
+        ' Append new items, clean up double semicolons
+        sHand = Replace$(sHand & ";" & vItemIds & ";", ";;", ";")
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 2, False, 0)
+        oFile.Write sHand
+        Set oFile = Nothing
+
+        ' Trigger hand refresh
+        Call HandleHandUpdate("AAlast", SocketIndex)
+
+    Else
+        ' Gift - create present and send to recipient
+        sRecipientName = LCase$(sParts(6))
+        sGiftMessage = sParts(7)
+
+        ' Check recipient exists again (in case invalidated)
+        If Not gFSO.FolderExists(gDataPath & "habbos\" & sRecipientName) Then
+            ' Fallback to sender's own inventory
+            gUserData(SocketIndex).Username = sUsername
+            Call SendData("BKThere is no Habbo with that name. The present is delivered to your hand." & Chr$(1), SocketIndex)
+        End If
+
+        ' Apply bobba filter to gift message
+        If bBobbaFilter Then
+            sGiftMessage = BobbaFilter(sGiftMessage)
+        End If
+        sGiftMessage = Replace$(sGiftMessage, Chr$(1), "")
+
+        ' Create present box furni
+        Randomize Timer
+        sPresentStyle = Int(Rnd() * 7)
+        If sPresentStyle = 0 Then sPresentStyle = ""
+
+        ' Get next furni ID for present
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        vFurniId = Val(oFile.ReadAll) + 1
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        oFile.Write CStr(vFurniId)
+        Set oFile = Nothing
+
+        ' Create present folder and files
+        Call gFSO.CreateFolder(gDataPath & "furni\" & CStr(vFurniId))
+
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inroom.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\is.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\loc.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\name.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\type.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\height.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inbox.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", False, True)
+        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\stack.txt", False, True)
+
+        ' Write present data
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+        oFile.Write "110,0,0"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inroom.txt", 2, False, 0)
+        oFile.Write "0"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\is.txt", 2, False, 0)
+        oFile.Write "S"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\loc.txt", 2, False, 0)
+        oFile.Write "0 0 0"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\name.txt", 2, False, 0)
+        oFile.Write "present_gen" & CStr(sPresentStyle)
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+        oFile.Write "H!" & sGiftMessage
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\type.txt", 2, False, 0)
+        oFile.Write "solid"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", 2, False, 0)
+        oFile.Write "0"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\height.txt", 2, False, 0)
+        oFile.Write "0"
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", 2, False, 0)
+        oFile.Write sItemString
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inbox.txt", 2, False, 0)
+        oFile.Write vItemIds
+        Set oFile = Nothing
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\stack.txt", 2, False, 0)
+        oFile.Write "1"
+        Set oFile = Nothing
+
+        ' Add present to recipient's hand
+        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sRecipientName & "\hand.txt", 1, False, 0)
+        sHand = oFile.ReadAll
+        Set oFile = Nothing
+
+        sHand = Replace$(sHand & ";" & CStr(vFurniId) & ";", ";;", ";")
+
+        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sRecipientName & "\hand.txt", 2, False, 0)
+        oFile.Write sHand
+        Set oFile = Nothing
+
+        ' Notify recipient if online
+        For i = 1 To frmMain.SockIGet()
+            If LCase$(gUserData(i).Username) = sRecipientName Then
+                If frmMain.SockI(i).State = 7 Then
+                    Call HandleHandUpdate("AAlast", CInt(i))
+                    Exit For
+                End If
+            End If
+        Next i
+    End If
+End Function
+
