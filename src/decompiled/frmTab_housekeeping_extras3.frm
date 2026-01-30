@@ -1796,6 +1796,25 @@ Private Declare Function ReleaseCapture Lib "user32" () As Long
 Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
 
 Private Sub Form_Load()
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim oTextStream As Object
+    Dim sSettingsPath As String
+    Dim sWelcomeMsg As String
+    Dim vParts As Variant
+    Dim vMsgParts As Variant
+    Dim sMsgContent As String
+    Dim sHCBadge As String
+    Dim sPath As String
+    Dim sRoomId As String
+    Dim sRoomName As String
+    Dim sOwnerName As String
+    Dim sBobbaList As String
+    Dim vBobbaLines As Variant
+    Dim i As Variant
+    Dim j As Variant
+    Dim sCatCodes(0 To 9) As String
+
     ' Set window position based on foreground setting
     If GetINI("server", "foreground", gSettingsFile) = "Y" Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
@@ -1803,7 +1822,9 @@ Private Sub Form_Load()
         SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS
     End If
 
-    ' Load localized captions
+    sSettingsPath = gAppPath & "configuration\settings.ini"
+
+    ' Load localized captions for all UI elements
     Me.Label7.Caption = GetLocaleString("settings_welcometext")
     Me.Frame3.Caption = GetLocaleString("settings_connectionframe")
     Me.Frame4.Caption = GetLocaleString("settings_mainsettingsframe")
@@ -1845,39 +1866,196 @@ Private Sub Form_Load()
     Me.Command19.Caption = GetLocaleString("savebutton")
     Me.Label18.Caption = GetLocaleString("enable")
     Me.Label19.Caption = GetLocaleString("change_name")
-    Me.Command13.Caption = GetLocaleString("chancelbutton")
-    Me.Command14.Caption = GetLocaleString("savebutton")
-    Me.Command10.Caption = GetLocaleString("deletebutton")
-    Me.Command11.Caption = GetLocaleString("savebutton")
-    Me.Command12.Caption = GetLocaleString("chancelbutton")
+    Me.Label20.Caption = GetLocaleString("categorie_info")
+    Me.Label14.Caption = GetLocaleString("room_name")
+    Me.Label15.Caption = GetLocaleString("room_desc")
+    Me.Label16.Caption = GetLocaleString("password")
+    Me.Label17.Caption = GetLocaleString("owner")
     Me.Command16.Caption = GetLocaleString("chancelbutton")
     Me.Command17.Caption = GetLocaleString("savebutton")
-    Me.Command8.Caption = GetLocaleString("chancelbutton")
-    Me.Command20.Caption = GetLocaleString("restore_room")
 
-    ' Populate user list combo
-    PopulateUserList
+    ' Populate rank combo with predefined ranks
+    Me.Combo4.AddItem "habbo"
+    Me.Combo4.AddItem "habbox"
+    Me.Combo4.AddItem "silver"
+    Me.Combo4.AddItem "gold"
+    Me.Combo4.AddItem "moderator"
+    Me.Combo4.AddItem "admin"
+    Me.Combo4.Text = GetLocaleString("ranks")
 
-    ' Populate rank combo
-    PopulateRankList
+    Me.Command10.Caption = GetLocaleString("delete_room")
+    Me.Command11.Caption = GetLocaleString("savebutton")
+    Me.Command12.Caption = GetLocaleString("chancelbutton")
 
-    ' Populate room list
-    PopulateRoomList
+    ' Load server port
+    Me.Text6.Text = GetINI("server", "port", gSettingsFile)
 
-    ' Populate deleted rooms for restore
-    PopulateDeletedRooms
+    ' Load bobba filter setting
+    Me.Check1.Value = CInt(Val(GetINI("config", "bobba_filter", sSettingsPath)))
 
-    ' Load server settings
-    LoadServerSettings
+    ' Load welcome message setting
+    Me.Check2.Value = CInt(Val(GetINI("config", "welcome_message", sSettingsPath)))
 
-    ' Load HC presents settings
-    LoadHCPresents
+    ' Load console setting
+    Me.Check3.Value = CInt(Val(GetINI("config", "console", sSettingsPath)))
+
+    ' Load room limit settings
+    Me.Text1.Text = CStr(Val(GetINI("config", "maxroomsperuser", sSettingsPath)))
+    Me.Text2.Text = CStr(Val(GetINI("config", "maxguestroomsinlist", sSettingsPath)))
+    Me.Text3.Text = CStr(Val(GetINI("config", "maxfavouriterooms", sSettingsPath)))
+    Me.Text4.Text = CStr(Val(GetINI("config", "maxrollersinroom", sSettingsPath)))
+    Me.Text5.Text = CStr(Val(GetINI("config", "maxpetsinroom", sSettingsPath)))
+    Me.Text24.Text = CStr(Val(GetINI("config", "maxfriends", sSettingsPath)))
+
+    Me.Command13.Caption = GetLocaleString("chancelbutton")
+    Me.Command14.Caption = GetLocaleString("savebutton")
+
+    ' Load bobba replacement word
+    Me.Text16.Text = GetINI("config", "replacement", sSettingsPath)
+    Me.Command15.Caption = GetLocaleString("save_filterword")
+    Me.Label8.Caption = GetLocaleString("replacement")
+
+    ' Load HC present settings
+    For i = 0 To 10
+        Me.hcpresent(CInt(i)).Text = GetINI("HC", "present" & CStr(CInt(i) + 1), sSettingsPath)
+    Next i
+
+    ' Load and parse welcome message setting
+    sWelcomeMsg = GetINI("config", "welcome_message", sSettingsPath)
+    If InStr(1, sWelcomeMsg, ",") <> 0 Then
+        vParts = Split(sWelcomeMsg, ",", -1, 0)
+        If vParts(0) = "1" Then
+            Me.Text7.Text = CStr(vParts(1))
+            Me.Text7.Enabled = True
+            Me.Check2.Value = 1
+        Else
+            Me.Text7.Text = CStr(vParts(1))
+            Me.Text7.Enabled = False
+            Me.Check2.Value = 0
+        End If
+    Else
+        Me.Text7.Enabled = False
+        Me.Check2.Value = 0
+    End If
+
+    ' Load HC badge settings
+    sHCBadge = GetINI("HC", "hcbadge", sSettingsPath)
+    Me.Text19.Text = Mid(sHCBadge, 2)
+
+    sHCBadge = GetINI("HC", "hcbadge2", sSettingsPath)
+    Me.Text20.Text = Mid(sHCBadge, 2)
+
+    ' Load register console message if file exists
+    sPath = gAppPath & "new_habbo\directmail\welcome.message"
+    If gFSO.FileExists(sPath) Then
+        Me.Check10.Value = 1
+        Set oTextStream = gFSO.OpenTextFile(sPath, 1, False, 0)
+        sMsgContent = oTextStream.ReadAll
+
+        ' Parse message content - split by Chr(2)
+        vMsgParts = Split(sMsgContent, Chr(2), -1, 0)
+
+        ' First part after BEI prefix contains sender/subject info
+        vParts = Split(CStr(vMsgParts(0)), "BEI", -1, 0)
+        Me.Text21.Text = CStr(vParts(1))
+
+        ' Second part is the subject
+        Me.Text22.Text = CStr(vMsgParts(1))
+
+        ' Third part is the message body - replace Chr(13) with vbCrLf
+        Me.Text23.Text = Replace(CStr(vMsgParts(2)), Chr(13), vbCrLf, 1, -1, 1)
+
+        Me.Text21.Enabled = True
+        Me.Text22.Enabled = True
+        Me.Text23.Enabled = True
+    Else
+        Me.Check10.Value = 0
+        Me.Text21.Enabled = False
+        Me.Text22.Enabled = False
+        Me.Text23.Enabled = False
+    End If
+
+    ' Initialize category codes array
+    sCatCodes(0) = "SL"
+    sCatCodes(1) = "RL"
+    sCatCodes(2) = "PR"
+    sCatCodes(3) = "RQ"
+    sCatCodes(4) = "SV"
+    sCatCodes(5) = "Q]"
+    sCatCodes(6) = "R]"
+    sCatCodes(7) = "PL"
+    sCatCodes(8) = "RN"
+    sCatCodes(9) = "RR"
 
     ' Load category settings
-    LoadCategorySettings
+    For i = 0 To 9
+        Me.catprop(CInt(i)).Clear
+        Me.catprop(CInt(i)).AddItem "0"
+        Me.catprop(CInt(i)).AddItem "1"
+        Me.catprop(CInt(i)).AddItem "2"
+        Me.catprop(CInt(i)).Text = GetINI("categories", sCatCodes(CInt(i)), gAppPath & "room_categories\categories.ini")
+        Me.catname(CInt(i)).Text = GetLocaleString("categorie_" & CStr(CInt(i) + 1))
 
-    ' Load bobba replacement
-    Me.Text16.Text = GetINI("bobba", "replacement", gSettingsFile)
+        ' Check for trading allowed file
+        If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt") Then
+            Me.allowtraden(CInt(i)).Value = 1
+        End If
+    Next i
+
+    ' Populate user list from habbos folder
+    Set oFolder = gFSO.GetFolder(gAppPath & "habbos")
+    For Each oSubFolder In oFolder.SubFolders
+        sPath = oSubFolder.Path
+        If gFSO.FileExists(sPath & "\name.txt") Then
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            Me.Combo1.AddItem oTextStream.ReadAll
+        End If
+    Next oSubFolder
+
+    ' Populate room lists from privaterooms folder
+    Set oFolder = gFSO.GetFolder(gAppPath & "privaterooms")
+    For Each oSubFolder In oFolder.SubFolders
+        sPath = oSubFolder.Path
+
+        ' Extract room ID from path
+        vParts = Split(sPath, "\", -1, 0)
+        For j = 1 To UBound(vParts)
+            sRoomId = vParts(j)
+        Next j
+
+        ' Check if room is deleted
+        If gFSO.FileExists(sPath & "\deleted.txt") = False Then
+            ' Active room - load name and owner
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo3.AddItem sRoomId & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        Else
+            ' Deleted room - add to restore combo
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo5.AddItem sRoomId & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        End If
+    Next oSubFolder
+
+    ' Load bobba filter word list
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    sBobbaList = oTextStream.ReadAll
+    vBobbaLines = Split(sBobbaList, vbCrLf, -1, 0)
+
+    Me.List1.Clear
+    For i = 0 To UBound(vBobbaLines)
+        If vBobbaLines(i) <> vbNullString Then
+            Me.List1.AddItem CStr(vBobbaLines(i))
+        End If
+    Next i
 End Sub
 
 Private Sub Check10_Click()
@@ -1978,45 +2156,64 @@ End Sub
 
 Private Sub Combo3_Click()
     ' Room selected from combo - load room data
+    Dim sComboText As String
+    Dim vParts As Variant
     Dim sRoomId As String
     Dim sRoomPath As String
     Dim oTextStream As Object
 
-    sRoomId = Me.Combo3.Text
+    sComboText = Me.Combo3.Text
 
-    ' Check if valid selection
-    If Left(sRoomId, 1) <> " " Then
-        sRoomPath = gAppPath & "privaterooms\" & sRoomId
+    ' Extract room ID from combo text (first part before space)
+    vParts = Split(sComboText, " ", -1, 0)
 
-        If gFSO.FolderExists(sRoomPath) Then
-            ' Store room ID
-            Me.room_id.Caption = sRoomId
+    ' Check if room ID is numeric (valid selection)
+    If IsNumeric(vParts(0)) = False Then Exit Sub
 
-            ' Load owner.txt
-            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\owner.txt", 1, False, 0)
-            Me.Text15.Text = oTextStream.ReadAll
+    sRoomId = CStr(vParts(0))
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
 
-            ' Load name.txt
-            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 1, False, 0)
-            Me.Text12.Text = oTextStream.ReadAll
+    ' Check if room folder exists
+    If gFSO.FolderExists(sRoomPath) = False Then Exit Sub
 
-            ' Load description.txt
-            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 1, False, 0)
-            Me.Text13.Text = oTextStream.ReadAll
+    ' Load owner.txt
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\owner.txt", 1, False, 0)
+    Me.Text15.Text = oTextStream.ReadAll
 
-            ' Load password.txt
-            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\password.txt", 1, False, 0)
-            Me.Text14.Text = oTextStream.ReadAll
+    ' Load name.txt
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\name.txt", 1, False, 0)
+    Me.Text12.Text = oTextStream.ReadAll
 
-            ' Enable room fields
-            Me.Text12.Enabled = True
-            Me.Text13.Enabled = True
-            Me.Text14.Enabled = True
-            Me.Command10.Enabled = True
-            Me.Command11.Enabled = True
-            Me.Command12.Enabled = True
-        End If
+    ' Load description.txt
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\description.txt", 1, False, 0)
+    Me.Text13.Text = oTextStream.ReadAll
+
+    ' Load pass.txt (room password)
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\pass.txt", 1, False, 0)
+    Me.Text14.Text = oTextStream.ReadAll
+
+    ' Store room ID
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Me.room_id.Caption = CStr(vParts(0))
+
+    ' Enable password field only if it has content (not blank or "null")
+    If Me.Text14.Text <> " " And Me.Text14.Text <> vbNullString And Me.Text14.Text <> "null" Then
+        Me.Text14.Enabled = True
+    Else
+        Me.Text14.Enabled = False
     End If
+
+    ' Enable room editing controls
+    Me.Command10.Enabled = True
+    Me.Command11.Enabled = True
+    Me.Command12.Enabled = True
+    Me.Command20.Enabled = True
+    Me.Text12.Enabled = True
+    Me.Text13.Enabled = True
 End Sub
 
 Private Sub Combo4_Click()
@@ -2055,19 +2252,37 @@ Private Sub Combo5_Click()
 End Sub
 
 Private Sub Command1_Click()
-    ' Cancel button on Limits tab - reload settings
-    LoadServerSettings
+    ' Cancel button on Limits tab - reloads settings from INI files
+    Dim sSettingsPath As String
+
+    sSettingsPath = gAppPath & "configuration\settings.ini"
+
+    ' Reload room settings from server settings file
+    Me.Text1.Text = GetINI("server", "maxroomsperuser", gSettingsFile)
+    Me.Text2.Text = GetINI("server", "maxguestroomsinlist", gSettingsFile)
+    Me.Text3.Text = GetINI("server", "maxfavouriterooms", gSettingsFile)
+
+    ' Reload config settings from settings.ini
+    Me.Text4.Text = GetINI("config", "maxrollersinroom", sSettingsPath)
+    Me.Text5.Text = GetINI("config", "maxpetsinroom", sSettingsPath)
+    Me.Text24.Text = GetINI("config", "maxfriends", sSettingsPath)
 End Sub
 
 Private Sub Command2_Click()
-    ' Save button on Limits tab - save settings
-    WriteINI "limits", "max_rooms_per_user", Me.Text1.Text, gSettingsFile
-    WriteINI "limits", "max_rooms_in_list", Me.Text2.Text, gSettingsFile
-    WriteINI "limits", "max_favourited_rooms", Me.Text3.Text, gSettingsFile
-    WriteINI "limits", "max_rollers_in_room", Me.Text4.Text, gSettingsFile
-    WriteINI "limits", "max_pets_in_room", Me.Text5.Text, gSettingsFile
-    WriteINI "server", "port", Me.Text6.Text, gSettingsFile
-    WriteINI "limits", "max_friends_in_list", Me.Text24.Text, gSettingsFile
+    ' Save button on Limits tab - saves settings to INI files
+    Dim sSettingsPath As String
+
+    sSettingsPath = gAppPath & "configuration\settings.ini"
+
+    ' Save room settings to server settings file
+    WriteINI "server", "maxroomsperuser", Me.Text1.Text, gSettingsFile
+    WriteINI "server", "maxguestroomsinlist", Me.Text2.Text, gSettingsFile
+    WriteINI "server", "maxfavouriterooms", Me.Text3.Text, gSettingsFile
+
+    ' Save config settings to settings.ini
+    WriteINI "config", "maxrollersinroom", Me.Text4.Text, sSettingsPath
+    WriteINI "config", "maxpetsinroom", Me.Text5.Text, sSettingsPath
+    WriteINI "config", "maxfriends", Me.Text24.Text, sSettingsPath
 End Sub
 
 Private Sub Command3_Click()
@@ -2125,106 +2340,748 @@ Private Sub Command8_Click()
 End Sub
 
 Private Sub Command9_Click()
-    ' Save user changes button
-    SaveUserData
+    ' Save user changes button - handles user data saving and moderator promotion
+    Dim sUsername As String
+    Dim sUserPath As String
+    Dim sOldRank As String
+    Dim sNewRank As String
+    Dim oTextStream As Object
+    Dim sModPath As String
+    Dim nResponse As Integer
+
+    ' Disable buttons during save
+    Me.Command9.Enabled = False
+    Me.Command8.Enabled = False
+
+    sUsername = Me.Text8.Text
+
+    ' Check if username is empty or user doesn't exist
+    If sUsername = vbNullString Then
+        MsgBox GetLocaleString("user_doesnt_exists"), vbExclamation, "Server"
+        GoTo ExitSub
+    End If
+
+    sUserPath = gAppPath & "habbos\" & LCase(sUsername)
+
+    If gFSO.FolderExists(sUserPath) = False Then
+        MsgBox GetLocaleString("user_doesnt_exists"), vbExclamation, "Server"
+        GoTo ExitSub
+    End If
+
+    ' Ensure fields have at least a space if empty
+    If Me.Text9.Text = vbNullString Then
+        Me.Text9.Text = " "
+    End If
+    If Me.Text10.Text = vbNullString Then
+        Me.Text10.Text = " "
+    End If
+
+    ' Validate rank selection
+    sNewRank = Me.Combo2.Text
+    If sNewRank <> "habbo" And sNewRank <> "habbox" And sNewRank <> "silver" And sNewRank <> "gold" And sNewRank <> "moderator" And sNewRank <> "admin" Then
+        Me.Combo2.Text = "habbo"
+        sNewRank = "habbo"
+    End If
+
+    ' Validate credits is numeric
+    If IsNumeric(Me.Text11.Text) = False Then
+        Me.Text11.Text = "0"
+    End If
+
+    ' Read old rank from file
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rank.txt", 1, False, 0)
+    sOldRank = oTextStream.ReadAll
+
+    ' Check if user is being promoted to moderator
+    If sOldRank <> "moderator" And sNewRank = "moderator" Then
+        ' Show confirmation dialog for moderator promotion
+        nResponse = MsgBox(Replace(GetLocaleString("user_to_mod_msg"), "%name%", "MOD-" & sUsername, 1, -1, 1), vbYesNo + vbQuestion, "Server")
+
+        If nResponse = vbNo Then
+            GoTo ExitSub
+        End If
+
+        ' Check if MOD- account already exists
+        sModPath = gAppPath & "habbos\mod-" & LCase(sUsername)
+        If gFSO.FolderExists(sModPath) Then
+            MsgBox "MOD-" & sUsername & " " & GetLocaleString("already_exists"), vbExclamation, "Server"
+            GoTo ExitSub
+        End If
+
+        ' Copy user folder to MOD- folder
+        gFSO.CopyFolder sUserPath, sModPath, True
+
+        ' Create empty files for new MOD account
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\hand.txt", 2, False, 0)
+        oTextStream.Write ";"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\badges.txt", 2, False, 0)
+        oTextStream.Write ";"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\badgeonoff.txt", 2, False, 0)
+        oTextStream.Write "0"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\curbadge.txt", 2, False, 0)
+        oTextStream.Write "ADM"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\credits.txt", 2, False, 0)
+        oTextStream.Write "0"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\name.txt", 2, False, 0)
+        oTextStream.Write "MOD-" & sUsername
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\rooms.txt", 2, False, 0)
+        oTextStream.Write "0"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\roomlist.txt", 2, False, 0)
+        oTextStream.Write vbNullString
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\inquiries.txt", 2, False, 0)
+        oTextStream.Write vbNullString
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\friendlist.txt", 2, False, 0)
+        oTextStream.Write vbNullString
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\mission.txt", 2, False, 0)
+        oTextStream.Write " "
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\figure.txt", 2, False, 0)
+        oTextStream.Write " "
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\poolfigure.txt", 2, False, 0)
+        oTextStream.Write " "
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\sex.txt", 2, False, 0)
+        oTextStream.Write "M"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\rank.txt", 2, False, 0)
+        oTextStream.Write "moderator"
+
+        Set oTextStream = gFSO.OpenTextFile(sModPath & "\pass.txt", 2, False, 0)
+        oTextStream.Write Me.Text9.Text
+    Else
+        ' Normal save - write all user data
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\pass.txt", 2, False, 0)
+        oTextStream.Write Me.Text9.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\mission.txt", 2, False, 0)
+        oTextStream.Write Me.Text10.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\credits.txt", 2, False, 0)
+        oTextStream.Write Me.Text11.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\email.txt", 2, False, 0)
+        oTextStream.Write Me.Text25.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\birth.txt", 2, False, 0)
+        oTextStream.Write Me.Text26.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\badges.txt", 2, False, 0)
+        oTextStream.Write Me.Text27.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\poolfigure.txt", 2, False, 0)
+        oTextStream.Write Me.Text28.Text
+
+        Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rank.txt", 2, False, 0)
+        oTextStream.Write sNewRank
+
+        MsgBox GetLocaleString("user_saved"), vbInformation, "Server"
+    End If
+
+ExitSub:
+    Me.Command9.Enabled = True
+    Me.Command8.Enabled = True
 End Sub
 
 Private Sub Command10_Click()
-    ' Delete room button
+    ' Delete room button - marks room as deleted and updates owner's room count
     Dim sRoomId As String
-    Dim sSrcPath As String
-    Dim sDstPath As String
+    Dim sRoomPath As String
+    Dim sOwnerName As String
+    Dim sOwnerPath As String
+    Dim sRoomCount As String
+    Dim lRoomCount As Long
+    Dim sRoomList As String
+    Dim oTextStream As Object
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim vPathParts As Variant
+    Dim sSubFolderName As String
+    Dim sPath As String
+    Dim sRoomName As String
+    Dim i As Variant
 
     sRoomId = Me.room_id.Caption
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
 
-    If sRoomId <> "0" And sRoomId <> vbNullString Then
-        If MsgBox(GetLocaleString("confirm_delete_room"), vbYesNo + vbQuestion) = vbYes Then
-            sSrcPath = gAppPath & "privaterooms\" & sRoomId
-            sDstPath = gAppPath & "privaterooms_deleted\" & sRoomId
+    ' Check if room folder exists
+    If gFSO.FolderExists(sRoomPath) = False Then Exit Sub
 
-            ' Create deleted folder if needed
-            If Not gFSO.FolderExists(gAppPath & "privaterooms_deleted") Then
-                gFSO.CreateFolder gAppPath & "privaterooms_deleted"
-            End If
+    ' Read owner name from owner.txt
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\owner.txt", 1, False, 0)
+    sOwnerName = oTextStream.ReadAll
 
-            ' Move room to deleted folder
-            If gFSO.FolderExists(sSrcPath) Then
-                gFSO.MoveFolder sSrcPath, sDstPath
-            End If
+    ' Check if owner's habbo folder exists
+    sOwnerPath = gAppPath & "habbos\" & LCase(sOwnerName)
+    If gFSO.FolderExists(sOwnerPath) = False Then Exit Sub
 
-            PopulateRoomList
-            PopulateDeletedRooms
-            ClearRoomFields
-        End If
+    ' Read current room count from owner's rooms.txt
+    Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\rooms.txt", 1, False, 0)
+    sRoomCount = oTextStream.ReadAll
+    lRoomCount = Val(sRoomCount)
+
+    ' Ensure room count doesn't go below 1
+    If lRoomCount <= 0 Then
+        lRoomCount = 1
     End If
+
+    ' Decrement room count and save
+    Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\rooms.txt", 2, False, 0)
+    oTextStream.Write CStr(lRoomCount - 1)
+
+    ' Update owner's roomlist.txt - check if it's empty
+    Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 1, False, 0)
+    If oTextStream.AtEndOfStream Then
+        ' File is empty, write empty string
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 2, False, 0)
+        oTextStream.Write vbNullString
+    Else
+        ' Read current list and remove this room
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 1, False, 0)
+        sRoomList = oTextStream.ReadAll
+        sRoomList = Replace(sRoomList, "<" & sRoomId & ">", vbNullString, 1, -1, 1)
+
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 2, False, 0)
+        oTextStream.Write sRoomList
+    End If
+
+    ' Create deleted.txt marker file in room folder
+    gFSO.CreateTextFile sRoomPath & "\deleted.txt", True, False
+
+    ' Clear room editing fields
+    Me.Combo3.Clear
+    Me.Combo5.Clear
+    Me.room_id.Caption = "0"
+    Me.Text12.Text = vbNullString
+    Me.Text13.Text = vbNullString
+    Me.Text14.Text = vbNullString
+    Me.Command10.Enabled = False
+    Me.Command11.Enabled = False
+    Me.Command12.Enabled = False
+    Me.Command20.Enabled = False
+
+    ' Set combo placeholder text
+    Me.Combo3.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+    Me.Combo5.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+
+    ' Repopulate room combos from privaterooms folder
+    Set oFolder = gFSO.GetFolder(gAppPath & "privaterooms")
+    For Each oSubFolder In oFolder.SubFolders
+        sPath = oSubFolder.Path
+
+        ' Extract room ID from path
+        vPathParts = Split(sPath, "\", -1, 0)
+        For i = 1 To UBound(vPathParts)
+            sSubFolderName = vPathParts(i)
+        Next i
+
+        ' Check if room is deleted
+        If gFSO.FileExists(sPath & "\deleted.txt") = False Then
+            ' Active room - add to Combo3
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo3.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        Else
+            ' Deleted room - add to Combo5 for restore
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo5.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        End If
+    Next oSubFolder
+
+    ' Re-enable buttons
+    Me.Command10.Enabled = True
+    Me.Command11.Enabled = True
+    Me.Command12.Enabled = True
+    Me.Command20.Enabled = True
 End Sub
 
 Private Sub Command11_Click()
-    ' Save room changes button
-    SaveRoomData
+    ' Save room changes button - writes room data and repopulates lists
+    Dim sRoomId As String
+    Dim sRoomPath As String
+    Dim oTextStream As Object
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim vPathParts As Variant
+    Dim sSubFolderName As String
+    Dim sPath As String
+    Dim sRoomName As String
+    Dim sOwnerName As String
+    Dim i As Variant
+
+    sRoomId = Me.room_id.Caption
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+    ' Check if room folder exists
+    If gFSO.FolderExists(sRoomPath) = False Then Exit Sub
+
+    ' Ensure text fields have at least a space if empty
+    If Me.Text12.Text = vbNullString Then
+        Me.Text12.Text = " "
+    End If
+    If Me.Text13.Text = vbNullString Then
+        Me.Text13.Text = " "
+    End If
+    If Me.Text14.Text = vbNullString Then
+        Me.Text14.Text = " "
+    End If
+
+    ' Save room name
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 2, False, 0)
+    oTextStream.Write Me.Text12.Text
+
+    ' Save room description
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 2, False, 0)
+    oTextStream.Write Me.Text13.Text
+
+    ' Save room password
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\pass.txt", 2, False, 0)
+    oTextStream.Write Me.Text14.Text
+
+    ' Clear and repopulate room combos
+    Me.Combo3.Clear
+    Me.Combo5.Clear
+    Me.room_id.Caption = "0"
+    Me.Text12.Text = vbNullString
+    Me.Text13.Text = vbNullString
+    Me.Text14.Text = vbNullString
+    Me.Command10.Enabled = False
+    Me.Command11.Enabled = False
+    Me.Command12.Enabled = False
+    Me.Command20.Enabled = False
+
+    ' Set combo placeholder text
+    Me.Combo3.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+    Me.Combo5.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+
+    ' Repopulate room combos from privaterooms folder
+    Set oFolder = gFSO.GetFolder(gAppPath & "privaterooms")
+    For Each oSubFolder In oFolder.SubFolders
+        sPath = oSubFolder.Path
+
+        ' Extract room ID from path
+        vPathParts = Split(sPath, "\", -1, 0)
+        For i = 1 To UBound(vPathParts)
+            sSubFolderName = vPathParts(i)
+        Next i
+
+        ' Check if room is deleted
+        If gFSO.FileExists(sPath & "\deleted.txt") = False Then
+            ' Active room - add to Combo3
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo3.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        Else
+            ' Deleted room - add to Combo5 for restore
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo5.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        End If
+    Next oSubFolder
 End Sub
 
 Private Sub Command12_Click()
-    ' Cancel room changes button
-    Combo3_Click
+    ' Cancel room changes button - reloads room data from files
+    Dim sRoomComboText As String
+    Dim vParts As Variant
+    Dim sRoomId As String
+    Dim sRoomPath As String
+    Dim oTextStream As Object
+
+    sRoomComboText = Me.Combo3.Text
+
+    ' Extract room ID from combo text (first part before space)
+    vParts = Split(sRoomComboText, " ", -1, 0)
+    sRoomId = CStr(vParts(0))
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+    ' Reload room name
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 1, False, 0)
+    Me.Text12.Text = oTextStream.ReadAll
+
+    ' Reload room description
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\description.txt", 1, False, 0)
+    Me.Text13.Text = oTextStream.ReadAll
+
+    ' Reload room password
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vParts(0)) & "\pass.txt", 1, False, 0)
+    Me.Text14.Text = oTextStream.ReadAll
+
+    ' Store room ID
+    vParts = Split(Me.Combo3.Text, " ", -1, 0)
+    Me.room_id.Caption = CStr(vParts(0))
+
+    ' Enable password field only if it has content
+    If Me.Text14.Text <> " " And Me.Text14.Text <> vbNullString Then
+        Me.Text14.Enabled = True
+    Else
+        Me.Text14.Enabled = False
+    End If
+
+    Me.Text12.Enabled = True
+    Me.Text13.Enabled = True
 End Sub
 
 Private Sub Command13_Click()
-    ' Cancel button on Categories tab
-    LoadCategorySettings
+    ' Cancel button on Categories tab - reloads category settings from files
+    Dim i As Variant
+    Dim sCatCodes(0 To 9) As String
+
+    ' Initialize category codes array
+    sCatCodes(0) = "SL"
+    sCatCodes(1) = "RL"
+    sCatCodes(2) = "PR"
+    sCatCodes(3) = "RQ"
+    sCatCodes(4) = "SV"
+    sCatCodes(5) = "Q]"
+    sCatCodes(6) = "R]"
+    sCatCodes(7) = "PL"
+    sCatCodes(8) = "RN"
+    sCatCodes(9) = "RR"
+
+    ' Reload category settings
+    For i = 0 To 9
+        Me.catprop(CInt(i)).Clear
+        Me.catprop(CInt(i)).AddItem "0"
+        Me.catprop(CInt(i)).AddItem "1"
+        Me.catprop(CInt(i)).AddItem "2"
+        Me.catprop(CInt(i)).Text = GetINI("categories", sCatCodes(CInt(i)), gAppPath & "room_categories\categories.ini")
+        Me.catname(CInt(i)).Text = GetLocaleString("categorie_" & CStr(CInt(i) + 1))
+
+        ' Check for trading allowed file
+        If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt") Then
+            Me.allowtraden(CInt(i)).Value = 1
+        Else
+            Me.allowtraden(CInt(i)).Value = 0
+        End If
+    Next i
 End Sub
 
 Private Sub Command14_Click()
-    ' Save button on Categories tab
-    SaveCategorySettings
+    ' Save button on Categories tab - saves category settings to files
+    Dim i As Variant
+    Dim sCatCodes(0 To 9) As String
+    Dim sLocalePath As String
+
+    ' Disable buttons during save
+    Me.Command13.Enabled = False
+    Me.Command14.Enabled = False
+
+    ' Initialize category codes array
+    sCatCodes(0) = "SL"
+    sCatCodes(1) = "RL"
+    sCatCodes(2) = "PR"
+    sCatCodes(3) = "RQ"
+    sCatCodes(4) = "SV"
+    sCatCodes(5) = "Q]"
+    sCatCodes(6) = "R]"
+    sCatCodes(7) = "PL"
+    sCatCodes(8) = "RN"
+    sCatCodes(9) = "RR"
+
+    On Error Resume Next
+
+    ' Save category settings
+    For i = 0 To 9
+        ' Save category property (enabled state)
+        WriteINI "categories", sCatCodes(CInt(i)), Me.catprop(CInt(i)).Text, gAppPath & "room_categories\categories.ini"
+
+        ' Save category name to locale file
+        sLocalePath = App.Path & "\locale\" & GetINI("server", "lang", gSettingsFile) & "\locale.txt"
+        WriteINI "locale", "categorie_" & CStr(CInt(i) + 1), Me.catname(CInt(i)).Text, sLocalePath
+
+        ' Handle trading allowed file
+        If Me.allowtraden(CInt(i)).Value = 1 Then
+            ' Create trading allowed file if it doesn't exist
+            If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt") = False Then
+                gFSO.CreateTextFile gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt", False, False
+            End If
+        Else
+            ' Delete trading allowed file if it exists
+            If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt") Then
+                gFSO.DeleteFile gAppPath & "room_categories\allowtrade_" & sCatCodes(CInt(i)) & ".txt", False
+            End If
+        End If
+    Next i
+
+    ' Re-enable buttons
+    Me.Command14.Enabled = True
+    Me.Command13.Enabled = True
 End Sub
 
 Private Sub Command15_Click()
-    ' Save bobba replacement button
-    WriteINI "bobba", "replacement", Me.Text16.Text, gSettingsFile
+    ' Save bobba replacement button - saves replacement word and updates frmMain textbox
+    Dim oTextStream As Object
+    Dim sBobbaContent As String
+
     Me.Command15.Enabled = False
+
+    ' Save replacement word to settings
+    WriteINI "config", "replacement", Me.Text16.Text, gAppPath & "configuration\settings.ini"
+
+    ' Check if bobbafilter.ini has content
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    If oTextStream.AtEndOfStream = False Then
+        ' Read bobba filter content and update frmMain textbox
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+        sBobbaContent = oTextStream.ReadAll
+        frmMain.Text1.Text = GetINI("config", "replacement", gAppPath & "configuration\settings.ini") & Chr(1) & sBobbaContent
+    End If
+
+    Me.Command15.Enabled = True
 End Sub
 
 Private Sub Command16_Click()
-    ' Cancel button on Ranks tab
-    Combo4_Click
+    ' Cancel button on Ranks tab - reloads rank settings from INI file
+    Dim sRankName As String
+    Dim sRankFile As String
+    Dim i As Integer
+
+    sRankName = Me.Combo4.Text
+
+    ' Check if rank name is valid (not placeholder)
+    If sRankName = vbNullString Or sRankName = GetLocaleString("ranks") Then Exit Sub
+
+    sRankFile = gAppPath & "ranks\" & sRankName & ".ini"
+
+    ' Check if rank file exists
+    If gFSO.FileExists(sRankFile) = False Then Exit Sub
+
+    ' Load speech command rights
+    For i = 0 To 20
+        Me.rights(i).Value = CInt(Val(GetINI("rank", "speech_cmd" & CStr(i), sRankFile)))
+    Next i
+
+    ' Load mod-tool rights
+    For i = 0 To 4
+        Me.mtool(i).Value = CInt(Val(GetINI("rank", "mod_tool" & CStr(i), sRankFile)))
+    Next i
+
+    ' Load badges
+    Me.Text17.Text = GetINI("rank", "badges", sRankFile)
+
+    ' Load other rights
+    Me.Check4.Value = CInt(Val(GetINI("rank", "admin_catalogue", sRankFile)))
+    Me.Check5.Value = CInt(Val(GetINI("rank", "see_room_owner", sRankFile)))
+    Me.Check6.Value = CInt(Val(GetINI("rank", "enter_any_room", sRankFile)))
+    Me.Check7.Value = CInt(Val(GetINI("rank", "receive_cfh", sRankFile)))
+    Me.Check8.Value = CInt(Val(GetINI("rank", "rights_any_room", sRankFile)))
+    Me.Text18.Text = GetINI("rank", "other_rights", sRankFile)
 End Sub
 
 Private Sub Command17_Click()
-    ' Save button on Ranks tab
-    SaveRankSettings Me.Combo4.Text
+    ' Save button on Ranks tab - saves rank settings to INI file
+    Dim sRankName As String
+    Dim sRankFile As String
+    Dim i As Integer
+
+    sRankName = Me.Combo4.Text
+
+    ' Check if rank name is valid (not placeholder)
+    If sRankName = vbNullString Or sRankName = GetLocaleString("ranks") Then Exit Sub
+
+    sRankFile = gAppPath & "ranks\" & sRankName & ".ini"
+
+    ' Save speech command rights
+    For i = 0 To 20
+        WriteINI "rank", "speech_cmd" & CStr(i), CStr(Me.rights(i).Value), sRankFile
+    Next i
+
+    ' Save mod-tool rights
+    For i = 0 To 4
+        WriteINI "rank", "mod_tool" & CStr(i), CStr(Me.mtool(i).Value), sRankFile
+    Next i
+
+    ' Save badges
+    WriteINI "rank", "badges", Me.Text17.Text, sRankFile
+
+    ' Save other rights
+    WriteINI "rank", "admin_catalogue", CStr(Me.Check4.Value), sRankFile
+    WriteINI "rank", "see_room_owner", CStr(Me.Check5.Value), sRankFile
+    WriteINI "rank", "enter_any_room", CStr(Me.Check6.Value), sRankFile
+    WriteINI "rank", "receive_cfh", CStr(Me.Check7.Value), sRankFile
+    WriteINI "rank", "rights_any_room", CStr(Me.Check8.Value), sRankFile
+    WriteINI "rank", "other_rights", Me.Text18.Text, sRankFile
 End Sub
 
 Private Sub Command18_Click()
-    ' Cancel button on HC Presents tab
-    LoadHCPresents
+    ' Cancel button on HC Presents tab - reloads HC present settings from INI
+    Dim i As Integer
+    Dim sSettingsPath As String
+
+    sSettingsPath = gAppPath & "configuration\settings.ini"
+
+    ' Load HC present settings
+    For i = 0 To 10
+        Me.hcpresent(i).Text = GetINI("HC", "present" & CStr(i + 1), sSettingsPath)
+    Next i
+
+    ' Load extra badges settings
+    Me.Text19.Text = Mid(GetINI("HC", "hcbadge", sSettingsPath), 2)
+    Me.Text20.Text = Mid(GetINI("HC", "hcbadge2", sSettingsPath), 2)
 End Sub
 
 Private Sub Command19_Click()
-    ' Save button on HC Presents tab
-    SaveHCPresents
+    ' Save button on HC Presents tab - saves HC present settings to INI
+    Dim i As Integer
+    Dim sSettingsPath As String
+
+    sSettingsPath = gAppPath & "configuration\settings.ini"
+
+    ' Save HC present settings
+    For i = 0 To 10
+        WriteINI "HC", "present" & CStr(i + 1), Me.hcpresent(i).Text, sSettingsPath
+    Next i
+
+    ' Save extra badges settings (with X prefix)
+    WriteINI "HC", "hcbadge", "X" & Me.Text19.Text, sSettingsPath
+    WriteINI "HC", "hcbadge2", "X" & Me.Text20.Text, sSettingsPath
 End Sub
 
 Private Sub Command20_Click()
-    ' Restore deleted room button
+    ' Restore deleted room button - removes deleted.txt marker and updates owner's room count
+    Dim sComboText As String
+    Dim vParts As Variant
     Dim sRoomId As String
-    Dim sSrcPath As String
-    Dim sDstPath As String
+    Dim sRoomPath As String
+    Dim sOwnerName As String
+    Dim sOwnerPath As String
+    Dim sRoomCount As String
+    Dim lRoomCount As Long
+    Dim sRoomList As String
+    Dim oTextStream As Object
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim vPathParts As Variant
+    Dim sSubFolderName As String
+    Dim sPath As String
+    Dim sRoomName As String
+    Dim i As Variant
 
-    sRoomId = Me.Combo5.Text
+    sComboText = Me.Combo5.Text
 
-    If Left(sRoomId, 1) <> " " And sRoomId <> vbNullString Then
-        sSrcPath = gAppPath & "privaterooms_deleted\" & sRoomId
-        sDstPath = gAppPath & "privaterooms\" & sRoomId
+    ' Extract room ID from combo text (first part before space)
+    vParts = Split(sComboText, " ", -1, 0)
 
-        ' Move back from deleted folder
-        If gFSO.FolderExists(sSrcPath) Then
-            gFSO.MoveFolder sSrcPath, sDstPath
-        End If
+    ' Check if room ID is numeric (valid selection)
+    If IsNumeric(vParts(0)) = False Then Exit Sub
 
-        PopulateDeletedRooms
-        PopulateRoomList
+    sRoomId = CStr(vParts(0))
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+    ' Delete the deleted.txt marker file
+    gFSO.DeleteFile sRoomPath & "\deleted.txt", False
+
+    ' Read owner name from owner.txt
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\owner.txt", 1, False, 0)
+    sOwnerName = oTextStream.ReadAll
+
+    ' Check if owner's habbo folder exists
+    sOwnerPath = gAppPath & "habbos\" & LCase(sOwnerName)
+    If gFSO.FolderExists(sOwnerPath) = False Then
+        ' Owner doesn't exist - just continue
+    Else
+        ' Read current room count from owner's rooms.txt
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\rooms.txt", 1, False, 0)
+        sRoomCount = oTextStream.ReadAll
+        lRoomCount = Val(sRoomCount)
+
+        ' Increment room count and save
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\rooms.txt", 2, False, 0)
+        oTextStream.Write CStr(lRoomCount + 1)
+
+        ' Update owner's roomlist.txt - add room ID
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 1, False, 0)
+        sRoomList = oTextStream.ReadAll
+        sRoomList = sRoomList & "<" & sRoomId & ">"
+
+        Set oTextStream = gFSO.OpenTextFile(sOwnerPath & "\roomlist.txt", 2, False, 0)
+        oTextStream.Write sRoomList
     End If
+
+    ' Clear room editing fields
+    Me.Combo3.Clear
+    Me.Combo5.Clear
+    Me.room_id.Caption = "0"
+    Me.Text12.Text = vbNullString
+    Me.Text13.Text = vbNullString
+    Me.Text14.Text = vbNullString
+    Me.Command10.Enabled = False
+    Me.Command11.Enabled = False
+    Me.Command12.Enabled = False
+    Me.Command20.Enabled = False
+
+    ' Set combo placeholder text
+    Me.Combo3.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+    Me.Combo5.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+
+    ' Repopulate room combos from privaterooms folder
+    Set oFolder = gFSO.GetFolder(gAppPath & "privaterooms")
+    For Each oSubFolder In oFolder.SubFolders
+        sPath = oSubFolder.Path
+
+        ' Extract room ID from path
+        vPathParts = Split(sPath, "\", -1, 0)
+        For i = 1 To UBound(vPathParts)
+            sSubFolderName = vPathParts(i)
+        Next i
+
+        ' Check if room is deleted
+        If gFSO.FileExists(sPath & "\deleted.txt") = False Then
+            ' Active room - add to Combo3
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo3.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        Else
+            ' Deleted room - add to Combo5 for restore
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\name.txt", 1, False, 0)
+            sRoomName = oTextStream.ReadAll
+
+            Set oTextStream = gFSO.OpenTextFile(sPath & "\owner.txt", 1, False, 0)
+            sOwnerName = oTextStream.ReadAll
+
+            Me.Combo5.AddItem sSubFolderName & " Name: " & sRoomName & " Besitzer: " & sOwnerName
+        End If
+    Next oSubFolder
+
+    ' Re-enable buttons
+    Me.Command10.Enabled = True
+    Me.Command11.Enabled = True
+    Me.Command12.Enabled = True
+    Me.Command20.Enabled = True
 End Sub
 
 Private Sub Image1_Click(Index As Integer)

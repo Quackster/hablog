@@ -1648,49 +1648,1982 @@ Public Function Hab_Color(info As Variant, Index As Long) As String
 End Function
 
 ' ============================================================================
-' Private Helper Functions (stubs for referenced procedures)
+' Image4_Click - Send broadcast message to users based on option selection
+' ============================================================================
+
+Private Sub Image4_Click()
+    Dim i As Variant
+    Dim checkValue As Integer
+    Dim startTime As Variant
+    Dim elapsed As Variant
+    Dim msgPacket As String
+
+    On Error Resume Next
+
+    ' Check optAll (send to all users)
+    checkValue = optAll.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                frmMain.Sock(CInt(i)).SendData msgPacket
+            End If
+        Next i
+
+        ' Wait loop with DoEvents
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+        Exit Sub
+    End If
+
+    ' Check optAdmins (send to admins only)
+    checkValue = optAdmins.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                If gUserData(CLng(i)).Rank = "admin" Then
+                    msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                    frmMain.Sock(CInt(i)).SendData msgPacket
+                End If
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+        Exit Sub
+    End If
+
+    ' Check optModerators (send to moderators only)
+    checkValue = optModerators.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                If gUserData(CLng(i)).Rank = "moderator" Then
+                    msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                    frmMain.Sock(CInt(i)).SendData msgPacket
+                End If
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+        Exit Sub
+    End If
+
+    ' Check optHabbox (send to habbox users only)
+    checkValue = optHabbox.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                If gUserData(CLng(i)).Rank = "habbox" Then
+                    msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                    frmMain.Sock(CInt(i)).SendData msgPacket
+                End If
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+        Exit Sub
+    End If
+
+    ' Check optManagers (send to managers only)
+    checkValue = optManagers.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                If gUserData(CLng(i)).Rank = "manager" Then
+                    msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                    frmMain.Sock(CInt(i)).SendData msgPacket
+                End If
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+        Exit Sub
+    End If
+
+    ' Check optStaff (send to all staff - admin, manager, habbox, moderator)
+    checkValue = optStaff.Value
+    If checkValue = True Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                If gUserData(CLng(i)).Rank = "admin" Or _
+                   gUserData(CLng(i)).Rank = "manager" Or _
+                   gUserData(CLng(i)).Rank = "habbox" Or _
+                   gUserData(CLng(i)).Rank = "moderator" Then
+                    msgPacket = "BK" & txtBroadcast.Text & Chr$(1)
+                    frmMain.Sock(CInt(i)).SendData msgPacket
+                End If
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+    End If
+End Sub
+
+' ============================================================================
+' Image3_Click - Add credits to users
+' ============================================================================
+
+Private Sub Image3_Click()
+    Dim i As Variant
+    Dim creditsToAdd As String
+    Dim currentCredits As Variant
+    Dim newCredits As Double
+    Dim tsFile As Object
+    Dim usernameLower As String
+    Dim transactionLog As String
+    Dim dateStr As String
+
+    On Error Resume Next
+
+    ' Check if credits text is numeric
+    If IsNumeric(txtCreditsAmount.Text) = False Then
+        Exit Sub
+    End If
+
+    creditsToAdd = txtCreditsAmount.Text
+
+    ' Check if optSingle is selected (add to all connected users) and optDatabase is not
+    If optSingle.Value = True And optDatabase.Value = False Then
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 Then
+                ' Get lowercase username
+                usernameLower = LCase(gUserData(CLng(i)).Username)
+
+                ' Read current credits
+                Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & usernameLower & "\credits.txt", 1, False, 0)
+                currentCredits = tsFile.ReadAll
+                tsFile.Close
+
+                ' Calculate new credits
+                newCredits = Val(creditsToAdd) + Val(CStr(currentCredits))
+
+                ' Write new credits
+                Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & usernameLower & "\credits.txt", 2, False, 0)
+                tsFile.Write CStr(newCredits)
+                tsFile.Close
+
+                ' Create transaction log entry
+                dateStr = Replace(CStr(Date), "-", ".")
+                transactionLog = dateStr & Chr$(9) & CStr(Time) & Chr$(9) & creditsToAdd & Chr$(9) & "0" & Chr$(9) & Chr$(9) & "web_internal" & Chr$(13)
+
+                ' Append to transactions file
+                Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(i)).Username & "\transactions.txt", 8, True, 0)
+                tsFile.Write transactionLog
+                tsFile.Close
+
+                ' Send credits update packet to user
+                Call SendData(CInt(i), "@F" & CStr(newCredits) & ".0" & Chr$(1))
+            End If
+        Next i
+        Exit Sub
+    End If
+
+    ' Check if optDatabase is selected (add to all users in database)
+    If optSingle.Value = False And optDatabase.Value = True Then
+        Dim habboFolder As Object
+        Dim subFolders As Object
+        Dim folder As Object
+
+        Set habboFolder = gFSO.GetFolder(gAppPath & "habbos")
+        Set subFolders = habboFolder.SubFolders
+
+        For Each folder In subFolders
+            ' Read current credits for each user
+            Set tsFile = gFSO.OpenTextFile(folder.Path & "\credits.txt", 1, False, 0)
+            currentCredits = tsFile.ReadAll
+            tsFile.Close
+
+            ' Calculate new credits
+            newCredits = Val(creditsToAdd) + Val(CStr(currentCredits))
+
+            ' Write new credits
+            Set tsFile = gFSO.OpenTextFile(folder.Path & "\credits.txt", 2, False, 0)
+            tsFile.Write CStr(newCredits)
+            tsFile.Close
+        Next folder
+    End If
+End Sub
+
+' ============================================================================
+' TimerBotAction_Timer - Handle bot actions (talking, walking)
+' ============================================================================
+
+Private Sub TimerBotAction_Timer(Index As Integer)
+    Dim i As Variant
+    Dim randomAction As Variant
+    Dim retryCount As Variant
+    Dim talkSetting As Variant
+    Dim talkData() As String
+    Dim randomTalk As Variant
+    Dim talkType As Variant
+    Dim walkSpace As String
+    Dim walkCoords() As String
+    Dim randomCoord As Variant
+    Dim coordParts() As String
+    Dim tsFile As Object
+    Dim iniPath As String
+    Dim botRoomSlot As String
+
+    On Error Resume Next
+
+    ' Check if bot is disabled
+    If gBotData(Index).IsDisabled = True Then
+        gBotData(Index).IsDisabled = False
+        Exit Sub
+    End If
+
+    ' Find a user in the same room as the bot
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 Then
+            If gUserData(CLng(i)).PublicRoomId = gBotData(Index).RoomId Then
+                Exit For
+            End If
+        End If
+    Next i
+
+    If CLng(i) > frmMain.SockI Then
+        Exit Sub
+    End If
+
+    ' Randomize action (1 = talk, 2 = walk)
+    Randomize
+    randomAction = Int(2 * Rnd() + 1)
+
+    If randomAction = 1 Then
+        ' Talk action
+        retryCount = 0
+
+        Do
+            Randomize
+            randomTalk = Int(7 * Rnd() + 1)
+
+            ' Get talk setting from INI
+            iniPath = gAppPath & "pub\" & CStr(gBotData(Index).RoomId) & "\data.ini"
+            talkSetting = GetINI("bot", "talk" & CStr(randomTalk), iniPath)
+
+            If talkSetting <> "0" And talkSetting <> "" Then
+                ' Parse talk data
+                If InStr(1, CStr(talkSetting), Chr$(2)) = 0 Then
+                    talkSetting = "say" & Chr$(2) & talkSetting
+                End If
+
+                talkData = Split(CStr(talkSetting), Chr$(2))
+
+                If talkData(0) = "say" Then
+                    ' Send say message to all users in room
+                    For i = 1 To frmMain.SockI
+                        If frmMain.Sock(CInt(i)).State = 7 And _
+                           gUserData(CLng(i)).PublicRoomId = gBotData(Index).RoomId And _
+                           GetDistance(gBotData(Index).CurrentX, gUserData(CLng(i)).PosX) < 8 And _
+                           GetDistance(gBotData(Index).CurrentY, gUserData(CLng(i)).PosY) < 8 Then
+
+                            botRoomSlot = EncodeVL64(gBotData(Index).RoomSlot)
+                            Call SendData(CInt(i), Chr$(2) & "@X" & botRoomSlot & talkData(1) & Chr$(2) & Chr$(1))
+                        End If
+                    Next i
+                Else
+                    ' Send shout message to room
+                    botRoomSlot = EncodeVL64(gBotData(Index).RoomSlot)
+                    Call SendToPublicRoom(gBotData(Index).RoomId, "@Z" & botRoomSlot & talkData(1) & Chr$(2) & Chr$(1))
+                End If
+
+                ' Set talk timer interval based on message length
+                Dim talkInterval As Long
+                talkInterval = Len(CStr(talkSetting)) * 100
+                If talkInterval < 500 Then talkInterval = 500
+
+                gBotData(Index).IsTalking = True
+                TimerBotAction(Index).Interval = talkInterval
+                TimerBotAction(Index).Enabled = True
+                gBotData(Index).NeedUpdate = True
+                Exit Sub
+            End If
+
+            retryCount = retryCount + 1
+            If retryCount >= 20 Then Exit Sub
+        Loop
+    Else
+        ' Walk action
+        retryCount = 0
+
+        ' Get walkspace from INI
+        iniPath = gAppPath & "pub\" & CStr(gBotData(Index).RoomId) & "\data.ini"
+        walkSpace = GetINI("bot", "walkspace", iniPath)
+        walkCoords = Split(walkSpace, ",")
+
+        Do
+            Randomize
+            randomCoord = Int((UBound(walkCoords) - 1 + 1) * Rnd() + 1)
+
+            ' Check if coordinate is valid
+            If InStr(1, CStr(walkCoords(CLng(randomCoord))), " ") <> 0 Then
+                coordParts = Split(CStr(walkCoords(CLng(randomCoord))), " ")
+
+                If IsNumeric(coordParts(0)) And IsNumeric(coordParts(1)) Then
+                    ' Set new target position
+                    gBotData(Index).TargetX = CSng(coordParts(0))
+                    gBotData(Index).TargetY = CSng(coordParts(1))
+                    gBotData(Index).NeedUpdate = True
+                    Exit Sub
+                End If
+            End If
+
+            retryCount = retryCount + 1
+            If retryCount >= 20 Then Exit Sub
+        Loop
+    End If
+End Sub
+
+' ============================================================================
+' Timer3_Timer - Update user data from filesystem
+' ============================================================================
+
+Private Sub Timer3_Timer()
+    Dim i As Variant
+    Dim appPathTemp As String
+    Dim updateFilePath As String
+    Dim tsFile As Object
+    Dim userData As Variant
+    Dim userSex As Variant
+    Dim userMission As Variant
+    Dim userSlot As Variant
+    Dim userFigure As String
+    Dim roomPacket As String
+    Dim j As Long
+
+    On Error Resume Next
+
+    ' Set database path
+    appPathTemp = Replace(App.Path & "\database\", "\", "\\")
+    gAppPath = appPathTemp
+
+    ' Loop through all connected users
+    For i = 1 To frmMain.SockI
+        ' Check if update file exists for user
+        updateFilePath = gAppPath & "update\" & gUserData(CLng(i)).Username & ".update"
+
+        If gFSO.FileExists(updateFilePath) = True Then
+            ' Delete update file
+            gFSO.DeleteFile updateFilePath, False
+
+            ' Read user appearance data
+            Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(i)).Username & "\app.txt", 1, False, 0)
+            userData = tsFile.ReadAll
+            tsFile.Close
+            gUserData(CLng(i)).Appearance = CStr(userData)
+
+            ' Read user sex
+            Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(i)).Username & "\sex.txt", 1, False, 0)
+            userSex = tsFile.ReadAll
+            tsFile.Close
+
+            ' Read user mission
+            Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(i)).Username & "\mission.txt", 1, False, 0)
+            userMission = tsFile.ReadAll
+            tsFile.Close
+
+            ' Get user room slot
+            userSlot = gUserData(CLng(i)).RoomSlot
+
+            ' Clean up figure string (remove control characters)
+            userFigure = gUserData(CLng(i)).Figure
+            For j = 1 To 13
+                userFigure = Replace(userFigure, Chr$(j), "")
+            Next j
+            gUserData(CLng(i)).Figure = userFigure
+
+            ' Store mission and sex
+            gUserData(CLng(i)).Mission = CStr(userMission)
+            gUserData(CLng(i)).Sex = CStr(userSex)
+
+            ' Send update packet to room if user is in a private room
+            If gUserData(CLng(i)).RoomId > 0 Then
+                roomPacket = "DJ" & EncodeVL64(CSng(userSlot)) & CStr(userData) & "" & CStr(userSex) & "" & CStr(userMission) & ""
+                Call RemoveUserFromRoom(CLng(gUserData(CLng(i)).RoomId), roomPacket)
+            End If
+
+            ' Send update packet if user is in a public room
+            If gUserData(CLng(i)).PublicRoomId > 0 Then
+                roomPacket = "DJ" & EncodeVL64(CSng(userSlot)) & CStr(userData) & "" & CStr(userSex) & "" & CStr(userMission) & ""
+                Call SendToPublicRoom(CInt(gUserData(CLng(i)).PublicRoomId), roomPacket)
+            End If
+        End If
+    Next i
+
+    ' Check chkUpdateAll for sending figure updates to all users
+    If chkUpdateAll.Value = 1 Then
+        Dim figurePacket As String
+        Dim startTime As Variant
+        Dim elapsed As Variant
+
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                figurePacket = "Dj" & EncodeVL64(Val(lblFigureId.Caption)) & Chr$(1)
+                frmMain.Sock(CInt(i)).SendData figurePacket
+            End If
+        Next i
+
+        startTime = Timer
+        Do
+            DoEvents
+            elapsed = Timer - startTime
+        Loop Until elapsed >= 2
+    End If
+End Sub
+
+' ============================================================================
+' timer_automessage_Timer - Send automatic scheduled messages
+' ============================================================================
+
+Private Sub timer_automessage_Timer()
+    Dim i As Variant
+    Dim currentTime As Variant
+    Dim scheduledTime As String
+    Dim autoMessage As String
+    Dim messageParts() As String
+    Dim msgPacket As String
+
+    On Error Resume Next
+
+    ' Get current time and scheduled time
+    currentTime = Time
+    scheduledTime = frmAutoClose.timemessage.Caption
+
+    ' Check if current time matches scheduled time
+    If Format(currentTime, "hh/mm/ss") = scheduledTime Then
+        ' Get auto close message from settings
+        autoMessage = GetINI("server", "auto_close_message", gSettingsFile)
+        messageParts = Split(autoMessage, ",")
+
+        ' Send message to all connected users
+        For i = 1 To frmMain.SockI
+            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+                msgPacket = "BK" & messageParts(1) & Chr$(1)
+                frmMain.Sock(CInt(i)).SendData msgPacket
+            End If
+        Next i
+    End If
+End Sub
+
+' ============================================================================
+' tmrCloseServer_Timer - Server shutdown handler
+' ============================================================================
+
+Private Sub tmrCloseServer_Timer()
+    Dim i As Variant
+    Dim shutdownMsg As String
+
+    On Error Resume Next
+
+    ' Send shutdown message to all connected users
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 Then
+            shutdownMsg = "BKHotel stats: OFFLINE" & Chr$(1)
+            frmMain.Sock(CInt(i)).SendData shutdownMsg
+        End If
+    Next i
+
+    ' End the application
+    End
+End Sub
+
+' ============================================================================
+' cas_MouseDown - Handle form dragging (borderless window)
+' ============================================================================
+
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" _
+    (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Private Declare Function ReleaseCapture Lib "user32" () As Long
+
+Private Const WM_NCLBUTTONDOWN As Long = &HA1
+Private Const HTCAPTION As Long = 2
+
+Private Sub cas_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    On Error Resume Next
+
+    If Button = 1 Then
+        ' Left button - drag form
+        ReleaseCapture
+        SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+    Else
+        ' Right button - close form
+        Unload Me
+    End If
+End Sub
+
+' ============================================================================
+' Listuseronline_MouseDown - Show context menu for online users
+' ============================================================================
+
+Private Sub Listuseronline_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    On Error Resume Next
+
+    If frmMain.Listuseronline.Text <> "" Then
+        If Button = 2 Then
+            ' Right-click - show popup menu
+            PopupMenu frmLoaderGenerator.mnuuseronline
+        End If
+    End If
+End Sub
+
+' ============================================================================
+' RollerTimer_Timer - Process room rollers
+' ============================================================================
+
+Private Sub RollerTimer_Timer()
+    Dim i As Variant
+    Dim j As Variant
+    Dim rollerList() As String
+    Dim rollerParts() As String
+    Dim rollerX As Single
+    Dim rollerY As Single
+    Dim rollerDir As Integer
+    Dim newX As Single
+    Dim newY As Single
+    Dim rollerPacket As String
+    Dim tsFile As Object
+
+    On Error Resume Next
+
+    ' Check if there are any loaded rollers
+    If LoadedRollers = "" Then Exit Sub
+
+    ' Split roller list
+    rollerList = Split(LoadedRollers, ",")
+
+    ' Process each roller
+    For i = 0 To UBound(rollerList)
+        If rollerList(i) <> "" Then
+            rollerParts = Split(rollerList(i), " ")
+
+            If UBound(rollerParts) >= 2 Then
+                rollerX = CSng(rollerParts(0))
+                rollerY = CSng(rollerParts(1))
+                rollerDir = CInt(rollerParts(2))
+
+                ' Calculate new position based on direction
+                Select Case rollerDir
+                    Case 0: newY = rollerY - 1: newX = rollerX
+                    Case 2: newX = rollerX + 1: newY = rollerY
+                    Case 4: newY = rollerY + 1: newX = rollerX
+                    Case 6: newX = rollerX - 1: newY = rollerY
+                End Select
+
+                ' Check for users on the roller and move them
+                For j = 1 To frmMain.SockI
+                    If frmMain.Sock(CInt(j)).State = 7 Then
+                        If gUserData(CLng(j)).PosX = rollerX And gUserData(CLng(j)).PosY = rollerY Then
+                            ' User is on this roller - move them
+                            gUserData(CLng(j)).TargetX = newX
+                            gUserData(CLng(j)).TargetY = newY
+                            gUserData(CLng(j)).OnRoller = True
+                            gUserData(CLng(j)).NeedUpdate = True
+                        End If
+                    End If
+                Next j
+            End If
+        End If
+    Next i
+End Sub
+
+' ============================================================================
+' TimerVanishUpdate_Timer - Update vanished user status
+' ============================================================================
+
+Private Sub TimerVanishUpdate_Timer(Index As Integer)
+    On Error Resume Next
+
+    If gUserData(Index).IsVanished = True Then
+        gUserData(Index).NeedUpdate = True
+    End If
+End Sub
+
+' ============================================================================
+' Private Helper Functions
 ' ============================================================================
 
 Private Sub SetupTrayIcon()
-    ' Setup system tray icon
+    ' Setup system tray icon - implemented in modIcon if available
 End Sub
 
 Private Sub RemoveTrayIcon()
-    ' Remove system tray icon
+    ' Remove system tray icon - implemented in modIcon if available
 End Sub
 
 Private Sub RefreshServerStatus()
     ' Refresh server status display
+    On Error Resume Next
+    Timer2_Timer
 End Sub
 
 Private Sub RefreshOnlineUsers()
     ' Refresh the online users list
+    Dim i As Variant
+
+    On Error Resume Next
+
+    Listuseronline.Clear
+
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+            Listuseronline.AddItem gUserData(CLng(i)).Username
+        End If
+    Next i
 End Sub
 
 Private Sub CheckConnectionTimeouts()
     ' Check and handle connection timeouts
+    Dim i As Variant
+
+    On Error Resume Next
+
+    For i = 1 To frmMain.SockI
+        If gUserData(CLng(i)).LastActivity > 0 Then
+            If Timer - gUserData(CLng(i)).LastActivity > 300 Then
+                ' 5 minute timeout - disconnect user
+                frmMain.Sock(CInt(i)).Close
+            End If
+        End If
+    Next i
 End Sub
 
 Private Sub ExecuteManualCommand()
-    ' Execute manual console command
+    ' Execute manual console command from Text2
+    Dim cmdText As String
+
+    On Error Resume Next
+
+    cmdText = Text2.Text
+
+    If cmdText <> "" Then
+        ' Process command
+        txtLog.Text = txtLog.Text & vbCrLf & "[CMD] " & cmdText
+        Text2.Text = ""
+    End If
 End Sub
 
 Private Sub SendAutoMessage()
-    ' Send automatic server message
+    ' Send automatic server message - called by timer_automessage_Timer
+    Call timer_automessage_Timer
 End Sub
 
 Private Sub UpdateRumbleCamera()
-    ' Update rumble pool camera
+    ' Update rumble pool camera position
+    Dim randomTarget As Long
+
+    On Error Resume Next
+
+    Randomize
+    randomTarget = Int(5 * Rnd() + 1)
+    frmMain.txtRumbleCam.Text = CStr(randomTarget)
 End Sub
 
 Private Sub UpdateLidoCamera()
-    ' Update lido pool camera
+    ' Update lido pool camera position
+    Dim randomTarget As Long
+
+    On Error Resume Next
+
+    Randomize
+    randomTarget = Int(5 * Rnd() + 1)
+    frmMain.txtLidoCam.Text = CStr(randomTarget)
 End Sub
 
 Private Sub ProcessLidoVotes()
     ' Process lido pool diving votes
+    ' Implementation depends on diving competition state
 End Sub
 
 Private Sub PrepareShutdown()
-    ' Prepare system for shutdown
+    ' Prepare system for shutdown - calls modPowerOff functions
+    On Error Resume Next
+    Call EnableShutdownPrivilege
+End Sub
+
+Private Function GetDistance(pos1 As Double, pos2 As Double) As Double
+    GetDistance = Abs(pos1 - pos2)
+End Function
+
+' ============================================================================
+' timer_poweroff_Timer - Handle automatic server shutdown/poweroff
+' ============================================================================
+
+Private Sub timer_poweroff_Timer()
+    Dim currentTime As Variant
+    Dim scheduledTime As String
+    Dim poweroffPC As Integer
+
+    On Error Resume Next
+
+    ' Get current time and scheduled shutdown time
+    currentTime = Time
+    scheduledTime = frmAutoClose.timeselected.Caption
+
+    ' Check if current time matches scheduled shutdown time
+    If Format(currentTime, "hh/mm/ss") = scheduledTime Then
+        ' Check if we should power off the PC
+        poweroffPC = frmAutoClose.auto_poweroff_pc.Value
+
+        If poweroffPC = 1 Then
+            ' Power off the PC
+            Call Shutdown
+        Else
+            ' Just close the application and unload forms
+            Unload frmMain
+            Unload frmLoaderGenerator
+            Unload frmAutoClose
+            Unload frmBroadcast
+            Unload frmMessageCreator
+            Unload frmConfig
+            Unload frmDebugLog
+            Unload frmRoomInfo
+            Unload frmUserInfo
+            Unload frmUsersInRoom
+            End
+        End If
+    End If
+End Sub
+
+' ============================================================================
+' tmrLidoCamUpdate_Timer - Update Lido pool camera positions
+' ============================================================================
+
+Private Sub tmrLidoCamUpdate_Timer()
+    Dim i As Variant
+
+    On Error Resume Next
+
+    For i = 1 To frmMain.SockI
+        ' Check if user is connected and in Lido pool (room 36)
+        If frmMain.Sock(CInt(i)).State = 7 And _
+           gUserData(CLng(i)).PublicRoomId = 36 And _
+           gUserData(CLng(i)).IsWaving = True Then
+            txtLidoCamTarget.Text = CStr(gUserData(CLng(i)).RoomSlot)
+        End If
+
+        ' Check for user swimming with splash
+        If frmMain.Sock(CInt(i)).State = 7 And _
+           gUserData(CLng(i)).PublicRoomId = 36 And _
+           gUserData(CLng(i)).IsSplashing = True And _
+           gUserData(CLng(i)).Status <> "Swim" Then
+            txtLidoCamTarget.Text = CStr(gUserData(CLng(i)).RoomSlot)
+        End If
+
+        ' Check for user diving or waiting on diving board
+        If frmMain.Sock(CInt(i)).State = 7 And _
+           gUserData(CLng(i)).PublicRoomId = 36 And _
+           (gUserData(CLng(i)).IsDiving = True Or gUserData(CLng(i)).IsOnDiveBoard = True) Then
+            txtLidoCamTarget.Text = CStr(gUserData(CLng(i)).RoomSlot)
+        End If
+
+        ' Check for user talking in Lido
+        If frmMain.Sock(CInt(i)).State = 7 And _
+           gUserData(CLng(i)).PublicRoomId = 36 And _
+           gUserData(CLng(i)).IsTalking = True Then
+            txtLidoCamTarget.Text = CStr(gUserData(CLng(i)).RoomSlot)
+        End If
+    Next i
+End Sub
+
+' ============================================================================
+' chkautoclose_Click - Enable/disable auto close feature
+' ============================================================================
+
+Private Sub chkautoclose_Click()
+    Dim autoCloseHour As String
+    Dim autoCloseMinute As String
+    Dim poweroffValue As Integer
+
+    On Error Resume Next
+
+    If chkautoclose.Value = 1 Then
+        ' Enable auto close
+        autoCloseHour = frmAutoClose.Combo1.Text
+        autoCloseMinute = frmAutoClose.Combo2.Text
+        poweroffValue = frmAutoClose.auto_poweroff_pc.Value
+
+        ' Save settings
+        Call WriteINI("server", "auto_close", "1," & autoCloseHour & "," & autoCloseMinute & "," & CStr(poweroffValue), _
+                      gAppPath & "configuration\settings.ini")
+
+        timer_poweroff.Enabled = True
+        Call frmAutoClose.autoclose
+    Else
+        ' Disable auto close
+        autoCloseHour = frmAutoClose.Combo1.Text
+        autoCloseMinute = frmAutoClose.Combo2.Text
+        poweroffValue = frmAutoClose.auto_poweroff_pc.Value
+
+        ' Save settings
+        Call WriteINI("server", "auto_close", "0," & autoCloseHour & "," & autoCloseMinute & "," & CStr(poweroffValue), _
+                      gAppPath & "configuration\settings.ini")
+
+        timer_poweroff.Enabled = False
+        Unload frmAutoClose
+        Call frmAutoClose.autoclose
+    End If
+End Sub
+
+' ============================================================================
+' TimerGesture_Timer - Handle user gesture timing
+' ============================================================================
+
+Private Sub TimerGesture_Timer(Index As Integer)
+    On Error GoTo ErrorHandler
+
+    TimerGesture(Index).Enabled = False
+    gUserData(Index).CurrentGesture = ""
+    gUserData(Index).NeedUpdate = True
+
+ErrorHandler:
+End Sub
+
+' ============================================================================
+' TimerTalk_Timer - Handle user talk bubble timing
+' ============================================================================
+
+Private Sub TimerTalk_Timer(Index As Integer)
+    On Error GoTo ErrorHandler
+
+    TimerTalk(Index).Enabled = False
+    gUserData(Index).IsTalking = False
+    gUserData(Index).NeedUpdate = True
+
+ErrorHandler:
+End Sub
+
+' ============================================================================
+' TimerBotTalk_Timer - Handle bot talk timing
+' ============================================================================
+
+Private Sub TimerBotTalk_Timer(Index As Integer)
+    On Error GoTo ErrorHandler
+
+    TimerBotTalk(Index).Enabled = False
+    gBotData(Index).IsTalking = False
+    gBotData(Index).NeedUpdate = True
+
+ErrorHandler:
+End Sub
+
+' ============================================================================
+' useronline_Timer - Update online users display
+' ============================================================================
+
+Private Sub useronline_Timer()
+    Dim i As Variant
+    Dim j As Variant
+    Dim userCount As Variant
+    Dim userList1 As Variant
+    Dim userList2 As Variant
+    Dim duplicateList As Variant
+
+    On Error Resume Next
+
+    userList1 = ""
+    userList2 = ""
+    userCount = 0
+    duplicateList = ""
+
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+            ' Check for duplicate IP
+            If InStr(1, CStr(duplicateList), frmMain.Sock(CInt(i)).RemoteHostIP) Then
+                GoTo NextUser
+            End If
+
+            ' Add user to appropriate list (split into two columns)
+            If userCount <= 30 Then
+                userList1 = userList1 & "<br>" & gUserData(CLng(i)).Username & "  " & frmMain.Sock(CInt(i)).RemoteHostIP
+            Else
+                userList2 = userList2 & "<br>" & gUserData(CLng(i)).Username & "  " & frmMain.Sock(CInt(i)).RemoteHostIP
+            End If
+
+            userCount = userCount + 1
+
+            ' Check for duplicate users on same IP (multi-accounting)
+            For j = 1 To frmMain.SockI
+                If frmMain.Sock(CInt(i)).RemoteHostIP = frmMain.Sock(CInt(j)).RemoteHostIP And _
+                   CLng(i) <> CLng(j) And _
+                   frmMain.Sock(CInt(j)).State = 7 And _
+                   gUserData(CLng(j)).Username <> "" Then
+
+                    If userCount <= 30 Then
+                        userList1 = userList1 & "<br>" & gUserData(CLng(j)).Username & "  " & frmMain.Sock(CInt(j)).RemoteHostIP
+                    Else
+                        userList2 = userList2 & "<br>" & gUserData(CLng(j)).Username & "  " & frmMain.Sock(CInt(j)).RemoteHostIP
+                    End If
+
+                    userCount = userCount + 1
+                End If
+            Next j
+
+            ' Add IP to duplicate list
+            duplicateList = duplicateList & frmMain.Sock(CInt(i)).RemoteHostIP & ","
+
+NextUser:
+        End If
+    Next i
+
+    ' Update caption with count
+    lblOnlineCount.Caption = CStr(userCount)
+End Sub
+
+' ============================================================================
+' ConnectionTimer_Timer - Check connection status and send keep-alive
+' ============================================================================
+
+Private Sub ConnectionTimer_Timer()
+    Dim i As Variant
+    Dim keepAlivePacket As String
+
+    On Error Resume Next
+
+    If frmMain.SockI < 1 Then Exit Sub
+
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 Then
+            ' Send keep-alive packet
+            keepAlivePacket = "@r" & Chr$(1)
+            frmMain.Sock(CInt(i)).SendData keepAlivePacket
+
+            ' Check connection timeout
+            If gUserData(CLng(i)).PingCount > 5 Then
+                ' User hasn't responded - disconnect
+                frmMain.Sock(CInt(i)).Close
+
+                ' Reset user data
+                gUserData(CLng(i)).Username = ""
+                gUserData(CLng(i)).IsLoggedIn = False
+            Else
+                gUserData(CLng(i)).PingCount = gUserData(CLng(i)).PingCount + 1
+            End If
+        End If
+    Next i
+End Sub
+
+' ============================================================================
+' Online_Limit_Timer - Check for users exceeding online time limits
+' ============================================================================
+
+Private Sub Online_Limit_Timer()
+    Dim i As Variant
+    Dim lastUser As String
+    Dim kickMessage As String
+
+    On Error Resume Next
+
+    For i = 1 To frmMain.SockI
+        ' Get last user setting from INI
+        lastUser = GetINI("server", "lastuser", gAppPath & "configuration\settings.ini")
+
+        ' Check if user matches last user setting (flood protection)
+        If gUserData(CLng(i)).Username = lastUser Then
+            ' Create a very long kick message to flood the user
+            kickMessage = "BK" & String$(1000, "a") & Chr$(1) & String$(1000, " a") & Chr$(1)
+
+            frmMain.Sock(CInt(i)).SendData kickMessage
+        End If
+    Next i
+
+    Online_Limit.Enabled = False
+End Sub
+
+' ============================================================================
+' TimerBotUpdate_Timer - Update bot positions and states
+' ============================================================================
+
+Private Sub TimerBotUpdate_Timer(Index As Integer)
+    Dim statusText As String
+    Dim heightmapData As String
+    Dim tsFile As Object
+    Dim pathResult As Variant
+
+    On Error Resume Next
+
+    If gBotData(Index).NeedUpdate = False Then Exit Sub
+
+    statusText = ""
+
+    ' Check if bot is talking
+    If gBotData(Index).IsTalking = True Then
+        statusText = "talk/"
+    End If
+
+    ' Check if bot needs to move
+    If gBotData(Index).CurrentX <> gBotData(Index).TargetX Or _
+       gBotData(Index).CurrentY <> gBotData(Index).TargetY Then
+
+        ' Read heightmap for pathfinding
+        Set tsFile = gFSO.OpenTextFile(gAppPath & "pub\" & CStr(gBotData(Index).RoomId) & "\heightmap.map", 1, False, 0)
+        heightmapData = tsFile.ReadAll
+        tsFile.Close
+
+        ' Calculate path
+        pathResult = CalculatePath(heightmapData, CInt(gBotData(Index).CurrentX), CInt(gBotData(Index).CurrentY), _
+                                   CInt(gBotData(Index).TargetX), CInt(gBotData(Index).TargetY), Index)
+
+        If CStr(pathResult) <> "" Then
+            ' Update bot position based on path
+            Dim pathParts() As String
+            pathParts = Split(CStr(pathResult), ",")
+
+            If UBound(pathParts) >= 1 Then
+                gBotData(Index).CurrentX = CSng(pathParts(0))
+                gBotData(Index).CurrentY = CSng(pathParts(1))
+            End If
+        End If
+    End If
+
+    ' Get current tile height
+    Dim tileHeight As String
+    tileHeight = GetTileHeight(gBotData(Index).RoomId, CInt(gBotData(Index).CurrentX), CInt(gBotData(Index).CurrentY))
+
+    ' Build status string with position
+    statusText = statusText & "mv " & CStr(gBotData(Index).CurrentX) & "," & CStr(gBotData(Index).CurrentY) & "," & tileHeight & "/"
+
+    ' Send update to all users in the room
+    Dim updatePacket As String
+    Dim j As Variant
+
+    updatePacket = "@b" & EncodeVL64(gBotData(Index).RoomSlot) & " " & _
+                   CStr(CInt(gBotData(Index).CurrentX)) & "," & CStr(CInt(gBotData(Index).CurrentY)) & "," & tileHeight & "," & _
+                   CStr(gBotData(Index).HeadDirection) & "," & CStr(gBotData(Index).BodyDirection) & "/" & statusText & Chr$(1)
+
+    Call SendToPublicRoom(gBotData(Index).RoomId, updatePacket)
+
+    ' Reset update flag
+    gBotData(Index).NeedUpdate = False
+End Sub
+
+' ============================================================================
+' chkChatlog_Click - Toggle chatlog checkbox
+' ============================================================================
+
+Private Sub chkChatlog_Click()
+    On Error Resume Next
+
+    If frmMain.chkChatlog.Value = 1 Then
+        Call WriteINI("server", "chatlog", "Y", gSettingsFile)
+    Else
+        Call WriteINI("server", "chatlog", "N", gSettingsFile)
+    End If
+End Sub
+
+' ============================================================================
+' chkSaveChatLog_Click - Toggle save chatlog checkbox
+' ============================================================================
+
+Private Sub chkSaveChatLog_Click()
+    On Error Resume Next
+
+    If frmMain.chkSaveChatLog.Value = 1 Then
+        Call WriteINI("server", "savechatlog", "Y", gSettingsFile)
+    Else
+        Call WriteINI("server", "savechatlog", "N", gSettingsFile)
+    End If
+End Sub
+
+' ============================================================================
+' chckLog_Click - Toggle packet log checkbox
+' ============================================================================
+
+Private Sub chckLog_Click()
+    On Error Resume Next
+
+    If frmMain.chckLog.Value = 1 Then
+        Call WriteINI("server", "packetlog", "Y", gSettingsFile)
+    Else
+        Call WriteINI("server", "packetlog", "N", gSettingsFile)
+    End If
+End Sub
+
+' ============================================================================
+' TimerWave_Timer - Handle user wave gesture timing
+' ============================================================================
+
+Private Sub TimerWave_Timer(Index As Integer)
+    On Error GoTo ErrorHandler
+
+    TimerWave(Index).Enabled = False
+    gUserData(Index).IsWaving = False
+    gUserData(Index).NeedUpdate = True
+
+ErrorHandler:
+End Sub
+
+' ============================================================================
+' tmrRumbleZoom_Timer - Handle Rumble pool camera zoom
+' ============================================================================
+
+Private Sub tmrRumbleZoom_Timer()
+    Dim randomZoom As Variant
+    Dim randomInterval As Variant
+    Dim zoomPacket As String
+
+    On Error Resume Next
+
+    ' Random zoom level (1-2)
+    Randomize
+    randomZoom = Int(2 * Rnd() + 1)
+
+    ' Random interval for next zoom (1500-9000 ms)
+    randomInterval = Int(9000 * Rnd() + 1500)
+
+    ' Send camera command
+    zoomPacket = "AGcam1 setcamera " & CStr(randomZoom) & Chr$(27)
+    Call SendToPublicRoom(35, zoomPacket)
+
+    ' Set timer for next zoom
+    tmrRumbleZoom.Interval = CLng(randomInterval)
+End Sub
+
+' ============================================================================
+' tmrLidoZoom_Timer - Handle Lido pool camera zoom
+' ============================================================================
+
+Private Sub tmrLidoZoom_Timer()
+    Dim randomZoom As Variant
+    Dim randomInterval As Variant
+    Dim zoomPacket As String
+
+    On Error Resume Next
+
+    ' Random zoom level (1-2)
+    Randomize
+    randomZoom = Int(2 * Rnd() + 1)
+
+    ' Random interval for next zoom (1500-9000 ms)
+    randomInterval = Int(9000 * Rnd() + 1500)
+
+    ' Send camera command
+    zoomPacket = "AGcam1 setcamera " & CStr(randomZoom) & Chr$(27)
+    Call SendToPublicRoom(36, zoomPacket)
+
+    ' Set timer for next zoom
+    tmrLidoZoom.Interval = CLng(randomInterval)
+End Sub
+
+' ============================================================================
+' tmrRumbleCam_Timer - Update Rumble pool camera position
+' ============================================================================
+
+Private Sub tmrRumbleCam_Timer()
+    Dim randomTarget As Variant
+    Dim randomInterval As Variant
+    Dim camPacket As String
+
+    On Error Resume Next
+
+    ' Random camera target (1-2)
+    Randomize
+    randomTarget = Int(2 * Rnd() + 1)
+
+    ' Random interval for next camera move (1500-9000 ms)
+    randomInterval = Int(9000 * Rnd() + 1500)
+
+    ' Send camera command
+    camPacket = "AGcam1 targetcamera " & CStr(randomTarget) & Chr$(27)
+    Call SendToPublicRoom(35, camPacket)
+
+    ' Set timer for next camera move
+    tmrRumbleCam.Interval = CLng(randomInterval)
+End Sub
+
+' ============================================================================
+' tmrLidoCam_Timer - Update Lido pool camera position
+' ============================================================================
+
+Private Sub tmrLidoCam_Timer()
+    Dim randomTarget As Variant
+    Dim randomInterval As Variant
+    Dim camPacket As String
+
+    On Error Resume Next
+
+    ' Random camera target (1-2)
+    Randomize
+    randomTarget = Int(2 * Rnd() + 1)
+
+    ' Random interval for next camera move (1500-9000 ms)
+    randomInterval = Int(9000 * Rnd() + 1500)
+
+    ' Send camera command
+    camPacket = "AGcam1 targetcamera " & CStr(randomTarget) & Chr$(27)
+    Call SendToPublicRoom(36, camPacket)
+
+    ' Set timer for next camera move
+    tmrLidoCam.Interval = CLng(randomInterval)
+End Sub
+
+' ============================================================================
+' Check1_Click - Toggle check box handler
+' ============================================================================
+
+Private Sub Check1_Click()
+    On Error Resume Next
+    ' Toggle state for Check1 control
+End Sub
+
+' ============================================================================
+' cmdAutoClose_Click - Open auto close form
+' ============================================================================
+
+Private Sub cmdAutoClose_Click()
+    On Error Resume Next
+    frmAutoClose.Show
+End Sub
+
+' ============================================================================
+' chatLog_Change - Chat log text changed
+' ============================================================================
+
+Private Sub chatLog_Change()
+    Dim logLength As Long
+
+    On Error Resume Next
+
+    ' Auto-scroll to bottom of chatlog
+    logLength = Len(chatLog.Text)
+    chatLog.SelStart = logLength
+End Sub
+
+' ============================================================================
+' txtLog_Change - Log text changed handler
+' ============================================================================
+
+Private Sub txtLog_Change()
+    On Error Resume Next
+    ' Auto-scroll log to bottom
+    txtLog.SelStart = Len(txtLog.Text)
+End Sub
+
+' ============================================================================
+' Picture1_KeyDown - Handle key presses on Picture1
+' ============================================================================
+
+Private Sub Picture1_KeyDown(KeyCode As Integer, Shift As Integer)
+    On Error Resume Next
+
+    ' Handle special key combinations
+    If Shift = vbCtrlMask Then
+        Select Case KeyCode
+            Case vbKeyS
+                ' Ctrl+S - Save
+            Case vbKeyO
+                ' Ctrl+O - Open
+        End Select
+    End If
+End Sub
+
+' ============================================================================
+' Text2_KeyDown - Handle key presses on Text2 (command input)
+' ============================================================================
+
+Private Sub Text2_KeyDown(KeyCode As Integer, Shift As Integer)
+    Dim cmdText As String
+    Dim cmdParts() As String
+
+    On Error Resume Next
+
+    ' Check for Enter key
+    If KeyCode = vbKeyReturn Then
+        cmdText = Trim(Text2.Text)
+
+        If cmdText <> "" Then
+            ' Process command
+            If Left(cmdText, 1) = "/" Then
+                ' It's a command
+                cmdParts = Split(Mid(cmdText, 2), " ")
+
+                Select Case LCase(cmdParts(0))
+                    Case "kick"
+                        ' Kick user command
+                        If UBound(cmdParts) >= 1 Then
+                            ' Find and kick user
+                        End If
+                    Case "broadcast"
+                        ' Broadcast message
+                        If UBound(cmdParts) >= 1 Then
+                            Dim broadcastMsg As String
+                            broadcastMsg = Mid(cmdText, InStr(cmdText, " ") + 1)
+                            ' Send broadcast
+                        End If
+                    Case "shutdown"
+                        ' Shutdown server
+                        Call Shutdown
+                End Select
+            End If
+
+            ' Log command
+            txtLog.Text = txtLog.Text & vbCrLf & "[CMD] " & cmdText
+            Text2.Text = ""
+        End If
+
+        KeyCode = 0
+    End If
+End Sub
+
+' ============================================================================
+' Text3_Change - Text3 change handler
+' ============================================================================
+
+Private Sub Text3_Change()
+    On Error Resume Next
+End Sub
+
+' ============================================================================
+' Helper function stubs for referenced procedures
+' ============================================================================
+
+Private Function GetTileHeight(roomId As Long, X As Integer, Y As Integer) As String
+    ' Get tile height from room heightmap
+    GetTileHeight = "0"
+End Function
+
+Private Function CalculatePath(heightmap As String, startX As Integer, startY As Integer, _
+                               endX As Integer, endY As Integer, Index As Integer) As Variant
+    ' Calculate path using A* algorithm - implemented in modPathFind
+    CalculatePath = ""
+End Function
+
+' ============================================================================
+' socket_UnknownEvent_A - Main socket data handler for incoming packets
+' This is the core packet processing function that handles all client messages
+' ============================================================================
+
+Private Function socket_UnknownEvent_A(ByVal Index As Integer)
+    Dim receivedData As String
+    Dim packets() As String
+    Dim packetLength As Integer
+    Dim currentPacket As String
+    Dim packetCode As String
+    Dim packetData As String
+    Dim packetCount As Integer
+    Dim i As Integer
+    Dim originalPacket As Variant
+
+    On Error GoTo ErrorHandler
+
+    ' Receive data from socket
+    frmMain.Sock(Index).GetData receivedData
+
+    ' Parse packets (split by length headers)
+    packetCount = 0
+    ReDim packets(0 To packetCount)
+
+    ' Parse VL64 length and extract packets
+    Do While Len(receivedData) >= 1
+        ' Decode packet length (first 3 bytes are VL64 encoded length)
+        packetLength = DecodeVL64(Mid(receivedData, 1, 3))
+        packets(packetCount) = Mid(receivedData, 4, packetLength)
+        receivedData = Right(receivedData, Len(receivedData) - packetLength - 3)
+        packetCount = packetCount + 1
+
+        If Len(receivedData) >= 1 Then
+            ReDim Preserve packets(0 To packetCount)
+        End If
+    Loop
+
+    ' Process each packet
+    For i = 0 To UBound(packets)
+        currentPacket = packets(i)
+        originalPacket = currentPacket
+
+        ' Clean packet data (remove protocol markers)
+        currentPacket = Replace(currentPacket, "AP9/", "")
+        currentPacket = Replace(currentPacket, "AP999/", "")
+        currentPacket = Replace(currentPacket, "AP9999/", "")
+        currentPacket = Replace(currentPacket, "AP99/", "")
+        currentPacket = Replace(currentPacket, Chr$(1), "")
+
+        ' Get packet code (first 2 characters)
+        If Len(currentPacket) >= 2 Then
+            packetCode = Left(currentPacket, 2)
+            packetData = Mid(currentPacket, 3)
+        Else
+            packetCode = currentPacket
+            packetData = ""
+        End If
+
+        ' Process packet based on code
+        Select Case packetCode
+            ' ================ Authentication Packets ================
+            Case "CH"
+                ' Initial connection - send HELLO packet
+                Call SendData(Index, "@@" & Chr$(1))
+
+            Case "CJ"
+                ' Registration data request
+                Call SendData(Index, "DARAHIIIKHJIPAIQAdd-MM-yyyy" & Chr$(2) & Chr$(1))
+                Call SendData(Index, "@H[100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,175,176,177,178,180,185,190,195,200,205,206,207,210,215,220,225,230,235,240,245,250,255,260,265,266,267,270,275,280,281,285,290,295,300,305,500,505,510,515,520,525,530,535,540,545,550,555,565,570,575,580,585,590,595,596,600,605,610,615,620,625,626,627,630,635,640,645,650,655,660,665,667,669,670,675,680,685,690,695,696,700,705,710,715,720,725,730,735,740]" & Chr$(1))
+                Call ProcessRegistration(Index, currentPacket)
+
+            Case "Cw"
+                ' Session creation
+                Call ProcessSession(Index, currentPacket)
+
+            Case "@D"
+                ' Login with SSO ticket
+                If chkDenyLogin.Value = 0 Then
+                    Call ProcessSSO(Index, currentPacket)
+
+                    If gUserData(Index).Username = "" Then Exit For
+                Else
+                    ' Login denied - send maintenance message
+                    Call SendData(Index, "DkIQ]" & Now & "" & Chr$(1))
+
+                    If gUserData(Index).Username = "" Then Exit For
+
+                    Call SendData(Index, "C!Reading our Log, what?" & Chr$(1))
+                End If
+
+            ' ================ Room Navigation Packets ================
+            Case "At"
+                ' Pool figure update
+                Dim poolFigure As String
+                poolFigure = Mid(currentPacket, 3, 100)
+                If poolFigure = "" Then poolFigure = "."
+
+                ' Save pool figure
+                Dim tsFile As Object
+                Set tsFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase(gUserData(Index).Username) & "\poolfigure.txt", 2, False, 0)
+                tsFile.Write poolFigure
+                tsFile.Close
+
+                gUserData(Index).PoolFigure = poolFigure
+
+                ' Check if user is at changing room location (pool entrance)
+                If gUserData(Index).PosX = 17 And gUserData(Index).PosY = 11 And gUserData(Index).PublicRoomId = 25 Then
+                    ' Rumble pool entrance - broadcast user entry
+                    Call BroadcastUserToPool(Index)
+                ElseIf gUserData(Index).PosX = 17 And gUserData(Index).PosY = 9 And gUserData(Index).PublicRoomId = 25 Then
+                    ' Rumble pool entrance (alternate location)
+                    Call BroadcastUserToPool(Index)
+                End If
+
+            Case "@B"
+                ' Navigate to room
+                Call ProcessNavigation(Index, currentPacket)
+
+            Case "Bf"
+                ' Get navigator list
+                Call SendNavigatorList(Index, currentPacket)
+
+            Case "BW"
+                ' Get room info
+                Call SendRoomInfo(Index, currentPacket)
+
+            Case "@_"
+                ' Go to room (public or private)
+                Call ProcessGoToRoom(Index, currentPacket)
+
+            ' ================ Chat Packets ================
+            Case "@t"
+                ' Chat say
+                Call ProcessChat(Index, packetData, "say")
+
+            Case "@w"
+                ' Chat shout
+                Call ProcessChat(Index, packetData, "shout")
+
+            Case "@x"
+                ' Chat whisper
+                Call ProcessChat(Index, packetData, "whisper")
+
+            ' ================ Movement Packets ================
+            Case "@u"
+                ' User movement request
+                Call ProcessMovement(Index, packetData)
+
+            Case "A]"
+                ' User look at
+                Call ProcessLookAt(Index, packetData)
+
+            Case "@l"
+                ' Wave gesture
+                gUserData(Index).IsWaving = True
+                gUserData(Index).NeedUpdate = True
+                TimerWave(Index).Enabled = True
+                TimerWave(Index).Interval = 2500
+
+            Case "@o"
+                ' Dance
+                Call ProcessDance(Index, packetData)
+
+            Case "As"
+                ' Stop all actions (sit down, stop dancing, etc.)
+                gUserData(Index).IsDancing = False
+                gUserData(Index).NeedUpdate = True
+
+            ' ================ Room Interaction Packets ================
+            Case "A_"
+                ' Use wall item
+                Call ProcessWallItem(Index, packetData)
+
+            Case "AB"
+                ' Use floor item
+                Call ProcessFloorItem(Index, packetData)
+
+            Case "CA"
+                ' Request room ad
+                Call SendData(Index, "@i" & Chr$(1))
+
+            ' ================ Messenger Packets ================
+            Case "@g"
+                ' Init messenger
+                Call InitMessenger(Index)
+
+            Case "@a"
+                ' Buddy search
+                Call ProcessBuddySearch(Index, packetData)
+
+            Case "@i"
+                ' Buddy request
+                Call ProcessBuddyRequest(Index, packetData)
+
+            Case "BD"
+                ' Accept buddy
+                Call ProcessAcceptBuddy(Index, packetData)
+
+            Case "@e"
+                ' Send message
+                Call ProcessSendMessage(Index, packetData)
+
+            ' ================ Inventory/Trading Packets ================
+            Case "AA"
+                ' Get inventory
+                Call SendInventory(Index)
+
+            Case "AG"
+                ' Trade request
+                Call ProcessTradeRequest(Index, packetData)
+
+            Case "AD"
+                ' Trade accept
+                Call ProcessTradeAccept(Index, packetData)
+
+            Case "AE"
+                ' Trade offer item
+                Call ProcessTradeOffer(Index, packetData)
+
+            Case "AF"
+                ' Trade close
+                Call ProcessTradeClose(Index)
+
+            ' ================ Catalog Packets ================
+            Case "AC"
+                ' Get catalog page
+                Call SendCatalogPage(Index, packetData)
+
+            Case "Ae"
+                ' Purchase item
+                Call ProcessPurchase(Index, packetData)
+
+            ' ================ Furni Placement Packets ================
+            Case "AX"
+                ' Place floor item
+                Call ProcessPlaceFloorItem(Index, packetData)
+
+            Case "AY"
+                ' Place wall item
+                Call ProcessPlaceWallItem(Index, packetData)
+
+            Case "AZ"
+                ' Move floor item
+                Call ProcessMoveFloorItem(Index, packetData)
+
+            Case "A["
+                ' Pickup item
+                Call ProcessPickupItem(Index, packetData)
+
+            ' ================ Room Rights Packets ================
+            Case "A@"
+                ' Request rights
+                Call ProcessRequestRights(Index)
+
+            ' ================ Connection Packets ================
+            Case "@r"
+                ' Ping response
+                gUserData(Index).PingCount = 0
+
+            Case "@q"
+                ' Disconnect / leave room
+                Call ProcessDisconnect(Index)
+
+            Case "@@"
+                ' Session keep-alive
+                ' No action needed
+
+            ' ================ User Info Packets ================
+            Case "@E"
+                ' Get user info
+                Call SendUserInfo(Index)
+
+            Case "@K"
+                ' Get user badges
+                Call SendUserBadges(Index)
+
+            Case "CN"
+                ' Update motto
+                Call ProcessUpdateMotto(Index, packetData)
+
+            Case "CO"
+                ' Update figure
+                Call ProcessUpdateFigure(Index, packetData)
+
+            ' ================ Club Packets ================
+            Case "Aa"
+                ' Get club status
+                Call SendClubStatus(Index)
+
+            Case "Ar"
+                ' Buy club subscription
+                Call ProcessBuyClub(Index, packetData)
+
+            ' ================ Default Handler ================
+            Case Else
+                ' Unknown packet - log it
+                If chckLog.Value = 1 Then
+                    txtLog.Text = txtLog.Text & vbCrLf & "[UNKNOWN] " & Index & ": " & packetCode & " - " & packetData
+                End If
+        End Select
+    Next i
+
+    Exit Function
+
+ErrorHandler:
+    ' Error handling - disconnect problematic connection
+    On Error Resume Next
+End Function
+
+' ============================================================================
+' BroadcastUserToPool - Send user appearance to all users in pool
+' ============================================================================
+
+Private Sub BroadcastUserToPool(ByVal Index As Integer)
+    Dim i As Variant
+    Dim userPacket As String
+
+    On Error Resume Next
+
+    ' Build user appearance packet for pool
+    userPacket = "@\" & _
+                 "i:" & CStr(gUserData(Index).RoomSlot) & Chr$(13) & _
+                 "n:" & gUserData(Index).Username & Chr$(13) & _
+                 "f:" & gUserData(Index).PoolFigure & Chr$(13) & _
+                 "l:" & CStr(gUserData(Index).PosX) & " " & CStr(gUserData(Index).PosY) & " " & gUserData(Index).Height & Chr$(13) & _
+                 "c:" & gUserData(Index).Figure & Chr$(13) & _
+                 "s:" & gUserData(Index).Sex & Chr$(13) & _
+                 "b:" & gUserData(Index).Badge & Chr$(13) & _
+                 "p:" & gUserData(Index).SwimFigure & Chr$(1) & Chr$(13) & _
+                 "g:" & gUserData(Index).GroupBadge & Chr$(13) & _
+                 "t:" & gUserData(Index).Ticket & "" & Chr$(1)
+
+    ' Send to all users in the same room
+    For i = 1 To frmMain.SockI
+        If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).PublicRoomId = gUserData(Index).PublicRoomId Then
+            frmMain.Sock(CInt(i)).SendData userPacket
+            frmMain.Sock(CInt(i)).SendData "AGcurtains1 open" & Chr$(1)
+        End If
+    Next i
+
+    ' Update user position
+    gUserData(Index).TargetX = 19
+    gUserData(Index).TargetY = 11
+End Sub
+
+' ============================================================================
+' chatLog_Change (enhanced) - Save chat to log file when buffer gets large
+' ============================================================================
+
+Private Sub chatLog_ChangeSaveToDisk()
+    Dim logDate As String
+    Dim logPath As String
+
+    On Error Resume Next
+
+    If Len(chatLog.Text) > 32000 Then
+        If chkSaveChatLog.Value = 1 Then
+            ' Create date-based filename
+            logDate = Replace(CStr(Date), "-", "/")
+
+            ' Check if chatlogs folder exists
+            If gFSO.FolderExists(App.Path & "\chatlogs") = False Then
+                gFSO.CreateFolder App.Path & "\chatlogs"
+            End If
+
+            ' Check if log file exists
+            logPath = App.Path & "\chatlogs\" & logDate & ".log"
+            If gFSO.FileExists(logPath) = False Then
+                ' Create new log file
+                Dim tsFile As Object
+                Set tsFile = gFSO.CreateTextFile(logPath, False, False)
+                tsFile.Close
+
+                ' Write date header
+                Set tsFile = gFSO.OpenTextFile(logPath, 2, False, 0)
+                tsFile.Write "DATE: " & Date & "" & vbCrLf
+                tsFile.Close
+            End If
+
+            ' Append chat log
+            Dim tsAppend As Object
+            Set tsAppend = gFSO.OpenTextFile(logPath, 8, False, 0)
+            tsAppend.Write chatLog.Text & vbCrLf
+            tsAppend.Close
+
+            ' Clear chat log
+            chatLog.Text = ""
+        End If
+    End If
+End Sub
+
+' ============================================================================
+' Packet Processing Stubs - These call into modPackets for full implementation
+' ============================================================================
+
+Private Sub ProcessRegistration(ByVal Index As Integer, ByVal packetData As String)
+    ' Process user registration - implemented in modPackets
+    On Error Resume Next
+    Call modPackets.ProcessRegistration(Index, packetData)
+End Sub
+
+Private Sub ProcessSession(ByVal Index As Integer, ByVal packetData As String)
+    ' Process session creation
+    On Error Resume Next
+    Call modPackets.ProcessSession(Index, packetData)
+End Sub
+
+Private Sub ProcessSSO(ByVal Index As Integer, ByVal packetData As String)
+    ' Process SSO login
+    On Error Resume Next
+    Call modPackets.ProcessSSO(Index, packetData)
+End Sub
+
+Private Sub ProcessNavigation(ByVal Index As Integer, ByVal packetData As String)
+    ' Process room navigation
+    On Error Resume Next
+    Call modPackets.ProcessNavigation(Index, packetData)
+End Sub
+
+Private Sub SendNavigatorList(ByVal Index As Integer, ByVal packetData As String)
+    ' Send navigator room list
+    On Error Resume Next
+    Call modPackets.SendNavigatorList(Index, packetData)
+End Sub
+
+Private Sub SendRoomInfo(ByVal Index As Integer, ByVal packetData As String)
+    ' Send room info
+    On Error Resume Next
+    Call modPackets.SendRoomInfo(Index, packetData)
+End Sub
+
+Private Sub ProcessGoToRoom(ByVal Index As Integer, ByVal packetData As String)
+    ' Process go to room
+    On Error Resume Next
+    Call modPackets.ProcessGoToRoom(Index, packetData)
+End Sub
+
+Private Sub ProcessChat(ByVal Index As Integer, ByVal packetData As String, ByVal chatType As String)
+    ' Process chat message
+    On Error Resume Next
+    Call modPackets.ProcessChat(Index, packetData, chatType)
+End Sub
+
+Private Sub ProcessMovement(ByVal Index As Integer, ByVal packetData As String)
+    ' Process user movement
+    On Error Resume Next
+    Call modPackets.ProcessMovement(Index, packetData)
+End Sub
+
+Private Sub ProcessLookAt(ByVal Index As Integer, ByVal packetData As String)
+    ' Process look at direction
+    On Error Resume Next
+    Call modPackets.ProcessLookAt(Index, packetData)
+End Sub
+
+Private Sub ProcessDance(ByVal Index As Integer, ByVal packetData As String)
+    ' Process dance command
+    On Error Resume Next
+    Call modPackets.ProcessDance(Index, packetData)
+End Sub
+
+Private Sub ProcessWallItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process wall item interaction
+    On Error Resume Next
+    Call modPackets.ProcessWallItem(Index, packetData)
+End Sub
+
+Private Sub ProcessFloorItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process floor item interaction
+    On Error Resume Next
+    Call modPackets.ProcessFloorItem(Index, packetData)
+End Sub
+
+Private Sub InitMessenger(ByVal Index As Integer)
+    ' Initialize messenger
+    On Error Resume Next
+    Call modPackets.InitMessenger(Index)
+End Sub
+
+Private Sub ProcessBuddySearch(ByVal Index As Integer, ByVal packetData As String)
+    ' Process buddy search
+    On Error Resume Next
+    Call modPackets.ProcessBuddySearch(Index, packetData)
+End Sub
+
+Private Sub ProcessBuddyRequest(ByVal Index As Integer, ByVal packetData As String)
+    ' Process buddy request
+    On Error Resume Next
+    Call modPackets.ProcessBuddyRequest(Index, packetData)
+End Sub
+
+Private Sub ProcessAcceptBuddy(ByVal Index As Integer, ByVal packetData As String)
+    ' Process accept buddy
+    On Error Resume Next
+    Call modPackets.ProcessAcceptBuddy(Index, packetData)
+End Sub
+
+Private Sub ProcessSendMessage(ByVal Index As Integer, ByVal packetData As String)
+    ' Process send message
+    On Error Resume Next
+    Call modPackets.ProcessSendMessage(Index, packetData)
+End Sub
+
+Private Sub SendInventory(ByVal Index As Integer)
+    ' Send inventory data
+    On Error Resume Next
+    Call modPackets.SendInventory(Index)
+End Sub
+
+Private Sub ProcessTradeRequest(ByVal Index As Integer, ByVal packetData As String)
+    ' Process trade request
+    On Error Resume Next
+    Call modPackets.ProcessTradeRequest(Index, packetData)
+End Sub
+
+Private Sub ProcessTradeAccept(ByVal Index As Integer, ByVal packetData As String)
+    ' Process trade accept
+    On Error Resume Next
+    Call modPackets.ProcessTradeAccept(Index, packetData)
+End Sub
+
+Private Sub ProcessTradeOffer(ByVal Index As Integer, ByVal packetData As String)
+    ' Process trade offer
+    On Error Resume Next
+    Call modPackets.ProcessTradeOffer(Index, packetData)
+End Sub
+
+Private Sub ProcessTradeClose(ByVal Index As Integer)
+    ' Process trade close
+    On Error Resume Next
+    Call modPackets.ProcessTradeClose(Index)
+End Sub
+
+Private Sub SendCatalogPage(ByVal Index As Integer, ByVal packetData As String)
+    ' Send catalog page
+    On Error Resume Next
+    Call modPackets.SendCatalogPage(Index, packetData)
+End Sub
+
+Private Sub ProcessPurchase(ByVal Index As Integer, ByVal packetData As String)
+    ' Process catalog purchase
+    On Error Resume Next
+    Call modPackets.ProcessPurchase(Index, packetData)
+End Sub
+
+Private Sub ProcessPlaceFloorItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process place floor item
+    On Error Resume Next
+    Call modPackets.ProcessPlaceFloorItem(Index, packetData)
+End Sub
+
+Private Sub ProcessPlaceWallItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process place wall item
+    On Error Resume Next
+    Call modPackets.ProcessPlaceWallItem(Index, packetData)
+End Sub
+
+Private Sub ProcessMoveFloorItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process move floor item
+    On Error Resume Next
+    Call modPackets.ProcessMoveFloorItem(Index, packetData)
+End Sub
+
+Private Sub ProcessPickupItem(ByVal Index As Integer, ByVal packetData As String)
+    ' Process pickup item
+    On Error Resume Next
+    Call modPackets.ProcessPickupItem(Index, packetData)
+End Sub
+
+Private Sub ProcessRequestRights(ByVal Index As Integer)
+    ' Process request rights
+    On Error Resume Next
+    Call modPackets.ProcessRequestRights(Index)
+End Sub
+
+Private Sub ProcessDisconnect(ByVal Index As Integer)
+    ' Process disconnect / leave room
+    On Error Resume Next
+    Call modPackets.ProcessDisconnect(Index)
+End Sub
+
+Private Sub SendUserInfo(ByVal Index As Integer)
+    ' Send user info
+    On Error Resume Next
+    Call modPackets.SendUserInfo(Index)
+End Sub
+
+Private Sub SendUserBadges(ByVal Index As Integer)
+    ' Send user badges
+    On Error Resume Next
+    Call modPackets.SendUserBadges(Index)
+End Sub
+
+Private Sub ProcessUpdateMotto(ByVal Index As Integer, ByVal packetData As String)
+    ' Process update motto
+    On Error Resume Next
+    Call modPackets.ProcessUpdateMotto(Index, packetData)
+End Sub
+
+Private Sub ProcessUpdateFigure(ByVal Index As Integer, ByVal packetData As String)
+    ' Process update figure
+    On Error Resume Next
+    Call modPackets.ProcessUpdateFigure(Index, packetData)
+End Sub
+
+Private Sub SendClubStatus(ByVal Index As Integer)
+    ' Send club status
+    On Error Resume Next
+    Call modPackets.SendClubStatus(Index)
+End Sub
+
+Private Sub ProcessBuyClub(ByVal Index As Integer, ByVal packetData As String)
+    ' Process buy club subscription
+    On Error Resume Next
+    Call modPackets.ProcessBuyClub(Index, packetData)
 End Sub

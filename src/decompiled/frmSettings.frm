@@ -1918,9 +1918,23 @@ Private Declare Function SetCursor Lib "user32" (ByVal hCursor As Long) As Long
 Private Sub Form_Load()
     On Error Resume Next
 
+    ' Set form size (from P-code: 10065x6735 twips)
+    Me.Width = 10065
+    Me.Height = 6735
+
     ' Initialize settings form
     LoadTabCaptions
     LoadMainTab
+
+    ' Set window topmost based on frmMain checkbox
+    If frmMain.chkForeground.Value = 1 Then
+        SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
+    Else
+        SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS
+    End If
+
+    ' Set title bar background color
+    Me.title.BackColor = RGB(200, 164, 101)
 End Sub
 
 Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -2110,7 +2124,7 @@ End Sub
 ' ============================================
 
 Private Sub limitsCommand1_Click()
-    ' Save limits settings
+    ' Save limits settings (from P-code)
     On Error Resume Next
 
     Me.MousePointer = 11
@@ -2118,10 +2132,10 @@ Private Sub limitsCommand1_Click()
     Me.limitsCommand2.Enabled = False
 
     WriteINI "config", "maxroomsperuser", Me.limitsText1.Text, gSettingsFile
-    WriteINI "config", "maxfurniperroom", Me.limitsText2.Text, gSettingsFile
-    WriteINI "config", "maxpetsperroom", Me.limitsText3.Text, gSettingsFile
-    WriteINI "config", "maxusersperroom", Me.limitsText4.Text, gSettingsFile
-    WriteINI "config", "maxtradeperuser", Me.limitsText5.Text, gSettingsFile
+    WriteINI "config", "maxguestroomsinlist", Me.limitsText2.Text, gSettingsFile
+    WriteINI "config", "maxfavouriterooms", Me.limitsText3.Text, gSettingsFile
+    WriteINI "config", "maxrollersinroom", Me.limitsText4.Text, gSettingsFile
+    WriteINI "config", "maxpetsinroom", Me.limitsText5.Text, gSettingsFile
 
     Me.limitsCommand1.Enabled = True
     Me.limitsCommand2.Enabled = True
@@ -2148,11 +2162,14 @@ End Sub
 ' ============================================
 
 Private Sub filterText1_Change()
-    ' Filter text changed
+    ' Enable save button when filter text changes (from P-code)
+    Me.filterCommand1.Enabled = True
 End Sub
 
 Private Sub filterCommand1_Click()
-    ' Add filter word - not saving directly, just interface placeholder
+    ' Save replacement text to settings.ini (from P-code)
+    WriteINI "config", "replacement", Me.filterText1.Text, gAppPath & "configuration\settings.ini"
+    Me.filterCommand1.Enabled = False
 End Sub
 
 Private Sub filterLabel1_Click()
@@ -2222,8 +2239,69 @@ Private Sub filterLabel2_MouseMove(Button As Integer, Shift As Integer, X As Sin
 End Sub
 
 Private Sub filterImage1_Click()
-    ' Add bobba word (same as filterLabel1)
-    filterLabel1_Click
+    ' Add new bobba word (from P-code with full validation)
+    Dim sNewWord As String
+    Dim sContent As String
+    Dim oTextStream As Object
+    Dim vWords As Variant
+    Dim i As Variant
+    Dim bWordExists As Boolean
+
+    ' Get new word via InputBox
+    sNewWord = InputBox(GetLocaleString("enter_bobba_word"), GetLocaleString("title_bobba_word_win"))
+
+    ' Read current bobba filter file
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    sContent = oTextStream.ReadAll
+
+    ' Clean up multiple line breaks (from P-code)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+
+    ' Remove leading line break if present (from P-code)
+    If Left(sContent, 2) = vbCrLf Then
+        sContent = Mid(sContent, 3)
+    End If
+
+    ' Ensure content ends with line break (from P-code)
+    If Right(sContent, 2) <> vbCrLf Then
+        sContent = sContent & vbCrLf
+    End If
+
+    ' Check if word already exists (from P-code validation)
+    bWordExists = (Left(sContent, Len(sNewWord) + 2) = LCase(sNewWord) & vbCrLf) Or _
+                  (InStr(1, sContent, vbCrLf & LCase(sNewWord) & vbCrLf) > 0)
+
+    If bWordExists Then
+        MsgBox GetLocaleString("word_already_on_list_msg"), vbInformation, "Server"
+        Exit Sub
+    End If
+
+    ' Validate word length (from P-code - must be > 1 char)
+    If Len(sNewWord) <= 1 Then
+        MsgBox GetLocaleString("word_inacceptable"), vbInformation, "Server"
+        Exit Sub
+    End If
+
+    ' Add new word (lowercased from P-code)
+    sContent = sContent & LCase(sNewWord) & vbCrLf
+
+    ' Write back
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 2, False, 0)
+    oTextStream.Write sContent
+
+    ' Reload filter list into listbox
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    sContent = oTextStream.ReadAll
+    vWords = Split(sContent, vbCrLf)
+
+    Me.filterList1.Clear
+    For i = 0 To UBound(vWords)
+        If vWords(i) <> vbNullString Then
+            Me.filterList1.AddItem CStr(vWords(i))
+        End If
+    Next i
 End Sub
 
 Private Sub filterImage1_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -2231,8 +2309,53 @@ Private Sub filterImage1_MouseMove(Button As Integer, Shift As Integer, X As Sin
 End Sub
 
 Private Sub filterImage2_Click()
-    ' Remove bobba word (same as filterLabel2)
-    filterLabel2_Click
+    ' Remove selected bobba word (from P-code)
+    Dim sSelected As String
+    Dim sContent As String
+    Dim oTextStream As Object
+    Dim vWords As Variant
+    Dim i As Variant
+
+    sSelected = Me.filterList1.Text
+    If sSelected = vbNullString Then Exit Sub
+
+    ' Read current bobba filter file
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    sContent = oTextStream.ReadAll
+
+    ' Clean up multiple line breaks (from P-code)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+    sContent = Replace(sContent, vbCrLf & vbCrLf, vbCrLf)
+
+    ' Remove leading line break if present (from P-code)
+    If Left(sContent, 2) = vbCrLf Then
+        sContent = Mid(sContent, 3)
+    End If
+
+    ' Ensure content ends with line break (from P-code)
+    If Right(sContent, 2) <> vbCrLf Then
+        sContent = sContent & vbCrLf
+    End If
+
+    ' Remove selected word (from P-code)
+    sContent = Replace(sContent, sSelected & vbCrLf, vbNullString)
+
+    ' Write back
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 2, False, 0)
+    oTextStream.Write sContent
+
+    ' Reload filter list into listbox
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "configuration\bobbafilter.ini", 1, False, 0)
+    sContent = oTextStream.ReadAll
+    vWords = Split(sContent, vbCrLf)
+
+    Me.filterList1.Clear
+    For i = 0 To UBound(vWords)
+        If vWords(i) <> vbNullString Then
+            Me.filterList1.AddItem CStr(vWords(i))
+        End If
+    Next i
 End Sub
 
 Private Sub filterImage2_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -2265,34 +2388,47 @@ End Sub
 ' ============================================
 
 Private Sub habbosCommand1_Click()
-    ' Save habbo settings - saves user data to their profile
+    ' Save habbo settings (from P-code - writes to text files)
     On Error Resume Next
 
     Dim sUsername As String
     Dim sHabboPath As String
+    Dim oTextStream As Object
 
     Me.MousePointer = 11
     Me.habbosCommand1.Enabled = False
     Me.habbosCommand2.Enabled = False
 
-    sUsername = Me.habbosList1.Text
-    If sUsername <> vbNullString Then
-        sHabboPath = gAppPath & "habbos\" & LCase(sUsername) & "\"
+    sUsername = LCase(Me.habbosList1.Text)
+    sHabboPath = gAppPath & "habbos\" & sUsername
 
-        If gFSO.FolderExists(sHabboPath) Then
-            WriteINI "info", "name", Me.habbosText1.Text, sHabboPath & "data.ini"
-            WriteINI "info", "email", Me.habbosText2.Text, sHabboPath & "data.ini"
-            WriteINI "info", "mission", Me.habbosText3.Text, sHabboPath & "data.ini"
-            WriteINI "info", "credits", Me.habbosText4.Text, sHabboPath & "data.ini"
-            WriteINI "info", "tickets", Me.habbosText5.Text, sHabboPath & "data.ini"
-            WriteINI "info", "film", Me.habbosText6.Text, sHabboPath & "data.ini"
-            WriteINI "info", "soundmachine", Me.habbosText7.Text, sHabboPath & "data.ini"
+    ' Write pass.txt (habbosText2 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\pass.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText2.Text
 
-            If Me.habbosCombo1.ListIndex >= 0 Then
-                WriteINI "info", "rank", Me.habbosCombo1.Text, sHabboPath & "data.ini"
-            End If
-        End If
-    End If
+    ' Write mission.txt (habbosText3 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\mission.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText3.Text
+
+    ' Write consolemission.txt (habbosText4 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\consolemission.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText4.Text
+
+    ' Write badges.txt (habbosText5 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\badges.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText5.Text
+
+    ' Write credits.txt (habbosText6 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\credits.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText6.Text
+
+    ' Write tickets.txt (habbosText7 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\tickets.txt", 2, False, 0)
+    oTextStream.Write Me.habbosText7.Text
+
+    ' Write rank.txt (habbosCombo1 from P-code)
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\rank.txt", 2, False, 0)
+    oTextStream.Write Me.habbosCombo1.Text
 
     Me.habbosCommand1.Enabled = True
     Me.habbosCommand2.Enabled = True
@@ -2300,55 +2436,107 @@ Private Sub habbosCommand1_Click()
 End Sub
 
 Private Sub habbosCommand2_Click()
-    ' Restore habbo settings
+    ' Restore/reload habbo settings (from P-code - calls habbosList1_DblClick)
     On Error Resume Next
 
     Me.MousePointer = 11
-    Me.habbosCommand1.Enabled = False
-    Me.habbosCommand2.Enabled = False
+    ' Note: P-code disables limitsCommand buttons here (appears to be bug in original)
+    Me.limitsCommand1.Enabled = False
+    Me.limitsCommand2.Enabled = False
 
-    LoadHabbosTab
+    ' Reload selected habbo data
+    habbosList1_DblClick
 
-    Me.habbosCommand1.Enabled = True
-    Me.habbosCommand2.Enabled = True
+    Me.limitsCommand1.Enabled = True
+    Me.limitsCommand2.Enabled = True
     Me.MousePointer = 0
 End Sub
 
 Private Sub habbosList1_DblClick()
-    ' Load selected habbo details
+    ' Load selected habbo details (from P-code - reads text files)
     Dim sUsername As String
     Dim sHabboPath As String
+    Dim oTextStream As Object
+    Dim i As Variant
+    Dim bIsOnline As Boolean
 
     On Error Resume Next
 
     sUsername = Me.habbosList1.Text
-    If sUsername = vbNullString Then Exit Sub
+    sHabboPath = gAppPath & "habbos\" & LCase(sUsername)
 
-    sHabboPath = gAppPath & "habbos\" & LCase(sUsername) & "\"
+    ' Check if folder exists
+    If Not gFSO.FolderExists(sHabboPath) Then
+        MsgBox GetLocaleString("user_doesnt_exists"), vbInformation, "Server"
+        Exit Sub
+    End If
 
-    If gFSO.FolderExists(sHabboPath) Then
-        ' Enable fields
-        Me.habbosText1.Enabled = True
-        Me.habbosText2.Enabled = True
-        Me.habbosText3.Enabled = True
-        Me.habbosText4.Enabled = True
-        Me.habbosText5.Enabled = True
-        Me.habbosText6.Enabled = True
-        Me.habbosText7.Enabled = True
-        Me.habbosCombo1.Enabled = True
+    ' Read name.txt -> habbosText1
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\name.txt", 1, False, 0)
+    Me.habbosText1.Text = oTextStream.ReadAll
 
-        ' Load data
-        Me.habbosText1.Text = GetINI("info", "name", sHabboPath & "data.ini")
-        Me.habbosText2.Text = GetINI("info", "email", sHabboPath & "data.ini")
-        Me.habbosText3.Text = GetINI("info", "mission", sHabboPath & "data.ini")
-        Me.habbosText4.Text = GetINI("info", "credits", sHabboPath & "data.ini")
-        Me.habbosText5.Text = GetINI("info", "tickets", sHabboPath & "data.ini")
-        Me.habbosText6.Text = GetINI("info", "film", sHabboPath & "data.ini")
-        Me.habbosText7.Text = GetINI("info", "soundmachine", sHabboPath & "data.ini")
-        Me.habbosCombo1.Text = GetINI("info", "rank", sHabboPath & "data.ini")
+    ' Read pass.txt -> habbosText2
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\pass.txt", 1, False, 0)
+    Me.habbosText2.Text = oTextStream.ReadAll
 
-        Me.habbosImage1.Visible = False
+    ' Read mission.txt -> habbosText3
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\mission.txt", 1, False, 0)
+    Me.habbosText3.Text = oTextStream.ReadAll
+
+    ' Read consolemission.txt -> habbosText4
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\consolemission.txt", 1, False, 0)
+    Me.habbosText4.Text = oTextStream.ReadAll
+
+    ' Read badges.txt -> habbosText5
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\badges.txt", 1, False, 0)
+    Me.habbosText5.Text = oTextStream.ReadAll
+
+    ' Read credits.txt -> habbosText6
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\credits.txt", 1, False, 0)
+    Me.habbosText6.Text = oTextStream.ReadAll
+
+    ' Read tickets.txt -> habbosText7
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\tickets.txt", 1, False, 0)
+    Me.habbosText7.Text = oTextStream.ReadAll
+
+    ' Populate rank combo with available ranks (from P-code)
+    Me.habbosCombo1.Clear
+    Me.habbosCombo1.AddItem "habbo"
+    Me.habbosCombo1.AddItem "habbox"
+    Me.habbosCombo1.AddItem "silver"
+    Me.habbosCombo1.AddItem "gold"
+    Me.habbosCombo1.AddItem "moderator"
+    Me.habbosCombo1.AddItem "admin"
+
+    ' Read rank.txt -> habbosCombo1
+    Set oTextStream = gFSO.OpenTextFile(sHabboPath & "\rank.txt", 1, False, 0)
+    Me.habbosCombo1.Text = oTextStream.ReadAll
+
+    ' Enable all fields
+    Me.habbosText2.Enabled = True
+    Me.habbosText3.Enabled = True
+    Me.habbosText4.Enabled = True
+    Me.habbosText5.Enabled = True
+    Me.habbosText6.Enabled = True
+    Me.habbosText7.Enabled = True
+    Me.habbosCombo1.Enabled = True
+
+    ' Check if user is online (from P-code)
+    bIsOnline = False
+    For i = 1 To frmMain.SockI
+        If gUserData(CInt(i)).Username = Me.habbosList1.Text Then
+            If frmMain.Sock(CInt(i)).State = 7 Then
+                bIsOnline = True
+                Exit For
+            End If
+        End If
+    Next i
+
+    ' Show/hide online indicator
+    If bIsOnline Then
         Me.habbosImage2.Visible = True
+    Else
+        Me.habbosImage2.Visible = False
     End If
 End Sub
 
@@ -2379,29 +2567,37 @@ End Sub
 ' ============================================
 
 Private Sub guestroomCommand1_Click()
-    ' Save guestroom settings
+    ' Save guestroom settings (from P-code - writes to text files)
     On Error Resume Next
 
     Dim sRoomId As String
     Dim sRoomPath As String
+    Dim oTextStream As Object
 
     Me.MousePointer = 11
     Me.guestroomCommand1.Enabled = False
     Me.guestroomCommand2.Enabled = False
 
     sRoomId = Me.guestroomText1.Text
-    sRoomPath = gAppPath & "privaterooms\" & sRoomId & "\"
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
 
     If gFSO.FolderExists(sRoomPath) Then
-        ' Ensure fields are not empty
+        ' Ensure fields are not empty (from P-code)
         If Me.guestroomText3.Text = vbNullString Then Me.guestroomText3.Text = " "
         If Me.guestroomText4.Text = vbNullString Then Me.guestroomText4.Text = " "
         If Me.guestroomText5.Text = vbNullString Then Me.guestroomText5.Text = " "
 
-        WriteINI "room", "name", Me.guestroomText2.Text, sRoomPath & "data.ini"
-        WriteINI "room", "description", Me.guestroomText3.Text, sRoomPath & "data.ini"
-        WriteINI "room", "owner", Me.guestroomText4.Text, sRoomPath & "data.ini"
-        WriteINI "room", "maxusers", Me.guestroomText5.Text, sRoomPath & "data.ini"
+        ' Write name.txt (guestroomText3 = room name from P-code)
+        Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 2, False, 0)
+        oTextStream.Write Me.guestroomText3.Text
+
+        ' Write description.txt (guestroomText4 = description from P-code)
+        Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 2, False, 0)
+        oTextStream.Write Me.guestroomText4.Text
+
+        ' Write pass.txt (guestroomText5 = password from P-code)
+        Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\pass.txt", 2, False, 0)
+        oTextStream.Write Me.guestroomText5.Text
     End If
 
     Me.guestroomCommand1.Enabled = True
@@ -2425,32 +2621,68 @@ Private Sub guestroomCommand2_Click()
 End Sub
 
 Private Sub guestroomList1_DblClick()
-    ' Load selected room details
+    ' Load selected room details (from P-code - reads text files)
+    Dim sListText As String
     Dim sRoomId As String
     Dim sRoomPath As String
+    Dim vParts As Variant
+    Dim oTextStream As Object
+    Dim sOwner As String
+    Dim sName As String
+    Dim sDescription As String
+    Dim sPassword As String
 
     On Error Resume Next
 
-    sRoomId = Me.guestroomList1.Text
-    If sRoomId = vbNullString Then Exit Sub
+    sListText = Me.guestroomList1.Text
+    If sListText = vbNullString Then Exit Sub
 
-    sRoomPath = gAppPath & "privaterooms\" & sRoomId & "\"
+    ' Remove trailing ) and parse to get room ID (from P-code)
+    sListText = Replace(sListText, ")", vbNullString)
+    vParts = Split(sListText, " ")
 
-    If gFSO.FolderExists(sRoomPath) Then
-        ' Enable fields
-        Me.guestroomText1.Enabled = True
-        Me.guestroomText2.Enabled = True
-        Me.guestroomText3.Enabled = True
-        Me.guestroomText4.Enabled = True
+    ' Check if room ID is numeric
+    If Not IsNumeric(vParts(0)) Then Exit Sub
+
+    sRoomId = CStr(vParts(0))
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+    ' Check if folder exists
+    If Not gFSO.FolderExists(sRoomPath) Then Exit Sub
+
+    ' Set room ID in text field
+    Me.guestroomText1.Text = sRoomId
+
+    ' Read owner.txt -> guestroomText2
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\owner.txt", 1, False, 0)
+    sOwner = oTextStream.ReadAll
+    Me.guestroomText2.Text = sOwner
+
+    ' Read name.txt -> guestroomText3
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 1, False, 0)
+    sName = oTextStream.ReadAll
+    Me.guestroomText3.Text = sName
+
+    ' Read description.txt -> guestroomText4
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 1, False, 0)
+    sDescription = oTextStream.ReadAll
+    Me.guestroomText4.Text = sDescription
+
+    ' Read pass.txt -> guestroomText5
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\pass.txt", 1, False, 0)
+    sPassword = oTextStream.ReadAll
+    Me.guestroomText5.Text = sPassword
+
+    ' Enable/disable password field based on value (from P-code)
+    If sPassword <> " " And sPassword <> vbNullString And sPassword <> "null" Then
         Me.guestroomText5.Enabled = True
-
-        ' Load data
-        Me.guestroomText1.Text = sRoomId
-        Me.guestroomText2.Text = GetINI("room", "name", sRoomPath & "data.ini")
-        Me.guestroomText3.Text = GetINI("room", "description", sRoomPath & "data.ini")
-        Me.guestroomText4.Text = GetINI("room", "owner", sRoomPath & "data.ini")
-        Me.guestroomText5.Text = GetINI("room", "maxusers", sRoomPath & "data.ini")
+    Else
+        Me.guestroomText5.Enabled = False
     End If
+
+    ' Enable other fields
+    Me.guestroomText3.Enabled = True
+    Me.guestroomText4.Enabled = True
 End Sub
 
 ' ============================================
@@ -2458,44 +2690,55 @@ End Sub
 ' ============================================
 
 Private Sub guestcategoriesCommand1_Click()
-    ' Save guest categories
+    ' Save guest categories (from P-code)
     On Error Resume Next
 
     Dim i As Variant
-    Dim vCatIds(0 To 9) As Long
+    Dim vCatCodes(0 To 9) As String
     Dim sCatFile As String
-    Dim oTextStream As Object
+    Dim sLang As String
+    Dim sLocalePath As String
 
     Me.MousePointer = 11
     Me.guestcategoriesCommand1.Enabled = False
     Me.guestcategoriesCommand2.Enabled = False
 
+    ' Category codes array (from P-code)
+    vCatCodes(0) = "SL"
+    vCatCodes(1) = "RL"
+    vCatCodes(2) = "PR"
+    vCatCodes(3) = "RQ"
+    vCatCodes(4) = "SV"
+    vCatCodes(5) = "Q]"
+    vCatCodes(6) = "R]"
+    vCatCodes(7) = "PL"
+    vCatCodes(8) = "RN"
+    vCatCodes(9) = "RR"
+
     sCatFile = gAppPath & "room_categories\categories.ini"
+    sLang = GetINI("server", "lang", gSettingsFile)
+    sLocalePath = App.Path & "\locale\" & sLang & "\locale.txt"
 
-    ' Get category IDs from catprop listboxes
     For i = 0 To 9
-        If Me.catprop(CInt(i)).ListIndex >= 0 Then
-            vCatIds(CInt(i)) = CLng(Me.catprop(CInt(i)).Text)
-        End If
-    Next i
+        ' Save category code to INI (from catprop listbox text)
+        WriteINI "categories", vCatCodes(CInt(i)), Me.catprop(CInt(i)).Text, sCatFile
 
-    ' Save category names and allow trade settings
-    For i = 0 To 9
-        WriteINI "categories", "cat" & CStr(i + 1), CStr(vCatIds(CInt(i))), sCatFile
-        WriteINI "categories", "catname" & CStr(i + 1), Me.catname(CInt(i)).Text, sCatFile
+        ' Save category name to INI
+        WriteINI "categories", Me.catname(CInt(i)).Text, Me.catname(CInt(i)).Text, sCatFile
 
         ' Also update locale
-        WriteINI "locale", "categorie_" & CStr(i + 1), Me.catname(CInt(i)).Text, _
-                 App.Path & "\locale\" & GetINI("server", "lang", gSettingsFile) & "\locale.txt"
+        WriteINI "locale", "categorie_" & CStr(CInt(i) + 1), Me.catname(CInt(i)).Text, sLocalePath
 
-        ' Handle allow trade files
+        ' Handle allow trade files (from P-code)
         If Me.allowtraden(CInt(i)).Value = 1 Then
-            If Not gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & vCatIds(CInt(i)) & ".txt") Then
-                gFSO.CreateTextFile gAppPath & "room_categories\allowtrade_" & vCatIds(CInt(i)) & ".txt", True, False
+            ' Create allowtrade file if it doesn't exist
+            If Not gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & vCatCodes(CInt(i)) & ".txt") Then
+                gFSO.CreateTextFile gAppPath & "room_categories\allowtrade_" & vCatCodes(CInt(i)) & ".txt", True, False
             End If
         Else
-            If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & vCatIds(CInt(i)) & ".txt") Then
-                gFSO.DeleteFile gAppPath & "room_categories\allowtrade_" & vCatIds(CInt(i)) & ".txt", False
+            ' Delete allowtrade file if it exists
+            If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & vCatCodes(CInt(i)) & ".txt") Then
+                gFSO.DeleteFile gAppPath & "room_categories\allowtrade_" & vCatCodes(CInt(i)) & ".txt", False
             End If
         End If
     Next i
@@ -2861,18 +3104,18 @@ Private Sub LoadMainTab()
 End Sub
 
 Private Sub LoadLimitsTab()
-    ' Load limits settings tab
+    ' Load limits settings tab (from P-code)
     On Error Resume Next
 
     HideAllTabs
     Me.Pictab_limits.Visible = True
 
-    ' Load limit values
+    ' Load limit values - matching P-code keys
     Me.limitsText1.Text = GetINI("config", "maxroomsperuser", gSettingsFile)
-    Me.limitsText2.Text = GetINI("config", "maxfurniperroom", gSettingsFile)
-    Me.limitsText3.Text = GetINI("config", "maxpetsperroom", gSettingsFile)
-    Me.limitsText4.Text = GetINI("config", "maxusersperroom", gSettingsFile)
-    Me.limitsText5.Text = GetINI("config", "maxtradeperuser", gSettingsFile)
+    Me.limitsText2.Text = GetINI("config", "maxguestroomsinlist", gSettingsFile)
+    Me.limitsText3.Text = GetINI("config", "maxfavouriterooms", gSettingsFile)
+    Me.limitsText4.Text = GetINI("config", "maxrollersinroom", gSettingsFile)
+    Me.limitsText5.Text = GetINI("config", "maxpetsinroom", gSettingsFile)
 End Sub
 
 Private Sub LoadFilterTab()
@@ -2962,13 +3205,95 @@ Private Sub LoadGuestRoomList()
 
     Dim oFolder As Object
     Dim oSubFolder As Object
+    Dim oTextStream As Object
+    Dim sName As String
+    Dim sOwner As String
 
     Me.guestroomList1.Clear
 
-    Set oFolder = gFSO.GetFolder(gAppPath & "rooms")
+    ' Load from privaterooms folder (from P-code)
+    Set oFolder = gFSO.GetFolder(gAppPath & "privaterooms")
     For Each oSubFolder In oFolder.SubFolders
-        Me.guestroomList1.AddItem oSubFolder.Name
+        ' Read room name from name.txt
+        sName = vbNullString
+        If gFSO.FileExists(oSubFolder.Path & "\name.txt") Then
+            Set oTextStream = gFSO.OpenTextFile(oSubFolder.Path & "\name.txt", 1, False, 0)
+            sName = oTextStream.ReadAll
+        End If
+        ' Format: "ID (name - owner)"
+        Me.guestroomList1.AddItem oSubFolder.Name & " (" & sName & ")"
     Next oSubFolder
+End Sub
+
+Private Sub LoadGuestroomTab()
+    ' Load guestroom sub-tab (from P-code - Proc_27_6)
+    On Error Resume Next
+
+    ' Show guestroom subtab
+    Me.Pictab_guestroom.Visible = True
+    Me.Pictab_guestcategories.Visible = False
+
+    ' Clear text fields
+    Me.guestroomText1.Text = vbNullString
+    Me.guestroomText2.Text = vbNullString
+    Me.guestroomText3.Text = vbNullString
+    Me.guestroomText4.Text = vbNullString
+    Me.guestroomText5.Text = vbNullString
+
+    ' Disable fields until a room is selected
+    Me.guestroomText3.Enabled = False
+    Me.guestroomText4.Enabled = False
+    Me.guestroomText5.Enabled = False
+
+    ' Reload room list
+    LoadGuestRoomList
+End Sub
+
+Private Sub LoadGuestCategoriesTab()
+    ' Load guest categories sub-tab (from P-code - Proc_27_7)
+    On Error Resume Next
+
+    Dim i As Variant
+    Dim vCatCodes(0 To 9) As String
+    Dim sCatFile As String
+    Dim sLang As String
+    Dim sLocalePath As String
+
+    ' Show categories subtab
+    Me.Pictab_guestroom.Visible = False
+    Me.Pictab_guestcategories.Visible = True
+
+    ' Category codes array (from P-code)
+    vCatCodes(0) = "SL"
+    vCatCodes(1) = "RL"
+    vCatCodes(2) = "PR"
+    vCatCodes(3) = "RQ"
+    vCatCodes(4) = "SV"
+    vCatCodes(5) = "Q]"
+    vCatCodes(6) = "R]"
+    vCatCodes(7) = "PL"
+    vCatCodes(8) = "RN"
+    vCatCodes(9) = "RR"
+
+    sCatFile = gAppPath & "room_categories\categories.ini"
+
+    ' Load categories data
+    For i = 0 To 9
+        ' Load category property
+        Me.catprop(CInt(i)).Text = GetINI("categories", vCatCodes(CInt(i)), sCatFile)
+
+        ' Load category name from locale
+        sLang = GetINI("server", "lang", gSettingsFile)
+        sLocalePath = App.Path & "\locale\" & sLang & "\locale.txt"
+        Me.catname(CInt(i)).Text = GetINI("locale", "categorie_" & CStr(CInt(i) + 1), sLocalePath)
+
+        ' Load allow trade status
+        If gFSO.FileExists(gAppPath & "room_categories\allowtrade_" & vCatCodes(CInt(i)) & ".txt") Then
+            Me.allowtraden(CInt(i)).Value = 1
+        Else
+            Me.allowtraden(CInt(i)).Value = 0
+        End If
+    Next i
 End Sub
 
 Private Sub LoadRanksTab()
