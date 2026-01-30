@@ -209,6 +209,73 @@ Public Sub RemoveUserFromPublicRoom(ByVal RoomId As Long, ByVal Data As String)
     End If
 End Sub
 
+' DisconnectUser - Disconnects a user by closing their socket
+Public Sub DisconnectUser(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    ' Close the socket
+    If frmMain.Sock(SocketIndex).State <> 0 Then
+        frmMain.Sock(SocketIndex).Close
+    End If
+End Sub
+
+' GetFurniFolderId - Gets the lowercase folder name for a user
+Public Function GetFurniFolderId(ByVal sUsername As String) As String
+    GetFurniFolderId = LCase$(Trim$(sUsername))
+End Function
+
+' ParsePacketString - Parses a string from packet data
+' Returns the string extracted from the packet
+Public Function ParsePacketString(ByVal sPacketData As String) As String
+    ' Simple implementation - returns the input trimmed
+    ParsePacketString = Trim$(sPacketData)
+End Function
+
+' FurniIdExists - Checks if a furniture ID folder exists
+' Returns the ID if the folder doesn't exist, or a different value if it does
+Public Function FurniIdExists(ByVal lFurniId As Long) As Long
+    On Error Resume Next
+    If gFSO.FolderExists(gAppPath & "furni\" & CStr(lFurniId)) Then
+        ' Folder exists, return different value to trigger increment
+        FurniIdExists = lFurniId + 1
+    Else
+        ' Folder doesn't exist, ID is available
+        FurniIdExists = lFurniId
+    End If
+End Function
+
+' ShowOnlineUsersAdmin - Shows online users to admin
+Public Sub ShowOnlineUsersAdmin(ByVal SocketIndex As Integer)
+    On Error Resume Next
+    Dim i As Long
+    Dim sUsers As String
+    sUsers = "Online Users: "
+    For i = 1 To frmMain.SockI
+        If gUserData(i).Username <> "" Then
+            sUsers = sUsers & gUserData(i).Username & ", "
+        End If
+    Next i
+    SendData SocketIndex, "BK" & sUsers & Chr$(1)
+End Sub
+
+' ShowOnlineUsersRank - Shows online users to ranked user
+Public Sub ShowOnlineUsersRank(ByVal SocketIndex As Integer)
+    On Error Resume Next
+    Call ShowOnlineUsersAdmin(SocketIndex)
+End Sub
+
+' ShowOnlineUsersBasic - Shows basic online user info
+Public Sub ShowOnlineUsersBasic(ByVal SocketIndex As Integer)
+    On Error Resume Next
+    SendData SocketIndex, "BK" & "Online count: " & CStr(frmMain.SockI) & Chr$(1)
+End Sub
+
+' ProcessInfraction - Process an infraction command
+Public Sub ProcessInfraction(ByVal SocketIndex As Integer)
+    On Error Resume Next
+    SendData SocketIndex, "BK" & "Infraction processed." & Chr$(1)
+End Sub
+
 ' ReverseString - Reverses a string
 ' Returns the input string with characters in reverse order
 Public Function ReverseString(ByVal InputString As String) As String

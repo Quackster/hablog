@@ -193,7 +193,7 @@ Private Function SendNavigatorData(ByVal SocketIndex As Integer)
     ' Build the navigator packet with all public room categories and rooms
     sPacket = "C\IKHPublic RoomsSXY[_IRKI" & GetLocaleString("pub_name_2") & "" & _
               EncodeVL64(CSng(0)) & _
-              "POKwelcome_lounge[M{Hhh_room_nlobbyHISBI" & GetLocaleString("Fu�ball Liga") & "" & _
+              "POKwelcome_lounge[M{Hhh_room_nlobbyHISBI" & GetLocaleString("Fussball Liga") & "" & _
               EncodeVL64(CSng(0)) & _
               "PQKballroomZa{Hhh_room_ballroom" & "HIRII" & GetLocaleString("Old Skool") & "" & _
               EncodeVL64(CSng(0)) & _
@@ -1676,16 +1676,16 @@ Private Function HandleDiceRoll(ByVal sData As String, ByVal SocketIndex As Inte
         ' Check if this timer slot is available (dice ID not in use)
         If InStr(1, frmMain.dices, "<" & CStr(i) & ">", 0) = 0 Then
             ' Load the timer control for this dice
-            Load frmMain.tmrDice(CInt(i))
+            Load frmMain.TimerDice(CInt(i))
 
             ' Add dice ID to active dices tracking
             frmMain.dices = frmMain.dices & "<" & CStr(i) & ">"
 
             ' Store dice info in timer tag: "furniId.roomId"
-            frmMain.tmrDice(CInt(i)).Tag = sFurniId & "." & CStr(gUserData(CLng(SocketIndex)).RoomId)
+            frmMain.TimerDice(CInt(i)).Tag = sFurniId & "." & CStr(gUserData(CLng(SocketIndex)).RoomId)
 
             ' Enable the timer to trigger dice result after delay
-            frmMain.tmrDice(CInt(i)).Enabled = True
+            frmMain.TimerDice(CInt(i)).Enabled = True
 
             Exit For
         End If
@@ -2191,10 +2191,10 @@ Private Function HandleBuddyFollow(ByVal sData As String, ByVal SocketIndex As I
            gUserData(CLng(i)).IsTrading = False Then
 
             ' Check if socket is connected (State = 7)
-            If frmMain.Socket(CInt(i)).State = 7 Then
+            If frmMain.Sock(CInt(i)).State = 7 Then
                 ' Send buddy info packet to both users
                 ' Al packet: username, chr$(9), "false", chr$(9), chr$(13), otherUsername, chr$(9), "false", chr$(9), chr$(13), chr$(1)
-                frmMain.Socket(CInt(i)).SendData "Al" & gUserData(CLng(SocketIndex)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & _
+                frmMain.Sock(CInt(i)).SendData "Al" & gUserData(CLng(SocketIndex)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & _
                     gUserData(CLng(i)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & Chr$(1)
 
                 SendData SocketIndex, "Al" & gUserData(CLng(SocketIndex)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & _
@@ -2534,7 +2534,7 @@ Private Function HandleUserInfraction(ByVal SocketIndex As Integer)
     For i = 1 To frmMain.SockI
         ' Check if this socket matches the target user (case insensitive)
         If LCase$(CStr(sTargetUser)) = LCase$(gUserData(CLng(i)).Username) And _
-           frmMain.Socket(CInt(i)).State = 7 Then
+           frmMain.Sock(CInt(i)).State = 7 Then
 
             ' Check if infracts.txt exists for this user
             If gFSO.FileExists(gAppPath & "habbos\" & LCase$(CStr(sTargetUser)) & "\infracts.txt") = False Then
@@ -3703,7 +3703,7 @@ Private Function HandleCFHRequest(ByVal sData As String, ByVal SocketIndex As In
         vReportedUser = Mid$(CStr(vReportData), 3, nLength1)
 
         ' Get target/staff assignment data
-        sTargetData = DecodeBase64(frmMain.Sock(SocketIndex).Text)
+        sTargetData = DecodeBase64(gUserData(CLng(SocketIndex)).TempData)
         aTargetParts = Split(sTargetData, Chr$(2), -1, 2)
 
         ' Loop through connected staff to forward CFH
@@ -4149,7 +4149,7 @@ Private Function HandleFurniturePickup(ByVal sData As String, ByVal SocketIndex 
         oTextStream.Write sHandItems
 
         ' Broadcast furniture removal to room
-        BroadcastToRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "A_" & CStr(vFurniId) & Chr$(1)
 
         ' Update user's inventory if they are the owner
@@ -4234,7 +4234,7 @@ Private Function HandleFurniturePlace(ByVal sData As String, ByVal SocketIndex A
         sFurniName = oTextStream.ReadAll
 
         ' Broadcast furniture placement to room
-        BroadcastToRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "A^" & CStr(vFurniId) & " " & CStr(sFurniName) & " " & _
             CStr(vPosX) & " " & CStr(vPosY) & " " & CStr(vRotation) & " " & _
             CStr(sFurniType) & Chr$(13) & Chr$(1)
@@ -4291,7 +4291,7 @@ Private Function HandleFurnitureMove(ByVal sData As String, ByVal SocketIndex As
         oTextStream.Write CStr(vNewRotation)
 
         ' Broadcast furniture move to room
-        BroadcastToRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "A_" & CStr(vFurniId) & " " & CStr(vNewX) & " " & CStr(vNewY) & " " & _
             CStr(vNewRotation) & Chr$(1)
     End If
@@ -4350,7 +4350,7 @@ Private Function HandleWallItemPlace(ByVal sData As String, ByVal SocketIndex As
         RemoveFromHand SocketIndex, CLng(vFurniId)
 
         ' Broadcast wall item placement
-        BroadcastToRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "AS" & CStr(vFurniId) & " " & CStr(vWallPos) & Chr$(1)
 
         ' Update inventory
@@ -4944,7 +4944,7 @@ Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal Socke
             sAlert = GetLocaleString("too_many_rollers_in_room_alert")
             sAlert = Replace(sAlert, "%max%", CStr(vMaxRollers), 1, -1, vbBinaryCompare)
             SendData SocketIndex, "BK" & sAlert & Chr$(1)
-            Call ProcessInventoryCommand("AAupdate", SocketIndex)
+            Call UpdateUserInventory(SocketIndex, "AAupdate")
             Exit Function
         End If
     End If
@@ -4975,7 +4975,7 @@ Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal Socke
         vMaxPets = Val(GetINI("config", "maxpetsinroom", gSettingsFile))
         If vNestCount >= vMaxPets And gUserData(CLng(SocketIndex)).UserType = "habbo" Then
             SendData SocketIndex, "BK" & GetLocaleString("too_many_pets_in_room_alert") & Chr$(1)
-            Call ProcessInventoryCommand("AAupdate", SocketIndex)
+            Call UpdateUserInventory(SocketIndex, "AAupdate")
             Exit Function
         End If
     End If
@@ -5003,7 +5003,7 @@ Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal Socke
 
         If vSoundMachineCount >= 1 Then
             SendData SocketIndex, "BK" & GetLocaleString("trax_one_room") & Chr$(1)
-            Call ProcessInventoryCommand("AAupdate", SocketIndex)
+            Call UpdateUserInventory(SocketIndex, "AAupdate")
             Exit Function
         End If
     End If
@@ -5090,10 +5090,10 @@ Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal Socke
                      CStr(vPosX) & " " & CStr(vPosY) & " " & sFurniHeight & " " & _
                      CStr(vRotation) & " " & sFurniDim & " " & sFurniCust & Chr$(1)
 
-        Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+        Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 
         ' Update user's inventory display
-        Call ProcessInventoryCommand("AAupdate", SocketIndex)
+        Call UpdateUserInventory(SocketIndex, "AAupdate")
 
     ' =========================================================================
     ' WALL ITEM PLACEMENT (is = "S")
@@ -5139,10 +5139,10 @@ Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal Socke
         ' Format: @\ furniid name wallpos cust
         sBroadcast = "@\" & CStr(vFurniId) & " " & sFurniName & " " & sWallPos & " " & sFurniCust & Chr$(1)
 
-        Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+        Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 
         ' Update user's inventory display
-        Call ProcessInventoryCommand("AAupdate", SocketIndex)
+        Call UpdateUserInventory(SocketIndex, "AAupdate")
     End If
 End Function
 
@@ -5196,8 +5196,8 @@ Private Function PlacePostIt(ByVal sFurniId As String, ByVal SocketIndex As Inte
     Dim sBroadcast As String
     sBroadcast = "@\" & sFurniId & " " & sFurniName & " " & sWallPos & " " & sFurniCust & Chr$(1)
 
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
-    Call ProcessInventoryCommand("AAupdate", SocketIndex)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
+    Call UpdateUserInventory(SocketIndex, "AAupdate")
 End Function
 
 ' ============================================================================
@@ -5288,7 +5288,7 @@ Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal Soc
         End If
 
         ' Broadcast item added to room
-        Call BroadcastToRoom(CInt(vRoomId), "AT" & CStr(vFurniId) & Chr$(1))
+        Call RemoveUserFromRoom(CInt(vRoomId), "AT" & CStr(vFurniId) & Chr$(1))
 
         ' Read current room furniture list
         Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(vRoomId) & "\furni.txt", 1, False, 0)
@@ -5318,7 +5318,7 @@ Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal Soc
         oTextStream.Write sUserHand
 
         ' Update inventory
-        Call ProcessInventoryCommand("AAupdate", SocketIndex)
+        Call UpdateUserInventory(SocketIndex, "AAupdate")
         Exit Function
     End If
 
@@ -5328,7 +5328,7 @@ Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal Soc
     vFurniId = Mid$(sData, 13)
 
     ' Broadcast item removal
-    Call BroadcastToRoom(CInt(vRoomId), "A^" & CStr(vFurniId) & Chr$(1))
+    Call RemoveUserFromRoom(CInt(vRoomId), "A^" & CStr(vFurniId) & Chr$(1))
 
     ' Read furniture properties
     Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\type.txt", 1, False, 0)
@@ -5354,7 +5354,7 @@ Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal Soc
         Dim sLoadedRollers As String
         sLoadedRollers = frmMain.LoadedRollersGet()
         sLoadedRollers = Replace(sLoadedRollers, "<" & CStr(vFurniId) & ">", "", 1, -1, vbBinaryCompare)
-        frmMain.LoadedRollersSet sLoadedRollers
+        frmMain.LoadedRollersPut sLoadedRollers
     End If
 
     ' Remove from room's furniture list
@@ -5387,7 +5387,7 @@ Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal Soc
     oTextStream.Write "0"
 
     ' Update inventory
-    Call ProcessInventoryCommand("AAlast", SocketIndex)
+    Call UpdateUserInventory(SocketIndex, "AAlast")
 End Function
 
 ' ============================================================================
@@ -5577,7 +5577,7 @@ Private Function HandleFurnitureInteraction(ByVal sData As String, ByVal SocketI
             ' Broadcast user carrying item
             Dim sCarryPacket As String
             sCarryPacket = "@]" & gUserData(CLng(SocketIndex)).Username & " " & sFurniCust & Chr$(1)
-            Call BroadcastToRoom(CInt(vRoomId), sCarryPacket)
+            Call RemoveUserFromRoom(CInt(vRoomId), sCarryPacket)
         End If
         Exit Function
     End If
@@ -5643,7 +5643,7 @@ Private Function BroadcastFurniUpdate(ByVal RoomId As Integer, ByVal FurniId As 
                  sFurniY & " " & sFurniH & " " & sFurniRot & " " & _
                  sFurniDim & " " & sFurniVar & Chr$(1)
 
-    Call BroadcastToRoom(RoomId, sBroadcast)
+    Call RemoveUserFromRoom(RoomId, sBroadcast)
 End Function
 
 ' ============================================================================
@@ -5674,7 +5674,7 @@ Private Function HandleDiceClose(ByVal sData As String, ByVal SocketIndex As Int
     Dim sBroadcast As String
     sBroadcast = "AZ" & CStr(vFurniId) & Chr$(20) & "0" & Chr$(1)
 
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -5701,7 +5701,7 @@ Private Function HandleDiceRollStart(ByVal sData As String, ByVal SocketIndex As
     ' Broadcast initial dice state to room
     Dim sBroadcast As String
     sBroadcast = "AZ" & CStr(vFurniId) & Chr$(1)
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 
     ' Find available dice timer slot (1-50)
     bSlotFound = False
@@ -5709,16 +5709,16 @@ Private Function HandleDiceRollStart(ByVal sData As String, ByVal SocketIndex As
         sDices = frmMain.dicesGet()
         If InStr(1, sDices, "<" & CStr(i) & ">", vbBinaryCompare) = 0 Then
             ' Slot available - load timer
-            Load frmMain.tmrDice(i)
+            Load frmMain.TimerDice(i)
 
             ' Add slot to loaded dices list
             frmMain.dicesPut sDices & "<" & CStr(i) & ">"
 
             ' Set timer tag with furni ID and room ID
-            frmMain.tmrDice(i).Tag = CStr(vFurniId) & "." & CStr(vRoomId)
+            frmMain.TimerDice(i).Tag = CStr(vFurniId) & "." & CStr(vRoomId)
 
             ' Enable timer
-            frmMain.tmrDice(i).Enabled = True
+            frmMain.TimerDice(i).Enabled = True
 
             bSlotFound = True
             Exit For
@@ -5778,7 +5778,7 @@ Private Function HandlePresentOpen(ByVal sData As String, ByVal SocketIndex As I
         oTextStream.Write sNewHand
 
         ' Update inventory display
-        Call ProcessInventoryCommand("AAupdate", SocketIndex)
+        Call UpdateUserInventory(SocketIndex, "AAupdate")
     End If
 End Function
 
@@ -5922,7 +5922,7 @@ Private Function HandleKickUser(ByVal sData As String, ByVal SocketIndex As Inte
                     gUserData(CLng(i)).RoomId = 0
 
                     ' Broadcast user left
-                    Call BroadcastToRoom(CInt(vRoomId), "@b" & gUserData(CLng(i)).Username & Chr$(1))
+                    Call RemoveUserFromRoom(CInt(vRoomId), "@b" & gUserData(CLng(i)).Username & Chr$(1))
                     Exit For
                 End If
             End If
@@ -6088,8 +6088,8 @@ Private Function HandleUserWave(ByVal sData As String, ByVal SocketIndex As Inte
 
     ' Broadcast user status to room
     Dim sBroadcast As String
-    sBroadcast = "@]" & gUserData(CLng(SocketIndex)).VirtualId & " " & sAction & Chr$(1)
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    sBroadcast = "@]" & gUserData(CLng(SocketIndex)).RoomUnitId & " " & sAction & Chr$(1)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -6115,8 +6115,8 @@ Private Function HandleUserDance(ByVal sData As String, ByVal SocketIndex As Int
 
     ' Broadcast dance status
     Dim sBroadcast As String
-    sBroadcast = "@^" & gUserData(CLng(SocketIndex)).VirtualId & " " & sDanceStyle & Chr$(1)
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    sBroadcast = "@^" & gUserData(CLng(SocketIndex)).RoomUnitId & " " & sDanceStyle & Chr$(1)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -6161,8 +6161,8 @@ Private Function HandleUserSit(ByVal SocketIndex As Integer)
 
     ' Broadcast sit status
     Dim sBroadcast As String
-    sBroadcast = "@_" & gUserData(CLng(SocketIndex)).VirtualId & " sit " & sSitHeight & Chr$(1)
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    sBroadcast = "@_" & gUserData(CLng(SocketIndex)).RoomUnitId & " sit " & sSitHeight & Chr$(1)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -6189,11 +6189,11 @@ Private Function HandleUserLay(ByVal SocketIndex As Integer)
     ' Broadcast lay status
     Dim sBroadcast As String
     If gUserData(CLng(SocketIndex)).IsLaying = 1 Then
-        sBroadcast = "@_" & gUserData(CLng(SocketIndex)).VirtualId & " lay" & Chr$(1)
+        sBroadcast = "@_" & gUserData(CLng(SocketIndex)).RoomUnitId & " lay" & Chr$(1)
     Else
-        sBroadcast = "@_" & gUserData(CLng(SocketIndex)).VirtualId & Chr$(1)
+        sBroadcast = "@_" & gUserData(CLng(SocketIndex)).RoomUnitId & Chr$(1)
     End If
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -6257,8 +6257,8 @@ Private Function HandleUserLook(ByVal sData As String, ByVal SocketIndex As Inte
 
     ' Broadcast direction change
     Dim sBroadcast As String
-    sBroadcast = "@`" & gUserData(CLng(SocketIndex)).VirtualId & " " & sDirection & " " & sDirection & Chr$(1)
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    sBroadcast = "@`" & gUserData(CLng(SocketIndex)).RoomUnitId & " " & sDirection & " " & sDirection & Chr$(1)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -6282,11 +6282,11 @@ Private Function HandleTypingStatus(ByVal sData As String, ByVal SocketIndex As 
     ' Broadcast typing status
     Dim sBroadcast As String
     If bIsTyping Then
-        sBroadcast = "Dv" & gUserData(CLng(SocketIndex)).VirtualId & Chr$(1)
+        sBroadcast = "Dv" & gUserData(CLng(SocketIndex)).RoomUnitId & Chr$(1)
     Else
-        sBroadcast = "Dw" & gUserData(CLng(SocketIndex)).VirtualId & Chr$(1)
+        sBroadcast = "Dw" & gUserData(CLng(SocketIndex)).RoomUnitId & Chr$(1)
     End If
-    Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+    Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 End Function
 
 ' ============================================================================
@@ -7163,7 +7163,7 @@ Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex 
 
         ' Broadcast furniture state update
         sBroadcast = "AU" & vFurniId & Chr$(9) & " " & sName & "   " & sLocation & Chr$(9) & "2" & Chr$(1)
-        Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+        Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
 
     ElseIf sState = "1" Or sState = "I" Then
         ' Write new state as "J" (closed)
@@ -7173,7 +7173,7 @@ Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex 
 
         ' Broadcast furniture state update
         sBroadcast = "AU" & vFurniId & Chr$(9) & " " & sName & "   " & sLocation & Chr$(9) & "1" & Chr$(1)
-        Call BroadcastToRoom(CInt(vRoomId), sBroadcast)
+        Call RemoveUserFromRoom(CInt(vRoomId), sBroadcast)
     End If
 End Function
 
@@ -7209,15 +7209,15 @@ Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Int
     sRoomId = EncodeVL64(gUserData(CLng(SocketIndex)).RoomId)
 
     ' Increment CFH counter
-    lCFHIndex = Val(CStr(frmMain.CFHs)) + 1
-    frmMain.CFHs = lCFHIndex
+    lCFHIndex = Val(CStr(frmMain.CFHsCount)) + 1
+    frmMain.CFHsCount = lCFHIndex
 
     ' Load new CFH text control
     Load frmMain.CFHs(CInt(lCFHIndex))
 
     ' Build CFH entry with formatted date, time, and message
     ' Format: "BT" + CFH_ID + Chr$(2) + message + cfh_time + " " + "dd-mm-yyyy" + " " + "hh:mm" + Chr$(2) + username + Chr$(2) + room_id + Chr$(2) + message: + Chr$(2) + "I" + Chr$(2) + room_id + Chr$(1)
-    sCFHEntry = "BT" & EncodeVL64(CDbl(frmMain.CFHs)) & Chr$(2) & sRemainder & _
+    sCFHEntry = "BT" & EncodeVL64(CDbl(frmMain.CFHsCount)) & Chr$(2) & sRemainder & _
                 GetConfigValue("cfh_time") & " " & Format$(Date, "dd-mm-yyyy") & " " & Format$(Time, "hh:mm") & Chr$(2) & _
                 gUserData(CLng(SocketIndex)).Username & Chr$(2) & sMessage & Chr$(2) & _
                 sRoomId & Chr$(2) & GetConfigValue("message") & ":" & Chr$(2) & _
@@ -7227,7 +7227,7 @@ Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Int
     frmMain.CFHs(CInt(lCFHIndex)).Text = sCFHEntry
 
     ' Broadcast to all staff members with permission to receive CFH
-    For i = 1 To frmMain.SockI.Count
+    For i = 1 To frmMain.SockI
         If gUserData(CLng(i)).Rank <> vbNullString Then
             ' Check if user has CFH receive permission
             sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
@@ -7285,7 +7285,7 @@ Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Int
                                 gUserData(CLng(SocketIndex)).Username & ">"
 
         ' Loop through all staff members to update CFH entry
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).Rank <> vbNullString Then
                 ' Check if user has CFH permission
                 sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
@@ -7360,7 +7360,7 @@ Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Inte
     sSearchStr = "<" & CStr(vCFHId) & "="
     If InStr(1, frmMain.PickedUpCalls, sSearchStr) = 0 Then
         ' Loop through all staff members to update CFH entry
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).Rank <> vbNullString Then
                 ' Check if user has CFH permission
                 sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
@@ -7471,7 +7471,7 @@ Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As In
 
     ' Check if user is currently online
     bOnline = False
-    For i = 1 To frmMain.SockI.Count
+    For i = 1 To frmMain.SockI
         If LCase$(gUserData(CLng(i)).Username) = LCase$(sUsername) Then
             If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                 sSexIndicator = gUserData(CLng(i)).Figure
@@ -7630,7 +7630,7 @@ Private Function HandleFriendRemoveById(ByVal sData As String, ByVal SocketIndex
     SendData SocketIndex, "BJI" & EncodeVL64(CDbl(sTargetId)) & Chr$(1)
 
     ' Find target user online and send them notification
-    For i = 1 To frmMain.SockI.Count
+    For i = 1 To frmMain.SockI
         If LCase$(gUserData(CLng(i)).Username) = LCase$(sTargetUser) Then
             If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                 Call frmMain.Sock(CInt(i)).SendData("BJI" & EncodeVL64(CDbl(sMyId)) & Chr$(1))
@@ -7729,14 +7729,14 @@ Private Function HandleReportPlayer(ByVal SocketIndex As Integer)
     End If
 
     ' Increment CFH counter
-    lCFHIndex = Val(CStr(frmMain.CFHs)) + 1
-    frmMain.CFHs = lCFHIndex
+    lCFHIndex = Val(CStr(frmMain.CFHsCount)) + 1
+    frmMain.CFHsCount = lCFHIndex
 
     ' Load new CFH text control
     Load frmMain.CFHs(CInt(lCFHIndex))
 
     ' Build CFH entry
-    sCFHEntry = "BT" & EncodeVL64(CDbl(frmMain.CFHs)) & Chr$(2) & _
+    sCFHEntry = "BT" & EncodeVL64(CDbl(frmMain.CFHsCount)) & Chr$(2) & _
                 "I" & GetConfigValue("cfh_time") & " " & Format$(Date, "dd-mm-yyyy") & " " & Format$(Time, "hh:mm") & Chr$(2) & _
                 gUserData(CLng(SocketIndex)).Username & Chr$(2) & _
                 GetConfigValue("rp_from") & ": " & sReportedUser & Chr$(13) & _
@@ -7748,7 +7748,7 @@ Private Function HandleReportPlayer(ByVal SocketIndex As Integer)
     frmMain.CFHs(CInt(lCFHIndex)).Text = sCFHEntry
 
     ' Broadcast to all staff members with CFH permission
-    For i = 1 To frmMain.SockI.Count
+    For i = 1 To frmMain.SockI
         sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
         If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
             If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
@@ -7779,11 +7779,12 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
     SendData SocketIndex, "BKUser now Infracted." & Chr$(1)
 
     ' Get target username and reason from form
-    sReason = frmMain.Label.Caption
-    sTargetUser = frmMain.Label.Caption
+    ' NOTE: Original code referenced non-existent form controls
+    sReason = ""
+    sTargetUser = ""
 
     ' Find target user online
-    For i = 1 To frmMain.SockI.Count
+    For i = 1 To frmMain.SockI
         If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
             If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                 ' Check if infracts.txt exists
@@ -7918,7 +7919,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         lCountQ = 0: lCountR = 0: lCountPL = 0: lCountRN = 0: lCountRR = 0
 
         ' Count rooms in category SL
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7930,7 +7931,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedSL = EncodeVL64(lCountSL)
 
         ' Count rooms in category RL
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7942,7 +7943,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedRL = EncodeVL64(lCountRL)
 
         ' Count rooms in category PR
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7954,7 +7955,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedPR = EncodeVL64(lCountPR)
 
         ' Count rooms in category RQ
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7966,7 +7967,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedRQ = EncodeVL64(lCountRQ)
 
         ' Count rooms in category Q]
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7978,7 +7979,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedQ = EncodeVL64(lCountQ)
 
         ' Count rooms in category R]
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -7990,7 +7991,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedR = EncodeVL64(lCountR)
 
         ' Count rooms in category PL (first count)
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -8002,7 +8003,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedPL = EncodeVL64(lCountPL)
 
         ' Count rooms in category RN
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -8014,7 +8015,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         sEncodedRN = EncodeVL64(lCountRN)
 
         ' Count rooms in category RR
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If gUserData(CLng(i)).RoomID > 0 Then
                 sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
@@ -8104,8 +8105,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
     End If
 
     ' Load temporary ListBox for sorting rooms
-    Set frmMain.ListBox(SocketIndex) = Controls.Add("VB.ListBox", "ListBox" & SocketIndex)
-    Load frmMain.ListBox(SocketIndex)
+    If SocketIndex > 0 Then Load frmMain.ListBox(SocketIndex)
 
     ' Get total room count
     Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\count.txt", 1, False)
@@ -8129,7 +8129,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
                 If sCatName = sCategory Then
                     ' Count visitors in this room
                     lVisitorCount = 0
-                    For j = 1 To frmMain.SockI.Count
+                    For j = 1 To frmMain.SockI
                         If gUserData(CLng(j)).RoomID = i Then
                             lVisitorCount = lVisitorCount + 1
                         End If
@@ -8186,7 +8186,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
 
             ' Count current visitors
             lVisitorCount = 0
-            For j = 1 To frmMain.SockI.Count
+            For j = 1 To frmMain.SockI
                 If gUserData(CLng(j)).RoomID = lRoomId Then
                     lVisitorCount = lVisitorCount + 1
                 End If
@@ -8267,7 +8267,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         sMessage = Mid$(sPacket, 3, lMessageLen)
 
         ' Find and kick target user
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
                 ' Check if moderator rank is >= target rank
                 If CompareRanks(gUserData(CLng(i)).Rank, gUserData(CLng(SocketIndex)).Rank) = True Then
@@ -8288,13 +8288,13 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
 
                     ' Remove user from room if in one
                     If gUserData(CLng(i)).RoomID > 0 Then
-                        Call BroadcastToRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).RoomID)
+                        Call RemoveUserFromRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).RoomID)
                         gUserData(CLng(i)).RoomID = 0
                     End If
 
                     ' Remove from public room if in one
                     If gUserData(CLng(i)).PublicRoomID > 0 Then
-                        Call BroadcastToPublicRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).PublicRoomID)
+                        Call RemoveUserFromPublicRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).PublicRoomID)
                         gUserData(CLng(i)).PublicRoomID = 0
                         gUserData(CLng(i)).RoomPosition = ""
                         gUserData(CLng(i)).PublicRoomData = 0
@@ -8321,7 +8321,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         sMessage = Mid$(sPacket, 3, lMessageLen)
 
         ' Find and alert target user
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
                 If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                     Call frmMain.Sock(CInt(i)).SendData("@amod_warn/" & sMessage & Chr$(1))
@@ -8440,7 +8440,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         gUserData(CLng(SocketIndex)).BannedUser = ""
 
         ' Find and kick banned user
-        For i = 1 To frmMain.SockI.Count
+        For i = 1 To frmMain.SockI
             If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
                 If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                     ' Send ban message and disconnect
@@ -8453,12 +8453,12 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
 
                     ' Remove from room
                     If gUserData(CLng(i)).RoomID > 0 Then
-                        Call BroadcastToRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).RoomID)
+                        Call RemoveUserFromRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).RoomID)
                         gUserData(CLng(i)).RoomID = 0
                     End If
 
                     If gUserData(CLng(i)).PublicRoomID > 0 Then
-                        Call BroadcastToPublicRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).PublicRoomID)
+                        Call RemoveUserFromPublicRoom(Chr$(1) & "@]" & gUserData(CLng(i)).RoomPosition, gUserData(CLng(i)).PublicRoomID)
                         gUserData(CLng(i)).PublicRoomID = 0
                         gUserData(CLng(i)).RoomPosition = ""
                     End If
@@ -8485,9 +8485,9 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
 
         ' Broadcast alert to all users in current room
         If gUserData(CLng(SocketIndex)).RoomID > 0 Then
-            Call BroadcastToRoom("@amod_warn/" & sMessage & Chr$(1), gUserData(CLng(SocketIndex)).RoomID)
+            Call RemoveUserFromRoom("@amod_warn/" & sMessage & Chr$(1), gUserData(CLng(SocketIndex)).RoomID)
         ElseIf gUserData(CLng(SocketIndex)).PublicRoomID > 0 Then
-            Call BroadcastToPublicRoom("@amod_warn/" & sMessage & Chr$(1), gUserData(CLng(SocketIndex)).PublicRoomID)
+            Call RemoveUserFromPublicRoom("@amod_warn/" & sMessage & Chr$(1), gUserData(CLng(SocketIndex)).PublicRoomID)
         End If
         Exit Function
     End If
@@ -9261,11 +9261,11 @@ Private Function HandleHabboWheel(ByVal sData As String, ByVal SocketIndex As In
     ' "@m" = furniture update packet
     sPacket = "@m" & sFurniID & Chr$(9) & sFurniName & Chr$(9) & " " & Chr$(9) & _
               sLocation & Chr$(9) & sVar & Chr$(13)
-    Call BroadcastToRoom(lRoomID, sPacket)
+    Call RemoveUserFromRoom(lRoomID, sPacket)
 
     ' Send spin acknowledgement
     sPacket = "@@" & Chr$(1) & "fucksngforum"
-    Call BroadcastToRoom(lRoomID, sPacket)
+    Call RemoveUserFromRoom(lRoomID, sPacket)
 End Function
 
 ' HandleKonsoleAdmin - Processes admin console commands (Proc_30_100)
@@ -9496,7 +9496,8 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
     Next j
 
     ' Set label caption (for debugging/tracking)
-    frmMain.Label.Caption = sUsername
+    ' NOTE: frmMain.Label doesn't exist - original code tracked username somewhere
+    ' frmMain.Label.Caption = sUsername
 
     ' Store username variant
     gUserData(SocketIndex).TempData = gUserData(SocketIndex).Username
@@ -9544,7 +9545,7 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
 
     ' Check max online limit
     sMaxOnline = GetIniValue(gAppPath, "server", "max_online")
-    If frmMain.Label.Caption = sMaxOnline Then
+    If CStr(frmMain.SockI) = sMaxOnline Then
         ' Check if user's rank allows bypass
         sRankHotelLock = GetIniValue(gAppPath & "ranks\" & gUserData(SocketIndex).Rank & ".ini", "rank", "hotel_lock")
         If sRankHotelLock <> "1" Then
@@ -10361,8 +10362,9 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
             sInfractData = Mid$(CStr(vMessage), InStr(1, CStr(vMessage), " ") + 1)
             If InStr(1, CStr(sInfractData), " ", vbTextCompare) > 0 Then
                 sTargetUser = Mid$(CStr(sInfractData), InStr(1, CStr(sInfractData), " ") + 1)
-                0 = sTargetUser
-                0 = Mid$(CStr(sInfractData), 1, InStr(1, CStr(sInfractData), " ") - 1)
+                Dim sInfractReason As String
+                sInfractReason = sTargetUser
+                sTargetUser = Mid$(CStr(sInfractData), 1, InStr(1, CStr(sInfractData), " ") - 1)
                 Call ProcessInfraction(SocketIndex)
             End If
         End If
@@ -10786,7 +10788,7 @@ Private Function HandleItemPickup(ByRef sPacketData As String, ByVal SocketIndex
         End If
 
         ' Notify room users about new item
-        Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        Call RemoveUserFromRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "AT" & CStr(sItemId) & Chr$(1))
 
         ' Remove item from room's furniture list
@@ -10835,7 +10837,7 @@ Private Function HandleItemPickup(ByRef sPacketData As String, ByVal SocketIndex
     sItemId = Mid$(sPacketData, 13)
 
     ' Notify room users about item removal
-    Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+    Call RemoveUserFromRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
         "A^" & CStr(sItemId) & Chr$(1))
 
     ' Read item properties
@@ -11246,7 +11248,7 @@ Private Function HandleFurnitureMovePacket(ByRef sPacketData As String, ByVal So
             "tiles", CStr(vNewX) & "," & CStr(vNewY), sWalkType)
 
         ' Broadcast furniture move to all users in room
-        Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        Call RemoveUserFromRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
             "AZ" & CStr(sItemId) & " " & CStr(vNewX) & " " & CStr(vNewY) & " " & _
             CStr(vNewRot) & " " & CStr(sFurniCust) & Chr$(1))
     End If

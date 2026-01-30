@@ -475,6 +475,39 @@ Begin VB.Form frmMain
     Height = 500
     TabIndex = 231
   End
+  Begin VB.TextBox CFHs
+    Index = 0
+    Left = 8200
+    Top = 7200
+    Width = 2000
+    Height = 300
+    Visible = 0   'False
+    TabIndex = 255
+  End
+  Begin VB.ListBox ListBox
+    Index = 0
+    Left = 8200
+    Top = 7500
+    Width = 2000
+    Height = 500
+    Visible = 0   'False
+    TabIndex = 256
+  End
+  Begin VB.Timer PetTimer
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 8200
+    Top = 8000
+  End
+  Begin VB.TextBox Text1
+    Left = 8200
+    Top = 8300
+    Width = 2000
+    Height = 300
+    Visible = 0   'False
+    TabIndex = 257
+  End
   Begin VB.CommandButton cmdAutoClose
     Caption = "Auto Close"
     Left = 5600
@@ -914,6 +947,34 @@ Begin VB.Form frmMain
     Left = 3000
     Top = 0
   End
+  Begin VB.Timer tmrSocket
+    Index = 0
+    Enabled = 0   'False
+    Interval = 30000
+    Left = 3120
+    Top = 0
+  End
+  Begin VB.Timer tmrSocket2
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3240
+    Top = 0
+  End
+  Begin VB.Timer tmrUser
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3360
+    Top = 0
+  End
+  Begin VB.Timer tmrPet
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3480
+    Top = 0
+  End
   Begin VB.Menu mnuMain
     Caption = "Menu"
     Begin VB.Menu mnuLanguage
@@ -984,7 +1045,7 @@ Public SocketQueue As String
 Public FreeSockets As String
 Public Hpets As String
 Public LoadedRollers As String
-Public CFHs As Long
+Public CFHsCount As Long
 Public PickedUpCalls As String
 Public DebugActive As Boolean
 Public dices As String
@@ -2100,12 +2161,12 @@ Public Sub LoadedRollersPut(Value As String)
     LoadedRollers = Value
 End Sub
 
-Public Function CFHsGet() As Long
-    CFHsGet = CFHs
+Public Function CFHsCountGet() As Long
+    CFHsCountGet = CFHsCount
 End Function
 
-Public Sub CFHsPut(Value As Long)
-    CFHs = Value
+Public Sub CFHsCountPut(Value As Long)
+    CFHsCount = Value
 End Sub
 
 Public Function PickedUpCallsGet() As String

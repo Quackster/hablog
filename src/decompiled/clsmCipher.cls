@@ -83,7 +83,7 @@ Public Sub setKey(ByVal s As String)
 
         ' Accumulate and XOR with shifted position
         lKeySum = lKeySum + lMatchOffset
-        lKeySum = lKeySum Xor LShift((i - 1) Mod 3, 8, lMatchOffset)
+        lKeySum = lKeySum Xor LShift(8, lMatchOffset)
     Next i
 
     ' Initialize key schedule with calculated sum

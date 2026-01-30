@@ -22,11 +22,17 @@ Public Type UserDataType
     RoomId As Double            ' Private room ID (0 = not in room)
     PublicRoomId As Integer     ' Public room ID (0 = not in room)
     PublicRoom As Integer       ' Public room indicator
+    PublicRoomData As String    ' Public room data
     RoomSlot As String          ' Room slot identifier
     RoomName As String          ' Current room name
     RoomNum As Integer          ' Room number
     RoomType As Integer         ' Room type
+    RoomUnitId As Integer       ' Room unit ID (slot number)
+    RoomIdString As String      ' Room ID as string
+    RoomPosition As String      ' Room position string
     CurrentRoom As String       ' Current room identifier
+    InRoom As Boolean           ' Is in a room
+    TargetRoom As Long          ' Target room ID
 
     ' Position and movement
     PosX As Integer             ' X position
@@ -167,6 +173,7 @@ Public Type UserDataType
 
     ' Teleporter Extended
     TeleporterReady As Boolean  ' Teleporter is ready
+    TeleporterName As String    ' Teleporter name
     TeleX As Integer            ' Teleporter X position
     TeleY As Integer            ' Teleporter Y position
     TeleHeight As Double        ' Teleporter height
@@ -247,6 +254,23 @@ Public Type PetDataType
     PetAction3 As Integer       ' Pet action 3
     IsSleeping As Integer       ' Is sleeping flag
     SleepTimer As Integer       ' Sleep timer
+
+    ' Extended
+    FurniId As Long             ' Furniture ID
+    PetVar1 As Integer          ' Pet variable 1
+    PetVar2 As Integer          ' Pet variable 2
+    ArrayIndex As Long          ' Array index
+    Action As String            ' Current action
+    Alive As Boolean            ' Is alive
+    DrinkTimer As Integer       ' Drink timer
+    EatTimer As Integer         ' Eat timer
+    SleepDuration As Integer    ' Sleep duration
+    Health As String            ' Health status
+    Figure As String            ' Pet figure
+    IsSitting As Boolean        ' Is sitting
+    IsLaying As Boolean         ' Is laying
+    Gesture As String           ' Current gesture
+    HasAction As Boolean        ' Has active action
 End Type
 
 ' ============================================================================
