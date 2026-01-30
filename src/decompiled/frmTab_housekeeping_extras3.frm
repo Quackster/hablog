@@ -1772,6 +1772,10 @@ Begin VB.Form frmTab_housekeeping_extras3
 End
 
 Attribute VB_Name = "frmTab_housekeeping_extras3"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
 Option Explicit
 

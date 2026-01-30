@@ -210,6 +210,10 @@ Begin VB.Form frmTab_publicroom_battleball
 End
 
 Attribute VB_Name = "frmTab_publicroom_battleball"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
 Option Explicit
 

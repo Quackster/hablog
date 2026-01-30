@@ -149,6 +149,10 @@ Begin VB.Form frmTab_publicroom_layout
 End
 
 Attribute VB_Name = "frmTab_publicroom_layout"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
 Option Explicit
 

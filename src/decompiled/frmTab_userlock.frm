@@ -227,6 +227,10 @@ Begin VB.Form frmTab_userlock
 End
 
 Attribute VB_Name = "frmTab_userlock"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
 Option Explicit
 

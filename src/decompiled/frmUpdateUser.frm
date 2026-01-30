@@ -88,6 +88,10 @@ Begin VB.Form frmUpdateUser
 End
 
 Attribute VB_Name = "frmUpdateUser"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
 Option Explicit
 
