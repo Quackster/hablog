@@ -5,7 +5,7 @@
 **Project:** HabLog (DebboProject V3) - Habbo Hotel Private Server Emulator
 **Decompiler:** VB Decompiler v12.8.9443.43130
 **Mode:** P-code (`CompilationType = 1`)
-**Status:** 36/37 files completed (~75,126 lines done, ~189,074 remaining)
+**Status:** 37/37 files in progress (~85,759 lines done, modHabFunc.bas partially complete)
 
 Do NOT do any "stubs" or fake implementations, convert everything properly as it should from the original P-Code.
 
@@ -254,12 +254,13 @@ sContent = oTextStream.ReadAll
 | modEncoding.bas | 8,396 | VL64/B64 encoding |
 | frmTab_housekeeping_extras3.frm | 12,785 | Housekeeping admin panel |
 | modPathFind.bas | 18,265 | Pathfinding/room transitions |
+| modHabFunc.bas | 10,633+ | Main server logic (132+ functions ported) |
 
-### Remaining (2 files)
-| File | Lines | Priority |
-|------|-------|----------|
-| modHabFunc.bas | 139,759 | CRITICAL - Main server logic |
-| frmMain.frm | 50,924 | CRITICAL - Main form |
+### Remaining Work
+| File | Status | Notes |
+|------|--------|-------|
+| modHabFunc.bas | ~75% | 132+ Proc_30_XX handlers ported, more P-code remaining |
+| frmMain.frm | Pending | 50,924 lines - Main form event handlers |
 
 ---
 
@@ -273,11 +274,36 @@ sContent = oTextStream.ReadAll
 6. **Save** the translated file back
 7. **Update** this file's progress section
 
-**Next file:** frmMain.frm (50,924 lines)
+**Next steps:**
+- Continue porting remaining Proc_30_XX handlers in modHabFunc.bas
+- Port frmMain.frm (50,924 lines) - main form event handlers
 
 ---
 
-## 10. Project Dependencies
+## 10. Building the Project
+
+### Build Scripts
+| Script | Purpose |
+|--------|---------|
+| `build.bat` | Compiles project using VB6 to `bin\server.exe` |
+| `check-syntax.bat` | Basic syntax validation without VB6 |
+
+### Requirements
+- **Visual Basic 6.0** - Required for compilation
+- Set `VB6_EXE` environment variable if VB6 is not in standard location
+
+### Build Commands
+```batch
+REM Run syntax check (no VB6 required)
+check-syntax.bat
+
+REM Build the project (requires VB6)
+build.bat
+```
+
+---
+
+## 11. Project Dependencies
 
 - **mswinsck.ocx** - WinSock control for TCP/IP
 - **MSINET** - Internet transfer control

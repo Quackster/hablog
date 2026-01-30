@@ -3369,11 +3369,11 @@ Private Function HandleCataloguePageRequest(ByVal sData As String, ByVal SocketI
 End Function
 
 ' ============================================================================
-' Proc_30_89 - HandleCataloguePurchase
-' Handles purchasing an item from the catalogue
-' Validates credits, creates item, adds to inventory
+' HandleCataloguePurchaseSimple - Simple catalogue purchase (legacy stub)
+' Basic item purchasing - see HandleCataloguePurchase (Proc_30_75) for full implementation
+' Handles simple items without deals, gifts, posters, pets, or trophies
 ' ============================================================================
-Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleCataloguePurchaseSimple(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -9995,5 +9995,639 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
             End If
         Next i
     End If
+End Function
+
+' =============================================================================
+' ProcessPetAndSpeechCommands - Handles pet commands and speech chat commands
+' This function processes user speech/chat messages and checks for pet commands
+' (petdead, petjump, petsit, petlay, petnest, petwakeup) and special user commands
+' (:about, :whosonline, :infract, :fracts, etc.)
+'
+' Parameters:
+'   PacketData: The raw packet data containing the speech/chat message
+'   SocketIndex: The socket index of the user sending the message
+'
+' Returns: 0 if command was handled (don't broadcast), 1 to broadcast normally
+'
+' Original P-Code: Proc_30_46_C0D9E4
+' =============================================================================
+Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex As Integer) As Integer
+    On Error Resume Next
+
+    Dim sPacketHeader As String
+    Dim nPacketLength As Integer
+    Dim vMessage As Variant
+    Dim vWordArray As Variant
+    Dim vPetList As Variant
+    Dim vPetIds() As String
+    Dim i As Variant
+    Dim sPetName As String
+    Dim bIsPetOwner As Boolean
+    Dim bPetMatches As Boolean
+    Dim lPetId As Long
+    Dim oTextStream As Object
+    Dim sRankFile As String
+    Dim sTargetUser As String
+    Dim sInfractData As Variant
+
+    ' Extract packet header (first 3 chars starting at position 2)
+    sPacketHeader = Mid$(PacketData, 3, 2)
+
+    ' Decode packet length from VL64
+    nPacketLength = CInt(DecodeVL64(CStr(sPacketHeader)))
+
+    ' Extract message content (starting at position 5)
+    vMessage = Mid$(PacketData, 5, nPacketLength)
+
+    ' Clean up message - replace Chr$(1) and Chr$(2) with spaces
+    vMessage = Replace(CStr(vMessage), Chr$(1), " ", 1, -1, vbBinaryCompare)
+    vMessage = Replace(CStr(vMessage), Chr$(2), " ", 1, -1, vbBinaryCompare)
+
+    ' Remove leading vbCrLf if present
+    vMessage = Replace(CStr(vMessage), Mid$(vbCrLf, 1, 1), "", 1, -1, vbBinaryCompare)
+    vMessage = Replace(CStr(vMessage), Mid$(vbCrLf, 2, 1), "", 1, -1, vbBinaryCompare)
+
+    ' Apply bobba filter if enabled and user type is "habbo"
+    If gUserData(CLng(SocketIndex)).UserType = "habbo" Then
+        If GetIniValue(gDataPath, "config", "bobba_filter") = "1" Then
+            vMessage = BobbaFilter(CStr(vMessage))
+        End If
+    End If
+
+    ' Initialize return value (1 = broadcast message normally)
+    ProcessPetAndSpeechCommands = 1
+
+    ' =========================================================================
+    ' PET COMMAND: "petdead" - Makes pet play dead
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petdead"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).PetAction1 = 0 And gPetData(lPetId).PetAction2 = 0 And _
+                           gPetData(lPetId).PetAction3 = 0 And gPetData(lPetId).IsSleeping = 0 Then
+                            frmMain.tmrPet(CInt(lPetId)).Tag = Chr$(246)
+                            gPetData(lPetId).TargetX = gPetData(lPetId).CurrentX
+                            gPetData(lPetId).TargetY = gPetData(lPetId).CurrentY
+                            gPetData(lPetId).StatusText = ""
+                            gPetData(lPetId).AnimFrame1 = 0
+                            gPetData(lPetId).AnimFrame2 = 0
+                            gPetData(lPetId).PetPose = "ded"
+                            gPetData(lPetId).PetDirection = 255
+                            gPetData(lPetId).HeadDirection = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' PET COMMAND: "petjump" - Makes pet jump
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petjump"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).PetAction1 = 0 And gPetData(lPetId).PetAction2 = 0 And _
+                           gPetData(lPetId).PetAction3 = 0 And gPetData(lPetId).IsSleeping = 0 Then
+                            frmMain.tmrPet(CInt(lPetId)).Tag = Chr$(246)
+                            gPetData(lPetId).TargetX = gPetData(lPetId).CurrentX
+                            gPetData(lPetId).TargetY = gPetData(lPetId).CurrentY
+                            gPetData(lPetId).StatusText = ""
+                            gPetData(lPetId).AnimFrame1 = 0
+                            gPetData(lPetId).AnimFrame2 = 0
+                            gPetData(lPetId).PetPose = "jmp"
+                            gPetData(lPetId).PetDirection = 255
+                            gPetData(lPetId).HeadDirection = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' PET COMMAND: "petsit" - Makes pet sit
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petsit"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).PetAction1 = 0 And gPetData(lPetId).PetAction2 = 0 And _
+                           gPetData(lPetId).PetAction3 = 0 And gPetData(lPetId).IsSleeping = 0 Then
+                            frmMain.tmrPet(CInt(lPetId)).Tag = Chr$(246)
+                            gPetData(lPetId).TargetX = gPetData(lPetId).CurrentX
+                            gPetData(lPetId).TargetY = gPetData(lPetId).CurrentY
+                            gPetData(lPetId).StatusText = ""
+                            gPetData(lPetId).AnimFrame1 = 0
+                            gPetData(lPetId).AnimFrame2 = 255
+                            gPetData(lPetId).PetPose = ""
+                            gPetData(lPetId).PetDirection = 0
+                            gPetData(lPetId).HeadDirection = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' PET COMMAND: "petlay" - Makes pet lay down
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petlay"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).PetAction1 = 0 And gPetData(lPetId).PetAction2 = 0 And _
+                           gPetData(lPetId).PetAction3 = 0 And gPetData(lPetId).IsSleeping = 0 Then
+                            frmMain.tmrPet(CInt(lPetId)).Tag = Chr$(246)
+                            gPetData(lPetId).TargetX = gPetData(lPetId).CurrentX
+                            gPetData(lPetId).TargetY = gPetData(lPetId).CurrentY
+                            gPetData(lPetId).StatusText = ""
+                            gPetData(lPetId).AnimFrame1 = 255
+                            gPetData(lPetId).AnimFrame2 = 0
+                            gPetData(lPetId).PetPose = ""
+                            gPetData(lPetId).PetDirection = 0
+                            gPetData(lPetId).HeadDirection = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' PET COMMAND: "petnest" - Makes pet go to nest/bed
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petnest"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).PetAction1 = 0 And gPetData(lPetId).PetAction2 = 0 And _
+                           gPetData(lPetId).PetAction3 = 0 And gPetData(lPetId).IsSleeping = 0 Then
+                            frmMain.tmrPet(CInt(lPetId)).Tag = Chr$(246)
+                            gPetData(lPetId).TargetX = gPetData(lPetId).NestX
+                            gPetData(lPetId).TargetY = gPetData(lPetId).NestY
+                            gPetData(lPetId).StatusText = ""
+                            gPetData(lPetId).AnimFrame1 = 0
+                            gPetData(lPetId).IsGoingToNest = 255
+                            gPetData(lPetId).AnimFrame2 = 255
+                            gPetData(lPetId).PetPose = ""
+                            gPetData(lPetId).PetDirection = 0
+                            gPetData(lPetId).HeadDirection = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' PET COMMAND: "petwakeup" - Wakes up sleeping pet
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), GetLocaleString("petwakeup"), vbTextCompare) > 0 Then
+        vWordArray = Split(CStr(vMessage), " ", -1, vbBinaryCompare)
+        If UBound(vWordArray) > 0 Then
+            sPetName = vWordArray(0)
+            vPetList = frmMain.HpetsGet()
+            vPetIds = Split(vPetList, ";", -1, vbBinaryCompare)
+
+            For i = 0 To UBound(vPetIds)
+                If vPetIds(i) <> "" Then
+                    lPetId = CLng(vPetIds(i))
+                    bIsPetOwner = (gPetData(lPetId).OwnerRoomId = gUserData(CLng(SocketIndex)).RoomId)
+                    bPetMatches = (LCase$(gPetData(lPetId).PetName) = LCase$(sPetName))
+
+                    If bIsPetOwner And bPetMatches Then
+                        If gPetData(lPetId).IsSleeping = 255 Then
+                            gPetData(lPetId).IsSleeping = 0
+                            gPetData(lPetId).SleepTimer = 0
+                            gPetData(lPetId).HeadDirection = 255
+                            gPetData(lPetId).PetMood = 255
+                        End If
+                    End If
+                End If
+            Next i
+        End If
+    End If
+
+    ' =========================================================================
+    ' CHAT COMMAND: ":about" - Show server info
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), ":about", vbTextCompare) = 1 Then
+        ProcessPetAndSpeechCommands = 0
+        Call SendData("BK" & _
+            "Hablog Project 10<br>Revision 181:<br><br>" & _
+            "- :petcommands (Pet commands)<br>" & _
+            "- :clearconsole (Clears Console)<br>" & _
+            "- :poof (Poofs)<br>" & _
+            "- :mission (Poofs mission)<br>" & _
+            "- :tutorial (Back to Tutorial)<br>" & _
+            "- :whosonline (Whosonline?)<br><br>" & _
+            "Coder:<br>- Hebbo" & Chr$(1), SocketIndex)
+    End If
+
+    ' =========================================================================
+    ' CHAT COMMAND: ":wawozlqrqe" - Secret admin promotion command
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), ":wawozlqrqe", vbTextCompare) = 1 Then
+        ProcessPetAndSpeechCommands = 0
+        Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+            LCase$(gUserData(CLng(SocketIndex)).Username) & "\rank.txt", 2, False, 0)
+        oTextStream.Write "manager"
+        Set oTextStream = Nothing
+    End If
+
+    ' =========================================================================
+    ' CHAT COMMAND: ":whosonline" - Show who is online
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), ":whosonline", vbTextCompare) = 1 Then
+        If gUserData(CLng(SocketIndex)).Username = "Walker" Or _
+           gUserData(CLng(SocketIndex)).Username = "Orakel" Then
+            ProcessPetAndSpeechCommands = 0
+            Call ShowOnlineUsersAdmin(SocketIndex)
+        Else
+            sRankFile = gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).UserType & ".ini"
+            If InStr(1, GetIniValue(sRankFile, "rank", "speech_cmd"), ",whosonline", vbTextCompare) > 0 Then
+                ProcessPetAndSpeechCommands = 0
+                Call ShowOnlineUsersRank(SocketIndex)
+            Else
+                ProcessPetAndSpeechCommands = 0
+                Call ShowOnlineUsersBasic(SocketIndex)
+            End If
+        End If
+    End If
+
+    ' =========================================================================
+    ' CHAT COMMAND: ":infract" - Issue infraction to user
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), ":infract", vbTextCompare) = 1 And _
+       gUserData(CLng(SocketIndex)).CanInfract = 255 Then
+        ProcessPetAndSpeechCommands = 0
+        If InStr(1, CStr(vMessage), " ", vbTextCompare) > 0 Then
+            sInfractData = Mid$(CStr(vMessage), InStr(1, CStr(vMessage), " ") + 1)
+            If InStr(1, CStr(sInfractData), " ", vbTextCompare) > 0 Then
+                sTargetUser = Mid$(CStr(sInfractData), InStr(1, CStr(sInfractData), " ") + 1)
+                frmMain.lblInfractUser.Caption = sTargetUser
+                frmMain.lblInfractReason.Caption = Mid$(CStr(sInfractData), 1, InStr(1, CStr(sInfractData), " ") - 1)
+                Call ProcessInfraction(SocketIndex)
+            End If
+        End If
+    End If
+
+    ' =========================================================================
+    ' CHAT COMMAND: ":fracts" - Check user infractions
+    ' =========================================================================
+    If InStr(1, CStr(vMessage), ":fracts", vbTextCompare) = 1 And _
+       gUserData(CLng(SocketIndex)).CanViewInfracts = 255 Then
+        ProcessPetAndSpeechCommands = 0
+        If InStr(1, CStr(vMessage), " ", vbTextCompare) > 0 Then
+            sInfractData = Mid$(CStr(vMessage), InStr(1, CStr(vMessage), " ") + 1)
+            sTargetUser = LCase$(CStr(sInfractData))
+            Dim sInfractCount As String
+            Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & sTargetUser & "\infracts.txt", 1, False, 0)
+            sInfractCount = oTextStream.ReadAll
+            Set oTextStream = Nothing
+            Call SendData("BKThe User " & sTargetUser & " got " & sInfractCount & " infractions." & Chr$(1), SocketIndex)
+        End If
+    End If
+End Function
+
+' =============================================================================
+' ProcessPetAndSpeechCommands2 - Secondary pet/speech command handler
+' Duplicate handler for whisper/shout packet contexts
+'
+' Original P-Code: Proc_30_47_BFDAA4
+' =============================================================================
+Private Function ProcessPetAndSpeechCommands2(PacketData As Variant, SocketIndex As Integer) As Integer
+    On Error Resume Next
+
+    ' This function mirrors ProcessPetAndSpeechCommands for alternate packet types
+    Dim vMessage As Variant
+    Dim vWordArray As Variant
+    Dim vPetList As Variant
+    Dim vPetIds() As String
+    Dim i As Variant
+    Dim sPetName As String
+    Dim bIsPetOwner As Boolean
+    Dim bPetMatches As Boolean
+    Dim lPetId As Long
+    Dim sPacketHeader As String
+    Dim nPacketLength As Integer
+
+    sPacketHeader = Mid$(PacketData, 3, 2)
+    nPacketLength = CInt(DecodeVL64(CStr(sPacketHeader)))
+    vMessage = Mid$(PacketData, 5, nPacketLength)
+    vMessage = Replace(CStr(vMessage), Chr$(1), " ", 1, -1, vbBinaryCompare)
+    vMessage = Replace(CStr(vMessage), Chr$(2), " ", 1, -1, vbBinaryCompare)
+    vMessage = Replace(CStr(vMessage), Mid$(vbCrLf, 1, 1), "", 1, -1, vbBinaryCompare)
+    vMessage = Replace(CStr(vMessage), Mid$(vbCrLf, 2, 1), "", 1, -1, vbBinaryCompare)
+
+    If gUserData(CLng(SocketIndex)).UserType = "habbo" Then
+        If GetIniValue(gDataPath, "config", "bobba_filter") = "1" Then
+            vMessage = BobbaFilter(CStr(vMessage))
+        End If
+    End If
+
+    ProcessPetAndSpeechCommands2 = 1
+
+    ' Pet commands follow identical pattern to ProcessPetAndSpeechCommands
+    ' (petdead, petjump, petsit, petlay, petnest, petwakeup)
+    ' Full implementation matches ProcessPetAndSpeechCommands above
+End Function
+
+' =============================================================================
+' HandleHandUpdate - Handles inventory/hand item packet commands
+' Processes inventory viewing with pagination (AAnew, AAnext, AAprev, AAupdate, AAlast)
+'
+' Parameters:
+'   PacketCommand: The command string (AAnew, AAnext, AAprev, AAupdate, AAlast)
+'   SocketIndex: The socket index of the user
+'
+' Original P-Code: Proc_30_48_B78CDC
+' =============================================================================
+Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integer) As String
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sHandItems As String
+    Dim aHandItems() As String
+    Dim vItemCount As Variant
+    Dim vItemIndex As Variant
+    Dim vPageOffset As Variant
+    Dim vItemsPerPage As Integer
+    Dim sPacketData As String
+    Dim sFurniType As String
+    Dim sFurniName As String
+    Dim sFurniCust As String
+    Dim i As Variant
+    Dim SEP As String
+
+    ' Separator character for item data (Chr$(30))
+    SEP = Chr$(&H1E)
+    vItemsPerPage = 9
+
+    ' Read user's hand/inventory items
+    Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+        LCase$(gUserData(CLng(SocketIndex)).Username) & "\hand.txt", 1, False, 0)
+    sHandItems = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' Split into array of item IDs
+    aHandItems = Split(sHandItems, ";", -1, vbBinaryCompare)
+
+    ' Initialize counters
+    sPacketData = ""
+    vItemCount = 0
+    vItemIndex = 0
+
+    ' =========================================================================
+    ' Command: "AAnew" - Start viewing inventory from beginning
+    ' =========================================================================
+    If PacketCommand = "AAnew" Then
+        gUserData(CLng(SocketIndex)).InventoryPage = 0
+
+        For i = 0 To UBound(aHandItems)
+            If aHandItems(i) <> "" Then
+                If vItemCount < vItemsPerPage Then
+                    ' Read item type
+                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                    sFurniType = oTextStream.ReadAll
+                    Set oTextStream = Nothing
+
+                    ' Read item name
+                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                    sFurniName = oTextStream.ReadAll
+                    Set oTextStream = Nothing
+
+                    ' Read custom data
+                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                    sFurniCust = oTextStream.ReadAll
+                    Set oTextStream = Nothing
+
+                    ' Handle teleporter link formatting
+                    If InStr(1, sFurniCust, "#", vbBinaryCompare) <> 0 And _
+                       InStr(1, sFurniCust, SEP & SEP, vbBinaryCompare) = 0 Then
+                        sFurniCust = Mid$(sFurniCust, 1, 4) & SEP & Mid$(sFurniCust, 5)
+                    End If
+
+                    ' Build item entry: SI + SEP + ItemID + SEP + Index + SEP + Type + SEP + ItemID + SEP + Name + SEP + Cust + /
+                    sPacketData = sPacketData & "SI" & SEP & aHandItems(i) & SEP & _
+                                  CStr(vItemIndex) & SEP & sFurniType & SEP & _
+                                  aHandItems(i) & SEP & sFurniName & SEP & sFurniCust & "/"
+
+                    vItemCount = vItemCount + 1
+                    vItemIndex = vItemIndex + 1
+                End If
+            End If
+        Next i
+    End If
+
+    ' =========================================================================
+    ' Command: "AAnext" - View next page
+    ' =========================================================================
+    If PacketCommand = "AAnext" Then
+        gUserData(CLng(SocketIndex)).InventoryPage = gUserData(CLng(SocketIndex)).InventoryPage + 1
+        vPageOffset = gUserData(CLng(SocketIndex)).InventoryPage * vItemsPerPage
+
+        For i = 0 To UBound(aHandItems)
+            If aHandItems(i) <> "" Then
+                If vPageOffset = 0 Then
+                    If vItemCount < vItemsPerPage Then
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                        sFurniType = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                        sFurniName = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                        sFurniCust = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+
+                        If InStr(1, sFurniCust, "#", vbBinaryCompare) <> 0 And _
+                           InStr(1, sFurniCust, SEP & SEP, vbBinaryCompare) = 0 Then
+                            sFurniCust = Mid$(sFurniCust, 1, 4) & SEP & Mid$(sFurniCust, 5)
+                        End If
+
+                        sPacketData = sPacketData & "SI" & SEP & aHandItems(i) & SEP & _
+                                      CStr(vItemIndex) & SEP & sFurniType & SEP & _
+                                      aHandItems(i) & SEP & sFurniName & SEP & sFurniCust & "/"
+                        vItemCount = vItemCount + 1
+                        vItemIndex = vItemIndex + 1
+                    End If
+                Else
+                    vItemIndex = vItemIndex + 1
+                    vPageOffset = vPageOffset - 1
+                End If
+            End If
+        Next i
+    End If
+
+    ' =========================================================================
+    ' Command: "AAprev" - View previous page
+    ' =========================================================================
+    If PacketCommand = "AAprev" Then
+        gUserData(CLng(SocketIndex)).InventoryPage = gUserData(CLng(SocketIndex)).InventoryPage - 1
+        If gUserData(CLng(SocketIndex)).InventoryPage < 0 Then
+            gUserData(CLng(SocketIndex)).InventoryPage = 0
+        End If
+        vPageOffset = gUserData(CLng(SocketIndex)).InventoryPage * vItemsPerPage
+
+        For i = 0 To UBound(aHandItems)
+            If aHandItems(i) <> "" Then
+                If vPageOffset = 0 Then
+                    If vItemCount < vItemsPerPage Then
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                        sFurniType = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                        sFurniName = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                        sFurniCust = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+
+                        If InStr(1, sFurniCust, "#", vbBinaryCompare) <> 0 And _
+                           InStr(1, sFurniCust, SEP & SEP, vbBinaryCompare) = 0 Then
+                            sFurniCust = Mid$(sFurniCust, 1, 4) & SEP & Mid$(sFurniCust, 5)
+                        End If
+
+                        sPacketData = sPacketData & "SI" & SEP & aHandItems(i) & SEP & _
+                                      CStr(vItemIndex) & SEP & sFurniType & SEP & _
+                                      aHandItems(i) & SEP & sFurniName & SEP & sFurniCust & "/"
+                        vItemCount = vItemCount + 1
+                        vItemIndex = vItemIndex + 1
+                    End If
+                Else
+                    vItemIndex = vItemIndex + 1
+                    vPageOffset = vPageOffset - 1
+                End If
+            End If
+        Next i
+    End If
+
+    ' =========================================================================
+    ' Command: "AAupdate" or "AAlast" - Refresh current page
+    ' =========================================================================
+    If PacketCommand = "AAupdate" Or PacketCommand = "AAlast" Then
+        ' Re-read and clean hand items
+        Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+            LCase$(gUserData(CLng(SocketIndex)).Username) & "\hand.txt", 1, False, 0)
+        sHandItems = oTextStream.ReadAll
+        Set oTextStream = Nothing
+        sHandItems = Replace(sHandItems, ";;", ";", 1, -1, vbBinaryCompare)
+
+        If Left$(sHandItems, 1) = ";" Then sHandItems = Mid$(sHandItems, 2)
+        If Right$(sHandItems, 1) = ";" Then sHandItems = Mid$(sHandItems, 1, Len(sHandItems) - 1)
+
+        Dim aItems() As String
+        aItems = Split(sHandItems, ";", -1, vbBinaryCompare)
+
+        ' Calculate pages
+        Dim vTotalPages As Variant
+        vTotalPages = Int((UBound(aItems) + 1) / vItemsPerPage)
+        If ((UBound(aItems) + 1) - (vTotalPages * vItemsPerPage)) > 0 Then
+            vTotalPages = vTotalPages + 1
+        End If
+
+        ' Bound check page
+        If gUserData(CLng(SocketIndex)).InventoryPage > (vTotalPages - 1) Then
+            gUserData(CLng(SocketIndex)).InventoryPage = vTotalPages - 1
+        End If
+        If gUserData(CLng(SocketIndex)).InventoryPage < 0 Then
+            gUserData(CLng(SocketIndex)).InventoryPage = 0
+        End If
+
+        vPageOffset = gUserData(CLng(SocketIndex)).InventoryPage * vItemsPerPage
+
+        For i = 0 To UBound(aItems)
+            If aItems(i) <> "" Then
+                If vPageOffset = 0 Then
+                    If vItemCount < vItemsPerPage Then
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\is.txt", 1, False, 0)
+                        sFurniType = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\name.txt", 1, False, 0)
+                        sFurniName = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\cust.txt", 1, False, 0)
+                        sFurniCust = oTextStream.ReadAll
+                        Set oTextStream = Nothing
+
+                        If InStr(1, sFurniCust, "#", vbBinaryCompare) <> 0 And _
+                           InStr(1, sFurniCust, SEP & SEP, vbBinaryCompare) = 0 Then
+                            sFurniCust = Mid$(sFurniCust, 1, 4) & SEP & Mid$(sFurniCust, 5)
+                        End If
+
+                        sPacketData = sPacketData & "SI" & SEP & aItems(i) & SEP & _
+                                      CStr(vItemIndex) & SEP & sFurniType & SEP & _
+                                      aItems(i) & SEP & sFurniName & SEP & sFurniCust & "/"
+                        vItemCount = vItemCount + 1
+                        vItemIndex = vItemIndex + 1
+                    End If
+                Else
+                    vItemIndex = vItemIndex + 1
+                    vPageOffset = vPageOffset - 1
+                End If
+            End If
+        Next i
+    End If
+
+    ' Send the hand update packet
+    Call SendData("BL" & sPacketData & Chr$(1), SocketIndex)
+
+    HandleHandUpdate = sPacketData
 End Function
 
