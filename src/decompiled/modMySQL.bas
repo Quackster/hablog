@@ -1,14 +1,14 @@
 Attribute VB_Name = "modMySQL"
 Option Explicit
 
-Private gConnection As ADODB.Connection
-Private gCommand As ADODB.Command
-Private gRecordset As ADODB.Recordset
+Private gConnection As Object
+Private gCommand As Object
+Private gRecordset As Object
 
 Public Sub ConnectMySQL()
-    Set gConnection = New ADODB.Connection
-    Set gCommand = New ADODB.Command
-    Set gRecordset = New ADODB.Recordset
+    Set gConnection = CreateObject("ADODB.Connection")
+    Set gCommand = CreateObject("ADODB.Command")
+    Set gRecordset = CreateObject("ADODB.Recordset")
 
     gConnection.ConnectionString = "Driver={MySQL ODBC 3.51 Driver};Server=localhost;Port=3306;Database=gangstaclub_nl_db;User=gangstaclub;Password=PASS;Option=3;"
     gConnection.Open

@@ -950,6 +950,12 @@ Private Const SWP_NOSIZE = &H1
 Private Const SWP_NOMOVE = &H2
 Private Const SWP_FLAGS = SWP_NOSIZE Or SWP_NOMOVE
 
+' Form dragging declarations
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
+Private Declare Function ReleaseCapture Lib "user32" () As Long
+Private Const WM_NCLBUTTONDOWN As Long = &HA1
+Private Const HTCAPTION As Long = 2
+
 ' Public form variables
 Public SockI As Long
 Public BotI As Long
@@ -1524,12 +1530,12 @@ Private Sub chckLog_Click()
     End If
 End Sub
 
-Private Sub chkautoclose_Click()
+Private Sub chkAutoClose_Click()
     Dim autoCloseSettings() As String
 
     On Error Resume Next
 
-    If chkautoclose.Value = 1 Then
+    If chkAutoClose.Value = 1 Then
         autoCloseSettings = Split(ReadIniSetting(gAppPath & "configuration\settings.ini", "server", "auto_close"), ",")
         tmrCloseServer.Interval = Val(autoCloseSettings(1)) * 60000
         tmrCloseServer.Enabled = True
@@ -1700,10 +1706,10 @@ Private Sub Form_Load()
     settingValue = ReadIniSetting(gAppPath & "configuration\settings.ini", "server", "auto_close")
     autoCloseSettings = Split(settingValue, ",")
     If autoCloseSettings(0) = "1" Then
-        chkautoclose.Value = 1
+        chkAutoClose.Value = 1
         tmrCloseServer.Enabled = True
     Else
-        chkautoclose.Value = 0
+        chkAutoClose.Value = 0
         tmrCloseServer.Enabled = False
     End If
 
@@ -2635,13 +2641,6 @@ End Sub
 ' cas_MouseDown - Handle form dragging (borderless window)
 ' ============================================================================
 
-Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" _
-    (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
-Private Declare Function ReleaseCapture Lib "user32" () As Long
-
-Private Const WM_NCLBUTTONDOWN As Long = &HA1
-Private Const HTCAPTION As Long = 2
-
 Private Sub cas_MouseDown_Alt(Button As Integer, Shift As Integer, X As Single, Y As Single)
     On Error Resume Next
 
@@ -2930,17 +2929,17 @@ Private Sub tmrLidoCamUpdate_Timer_Alt()
 End Sub
 
 ' ============================================================================
-' chkautoclose_Click - Enable/disable auto close feature
+' chkAutoClose_Click - Enable/disable auto close feature
 ' ============================================================================
 
-Private Sub chkautoclose_Click_Alt()
+Private Sub chkAutoClose_Click_Alt()
     Dim autoCloseHour As String
     Dim autoCloseMinute As String
     Dim poweroffValue As Integer
 
     On Error Resume Next
 
-    If chkautoclose.Value = 1 Then
+    If chkAutoClose.Value = 1 Then
         ' Enable auto close
         autoCloseHour = frmAutoClose.Combo1.Text
         autoCloseMinute = frmAutoClose.Combo2.Text
