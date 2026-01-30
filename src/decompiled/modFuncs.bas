@@ -137,13 +137,13 @@ Public Function EncodeVL64Simple(ByVal Value As Integer) As Variant
     If Value < 4 Then
         Select Case Value
             Case 0
-                EncodeVL64 = "H"
+                EncodeVL64Simple = "H"
             Case 1
-                EncodeVL64 = "I"
+                EncodeVL64Simple = "I"
             Case 2
-                EncodeVL64 = "J"
+                EncodeVL64Simple = "J"
             Case 3
-                EncodeVL64 = "K"
+                EncodeVL64Simple = "K"
         End Select
         Exit Function
     End If
@@ -167,7 +167,7 @@ Public Function EncodeVL64Simple(ByVal Value As Integer) As Variant
     Loop
 
     If lValue = 1 Then
-        EncodeVL64 = Chr$(lSecond) & Chr$(lBase)
+        EncodeVL64Simple = Chr$(lSecond) & Chr$(lBase)
     End If
 End Function
 
@@ -317,6 +317,11 @@ Public Function FindUserByNum(ByVal UserNum As String) As String
     Next oSubFolder
 
     FindUserByNum = sResult
+End Function
+
+' GetUserName - Alias for FindUserByNum (for compatibility)
+Public Function GetUserName(ByVal UserNum As Variant) As String
+    GetUserName = FindUserByNum(CStr(UserNum))
 End Function
 
 ' GetSocketByUsername - Gets socket index for a username
@@ -608,5 +613,42 @@ FoundKeyword:
         gBotData(CLng(lBotIndex)).TargetX = gUserData(SocketIndex).PosX
         gBotData(CLng(lBotIndex)).TargetY = gUserData(SocketIndex).PosY
         gBotData(CLng(lBotIndex)).IsWalking = True
+    End If
+End Sub
+
+' GiveCarryItem - Gives a carry item to a user and broadcasts to the room
+' Sets the user's carry item and timer, then notifies all users in the room
+Public Sub GiveCarryItem(ByVal SocketIndex As Integer, ByVal CarryItem As String)
+    On Error Resume Next
+
+    Dim i As Variant
+    Dim sCarryPacket As String
+
+    ' Set the carry item and timer (4 minutes = 240 ticks)
+    gUserData(CLng(SocketIndex)).CarryItem = CarryItem
+    gUserData(CLng(SocketIndex)).CarryTimer = 240
+
+    ' Build the carry packet: "@]" + Username + " " + CarryItem + Chr(1)
+    sCarryPacket = "@]" & gUserData(CLng(SocketIndex)).Username & " " & CarryItem & Chr$(1)
+
+    ' Broadcast to room - check if user is in a public room or private room
+    If gUserData(CLng(SocketIndex)).PublicRoomId > 0 Then
+        ' User is in a public room
+        For i = 1 To frmMain.SockI
+            If gUserData(CLng(i)).PublicRoomId = gUserData(CLng(SocketIndex)).PublicRoomId Then
+                If frmMain.Sock(CInt(i)).State = 7 Then
+                    frmMain.Sock(CInt(i)).SendData sCarryPacket
+                End If
+            End If
+        Next i
+    ElseIf gUserData(CLng(SocketIndex)).RoomId > 0 Then
+        ' User is in a private room
+        For i = 1 To frmMain.SockI
+            If gUserData(CLng(i)).RoomId = gUserData(CLng(SocketIndex)).RoomId Then
+                If frmMain.Sock(CInt(i)).State = 7 Then
+                    frmMain.Sock(CInt(i)).SendData sCarryPacket
+                End If
+            End If
+        Next i
     End If
 End Sub

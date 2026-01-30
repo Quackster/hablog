@@ -171,6 +171,12 @@ Begin VB.Form frmMain
     Left = 2640
     Top = 0
   End
+  Begin VB.Timer tmrAutoClose
+    Enabled = 0   'False
+    Interval = 60000
+    Left = 2680
+    Top = 0
+  End
   Begin VB.Timer tmrRumbleCamUpdate
     Enabled = 0   'False
     Interval = 1000
@@ -901,6 +907,13 @@ Begin VB.Form frmMain
       TabIndex = 78
     End
   End
+  Begin VB.Timer BotTimer
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3000
+    Top = 0
+  End
   Begin VB.Menu mnuMain
     Caption = "Menu"
     Begin VB.Menu mnuLanguage
@@ -976,6 +989,32 @@ Public PickedUpCalls As String
 Public DebugActive As Boolean
 Public dices As String
 Public Wanted As Double
+Public InfoBusOpen As Integer         ' Info Bus door state (0=closed, 1=open)
+
+' Checkbox state variables (simulating form controls - use chkXxxValue instead of chkXxx.Value)
+Public chkLidoValue As Integer
+Public chkTopmostValue As Integer
+Public chkForegroundValue As Integer
+Public chkChatlogValue As Integer
+Public chkSaveChatLogValue As Integer
+Public chkDivingValue As Integer
+Public chkAlwaysOnTopValue As Integer
+Public chkHabboClubValue As Integer
+Public chkACValue As Integer
+Public chkParkGateValue As Integer
+
+' Textbox state variables (simulating form controls - use txtXxxText instead of txtXxx.Text)
+Public txtMaxTicketsText As String
+Public txtLidoPriceText As String
+Public txtLidoDoorStatusText As String
+Public txtLido1Text As String
+Public txtLido2Text As String
+Public txtRumble1Text As String
+Public txtRumble2Text As String
+Public txtCurtain1Text As String
+Public txtCurtain2Text As String
+Public txtQueryText As String
+
 
 ' ============================================================================
 ' Timer Events
@@ -1081,25 +1120,25 @@ End Sub
 
 Private Sub tmrLido1_Timer()
     On Error Resume Next
-    frmMain.txtLido1.Text = "3"
+    frmMain.txtLido1Text = "3"
     tmrLido1.Enabled = False
 End Sub
 
 Private Sub tmrLido2_Timer()
     On Error Resume Next
-    frmMain.txtLido2.Text = "3"
+    frmMain.txtLido2Text = "3"
     tmrLido2.Enabled = False
 End Sub
 
 Private Sub tmrRumble1_Timer()
     On Error Resume Next
-    frmMain.txtRumble1.Text = "3"
+    frmMain.txtRumble1Text = "3"
     tmrRumble1.Enabled = False
 End Sub
 
 Private Sub tmrRumble2_Timer()
     On Error Resume Next
-    frmMain.txtRumble2.Text = "3"
+    frmMain.txtRumble2Text = "3"
     tmrRumble2.Enabled = False
 End Sub
 
@@ -1307,6 +1346,32 @@ Private Sub tmrCloseServer_Timer()
     Call Shutdown
     tmrCloseServer.Enabled = False
     Unload Me
+End Sub
+
+Private Sub tmrAutoClose_Timer()
+    On Error Resume Next
+
+    Dim sAutoClose As String
+    Dim vParts As Variant
+    Dim sHour As String
+    Dim sMinute As String
+
+    ' Check if current time matches auto close time
+    sAutoClose = GetINI("server", "auto_close", gSettingsFile)
+    If Len(sAutoClose) > 0 Then
+        vParts = Split(sAutoClose, ",")
+        If UBound(vParts) >= 2 Then
+            sHour = vParts(1)
+            sMinute = vParts(2)
+
+            ' Check if current time matches
+            If Format(Hour(Now), "00") = sHour And Format(Minute(Now), "00") = sMinute Then
+                ' Time to close
+                tmrAutoClose.Enabled = False
+                tmrCloseServer.Enabled = True
+            End If
+        End If
+    End If
 End Sub
 
 Private Sub timer_automessage_Timer()
@@ -1687,17 +1752,17 @@ Private Sub Form_Load()
     ' Load chat log setting
     settingValue = ReadIniSetting(gSettingsFile, "server", "chatlog")
     If settingValue = "Y" Then
-        frmMain.chkChatlog.Value = 1
+        frmMain.chkChatlogValue = 1
     Else
-        frmMain.chkChatlog.Value = 0
+        frmMain.chkChatlogValue = 0
     End If
 
     ' Load save chat log setting
     settingValue = ReadIniSetting(gSettingsFile, "server", "savechatlog")
     If settingValue = "Y" Then
-        frmMain.chkSaveChatLog.Value = 1
+        frmMain.chkSaveChatLogValue = 1
     Else
-        frmMain.chkSaveChatLog.Value = 0
+        frmMain.chkSaveChatLogValue = 0
     End If
 
     ' Load foreground setting
@@ -1724,9 +1789,9 @@ Private Sub Form_Load()
     ' Load diving setting
     settingValue = ReadIniSetting(gSettingsFile, "config", "diving")
     If settingValue = "1" Then
-        frmMain.chkDiving.Value = 1
+        frmMain.chkDivingValue = 1
     ElseIf settingValue = "0" Then
-        frmMain.chkDiving.Value = 0
+        frmMain.chkDivingValue = 0
         frmMain.txtDiveGuard.Text = "0"
     End If
 
@@ -3214,7 +3279,7 @@ End Sub
 Private Sub chkChatlog_Click_Alt()
     On Error Resume Next
 
-    If frmMain.chkChatlog.Value = 1 Then
+    If frmMain.chkChatlogValue = 1 Then
         Call WriteINI("server", "chatlog", "Y", gSettingsFile)
     Else
         Call WriteINI("server", "chatlog", "N", gSettingsFile)
@@ -3228,7 +3293,7 @@ End Sub
 Private Sub chkSaveChatLog_Click_Alt()
     On Error Resume Next
 
-    If frmMain.chkSaveChatLog.Value = 1 Then
+    If frmMain.chkSaveChatLogValue = 1 Then
         Call WriteINI("server", "savechatlog", "Y", gSettingsFile)
     Else
         Call WriteINI("server", "savechatlog", "N", gSettingsFile)

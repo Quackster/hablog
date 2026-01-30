@@ -1239,7 +1239,7 @@ End Sub
 
 Private Sub Form_Load()
     ' Set window as topmost or not based on frmMain checkbox
-    If frmMain.chkAlwaysOnTop.Value = 1 Then
+    If frmMain.chkAlwaysOnTopValue = 1 Then
         SetWindowPos Me.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
     Else
         SetWindowPos Me.hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE

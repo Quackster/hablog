@@ -13,8 +13,8 @@ Public Sub ConnectMySQL()
     gConnection.ConnectionString = "Driver={MySQL ODBC 3.51 Driver};Server=localhost;Port=3306;Database=gangstaclub_nl_db;User=gangstaclub;Password=PASS;Option=3;"
     gConnection.Open
 
-    Set gCommand.ActiveConnection = gConnection
-    Set gRecordset.ActiveConnection = gConnection
+    gCommand.ActiveConnection = gConnection
+    gRecordset.ActiveConnection = gConnection
 
     MsgBox "Connection Successful!"
 End Sub
@@ -22,9 +22,9 @@ End Sub
 Public Function SQLQuery(ByVal sQuery As String) As String
     Dim sResult As String
 
-    frmMain.txtQuery.Text = sQuery
+    frmMain.txtQueryText = sQuery
     gRecordset.Open sQuery
-    sResult = gRecordset.GetString(2, -1, , , )
+    sResult = gRecordset.GetString(2, -1)
     gRecordset.Close
 
     SQLQuery = Mid$(sResult, 1, Len(sResult) - 1)

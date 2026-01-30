@@ -139,7 +139,7 @@ Private Sub Form_Load()
     End If
 
     ' Get selected user from main form's list
-    sSelectedUser = frmMain.lstUsers.Text
+    sSelectedUser = frmMain.Listuseronline.Text
     vParts = Split(sSelectedUser, " ")
     Me.Label2.Caption = "to: " & vParts(0)
 
@@ -148,7 +148,7 @@ Private Sub Form_Load()
     Me.Width = 2280
 
     ' Check if topmost checkbox is checked on main form
-    If frmMain.chkTopmost.Value = 1 Then
+    If frmMain.chkTopmostValue = 1 Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
     Else
         SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS
@@ -184,7 +184,7 @@ Private Sub Command1_Click()
     Dim i As Long
 
     ' Get selected username from the online users list
-    vParts = Split(CStr(frmMain.lstUsers.Text), " ")
+    vParts = Split(CStr(frmMain.Listuseronline.Text), " ")
     sTargetUser = vParts(0)
 
     ' Get amount to add from textbox

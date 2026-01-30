@@ -6,25 +6,6 @@ Option Explicit
 ' This module contains all global variables used across the HabLog project
 ' ============================================================================
 
-' File System and Paths
-Public gFSO As Object                   ' FileSystemObject for file operations
-Public gAppPath As String               ' Application base path (database folder)
-Public gSettingsFile As String          ' Path to settings.ini
-
-' User Data Arrays
-Public gUserData() As UserDataType      ' Per-socket user session data
-Public gUsernames() As String           ' Username lookup by socket index
-Public gPetData() As PetDataType        ' Pet data array
-Public gBotData() As BotDataType        ' Bot data array
-Public gRoomData() As Variant           ' Room data array
-
-' System State
-Public gIsWinNT As Integer              ' Windows NT flag (0 or 1)
-Public gShutdownPrivilege As Long       ' Shutdown privilege handle
-
-' Note: frmMain is auto-declared by VB6 as a form module
-' Do not declare it here - just reference frmMain directly
-
 ' ============================================================================
 ' User Data Type Definition
 ' Stores session data for each connected user
@@ -124,6 +105,10 @@ Public Type UserDataType
     TradePartner As Integer     ' Trade partner socket index
     TradeItems As String        ' Items being traded
     TradeAccepted As Boolean    ' Trade accepted flag
+
+    ' Carry Items
+    CarryItem As String         ' Item being carried (drink, etc.)
+    CarryTimer As Integer       ' Carry item timer (ticks remaining)
 End Type
 
 ' ============================================================================
@@ -132,6 +117,7 @@ End Type
 ' ============================================================================
 Public Type PetDataType
     Name As String              ' Pet name
+    PetName As String           ' Pet name (alias)
     Type As String              ' Pet type
     Race As String              ' Pet race/breed
     Color As String             ' Pet color
@@ -142,6 +128,44 @@ Public Type PetDataType
     Nature As String            ' Pet nature type
     NatureLevel As Integer      ' Nature level
     Birthday As Date            ' Pet birthday
+
+    ' Location
+    RoomId As Long              ' Current room ID
+    OwnerRoomId As Long         ' Owner's room ID
+    PosX As Integer             ' X position
+    PosY As Integer             ' Y position
+    CurrentX As Integer         ' Current X position (alias)
+    CurrentY As Integer         ' Current Y position (alias)
+    Height As Variant           ' Height value
+    TargetX As Integer          ' Target X position
+    TargetY As Integer          ' Target Y position
+    TargetPos As String         ' Target position string
+
+    ' Nest
+    NestId As String            ' Nest furniture ID
+    NestX As Integer            ' Nest X position
+    NestY As Integer            ' Nest Y position
+    IsGoingToNest As Integer    ' Going to nest flag
+
+    ' State/Animation
+    Moving As Boolean           ' Is moving flag
+    Sitting As Boolean          ' Is sitting flag
+    MoveTimer As Integer        ' Movement timer
+    ActionString As String      ' Action string
+    StatusText As String        ' Status text
+    PetPose As String           ' Pet pose
+    PetDirection As Integer     ' Pet body direction
+    HeadDirection As Integer    ' Pet head direction
+    AnimFrame1 As Integer       ' Animation frame 1
+    AnimFrame2 As Integer       ' Animation frame 2
+    PetMood As Integer          ' Pet mood
+
+    ' Actions
+    PetAction1 As Integer       ' Pet action 1
+    PetAction2 As Integer       ' Pet action 2
+    PetAction3 As Integer       ' Pet action 3
+    IsSleeping As Integer       ' Is sleeping flag
+    SleepTimer As Integer       ' Sleep timer
 End Type
 
 ' ============================================================================
@@ -183,7 +207,59 @@ Public Type BotDataType
     IsDisabled As Boolean       ' Bot disabled
     IsTalking As Boolean        ' Bot talking
     NeedUpdate As Boolean       ' Needs update
+    IsBusy As Boolean           ' Bot is busy
+    IsSpeaking As Boolean       ' Bot is speaking
+    IsWalking As Boolean        ' Bot is walking
 End Type
+
+' Height Map Type for public room pathfinding
+Public Type TileDataType
+    TileType As String          ' Tile type (O, D, R, S, L, X, etc.)
+End Type
+
+' CheckState Type - Simulates a CheckBox control
+Public Type CheckState
+    Value As Integer            ' 0 = unchecked, 1 = checked
+End Type
+
+' TextState Type - Simulates a TextBox control
+Public Type TextState
+    Text As String              ' Text content
+End Type
+
+' ============================================================================
+' Global Variables (declared after Types)
+' ============================================================================
+
+' File System and Paths
+Public gFSO As Object                   ' FileSystemObject for file operations
+Public gAppPath As String               ' Application base path (database folder)
+Public gSettingsFile As String          ' Path to settings.ini
+
+' User Data Arrays
+Public gUserData() As UserDataType      ' Per-socket user session data
+Public gUsernames() As String           ' Username lookup by socket index
+Public gPetData() As PetDataType        ' Pet data array
+Public gBotData() As BotDataType        ' Bot data array
+Public gRoomData() As Variant           ' Room data array
+
+' System State
+Public gIsWinNT As Integer              ' Windows NT flag (0 or 1)
+Public gShutdownPrivilege As Long       ' Shutdown privilege handle
+
+' Note: frmMain is auto-declared by VB6 as a form module
+' Do not declare it here - just reference frmMain directly
+
+' ============================================================================
+' Helper Functions
+' ============================================================================
+
+' GetHeightMapTileType - Returns tile type for public room pathfinding
+' This is a stub function - public room heightmaps are loaded elsewhere
+Public Function GetHeightMapTileType(ByVal RoomId As Integer, ByVal X As Integer, ByVal Y As Integer) As String
+    ' Return empty string by default - actual heightmap lookups happen via file-based system
+    GetHeightMapTileType = vbNullString
+End Function
 
 ' ============================================================================
 ' INI File Wrapper Functions

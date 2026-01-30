@@ -235,7 +235,7 @@ Private Sub mnudisc_Click()
     Dim oSock As Object
 
     ' Get selected user from listbox
-    sListText = frmMain.lstUsers.Text
+    sListText = frmMain.Listuseronline.Text
     vParts = Split(sListText, " ")
     sTargetUser = vParts(0)
 
@@ -303,7 +303,7 @@ Private Sub mnuKick_Click()
     Dim oSock As Object
 
     ' Get selected user from listbox
-    sListText = frmMain.lstUsers.Text
+    sListText = frmMain.Listuseronline.Text
     vParts = Split(sListText, " ")
     sTargetUser = vParts(0)
 
@@ -372,7 +372,7 @@ Private Sub Form_Load()
     Me.Width = 11460
 
     ' Set window position based on foreground checkbox setting
-    If frmMain.chkForeground.Value = 1 Then
+    If frmMain.chkForegroundValue = 1 Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
     Else
         SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS
@@ -399,7 +399,7 @@ Private Sub mnuonlinepostition_Click()
     Dim i As Variant
 
     ' Get selected user from listbox
-    sListText = frmMain.lstUsers.Text
+    sListText = frmMain.Listuseronline.Text
     vParts = Split(sListText, " ")
     sTargetUser = vParts(0)
 

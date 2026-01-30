@@ -55,7 +55,7 @@ Public Sub GetConsoleData(ByVal SocketIndex As Integer)
                     sUsername = LCase(gUserData(j).Username)
                     If LCase(vFriend) = sUsername Then
                         ' Check socket state = 7 (connected)
-                        If frmMain.SockI(j).State = 7 Then
+                        If frmMain.Sock(j).State = 7 Then
                             sOnlineSocket = CStr(j)
                             ' Get location - Floor1b if in room, else hotel_view
                             If gUserData(j).RoomNum > 0 Then
@@ -180,7 +180,7 @@ Public Sub GetConsoleData(ByVal SocketIndex As Integer)
     End If
 
     ' Send console data packet: @L + consolemission + Chr(2) + Chr(1) + friend_entries
-    frmMain.SockI(SocketIndex).SendData "@L" & sMyConsoleMission & Chr(2) & Chr(1) & sResult
+    frmMain.Sock(SocketIndex).SendData "@L" & sMyConsoleMission & Chr(2) & Chr(1) & sResult
 End Sub
 
 ' SendDirectMessage - Sends a direct message to another user
@@ -243,8 +243,8 @@ Public Sub SendDirectMessage(ByVal MessageText As String, ByVal RecipientUsernam
     For j = 1 To lMaxSockets
         If LCase(gUserData(j).Username) = sRecipientLower Then
             ' Check socket state = 7 (connected)
-            If frmMain.SockI(j).State = 7 Then
-                frmMain.SockI(j).SendData sMessageData
+            If frmMain.Sock(j).State = 7 Then
+                frmMain.Sock(j).SendData sMessageData
                 Exit For
             End If
         End If
@@ -309,7 +309,7 @@ Public Sub GetFriendsList(ByVal SocketIndex As Integer)
                     If gUserData(j).Username <> vbNullString Then
                         If LCase(gUserData(j).Username) = vFriends(i) Then
                             ' Check socket state = 7 (connected) and has room
-                            If frmMain.SockI(j).State = 7 Then
+                            If frmMain.Sock(j).State = 7 Then
                                 If gUserData(j).RoomName <> vbNullString Then
                                     ' Friend is online in a room
                                     Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & sFriendUsername & "\num.txt", 1, False, 0)
@@ -338,7 +338,7 @@ Public Sub GetFriendsList(ByVal SocketIndex As Integer)
         Next i
 
         ' Send @M packet: @M + encoded_friend_count + friend_entries + Chr(1)
-        frmMain.SockI(SocketIndex).SendData "@M" & EncodeVL64(CDbl(vFriendCount)) & sResult & Chr(1)
+        frmMain.Sock(SocketIndex).SendData "@M" & EncodeVL64(CDbl(vFriendCount)) & sResult & Chr(1)
     End If
 End Sub
 
@@ -365,7 +365,7 @@ Public Sub GetDirectMail(ByVal SocketIndex As Integer)
             sMessageContent = oTextStream.ReadAll
 
             ' Send message data (second part after Chr(1) delimiter)
-            frmMain.SockI(SocketIndex).SendData Split(sMessageContent, Chr(1), 2)(1)
+            frmMain.Sock(SocketIndex).SendData Split(sMessageContent, Chr(1), 2)(1)
         End If
     Next oFile
 End Sub

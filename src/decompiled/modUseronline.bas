@@ -25,7 +25,7 @@ Public Sub RefreshUserList()
             End If
 
             ' Add to the listbox: Username [IP]
-            frmMain.lstUsers.AddItem gUsernames(CLng(i)) & " [" & CStr(oSock.RemoteHostIP) & "]"
+            frmMain.Listuseronline.AddItem gUsernames(CLng(i)) & " [" & CStr(oSock.RemoteHostIP) & "]"
 
             ' Inner loop to find users with same IP on different sockets
             For j = 1 To frmMain.SockI
@@ -38,7 +38,7 @@ Public Sub RefreshUserList()
                    gUsernames(CLng(j)) <> vbNullString Then
 
                     ' Add to listbox
-                    frmMain.lstUsers.AddItem gUsernames(CLng(j)) & " [" & CStr(oSock.RemoteHostIP) & "]"
+                    frmMain.Listuseronline.AddItem gUsernames(CLng(j)) & " [" & CStr(oSock.RemoteHostIP) & "]"
                 End If
             Next j
 

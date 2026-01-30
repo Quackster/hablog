@@ -506,7 +506,7 @@ End Sub
 
 Private Sub Image4_Click()
     ' IP/Hosting info button clicked
-    Me.Label1.Caption = "HabLog Project needs lots of PHP Files. " & frmMain.lstServers(0).LocalIP & " is your IP you need this IP to host your Hotel. If you use Hamachi you need the Peoples who want join in your or another Network."
+    Me.Label1.Caption = "HabLog Project needs lots of PHP Files. " & frmMain.Sock(1).LocalIP & " is your IP you need this IP to host your Hotel. If you use Hamachi you need the Peoples who want join in your or another Network."
     Me.Image4.Visible = False
     Me.Image2.Visible = True
     Me.Image3.Visible = True
@@ -564,7 +564,7 @@ Private Sub Form_Load()
     Me.lstHotelLanguage.AddItem "Danish"
 
     ' Set window position based on foreground checkbox setting
-    If frmMain.chkForeground.Value = 1 Then
+    If frmMain.chkForegroundValue = 1 Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
         WriteINI "server", "foreground", "Y", gSettingsFile
     Else

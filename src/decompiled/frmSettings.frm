@@ -1909,7 +1909,13 @@ Option Explicit
 Private Const WM_NCLBUTTONDOWN As Long = &HA1
 Private Const HTCAPTION As Long = 2
 Private Const IDC_HAND As Long = &H7F89
+Private Const HWND_TOPMOST As Long = -1
+Private Const HWND_NOTOPMOST As Long = -2
+Private Const SWP_NOSIZE As Long = 1
+Private Const SWP_NOMOVE As Long = 2
+Private Const SWP_FLAGS As Long = SWP_NOSIZE Or SWP_NOMOVE
 
+Private Declare Function SetWindowPos Lib "user32" (ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
 Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 Private Declare Function ReleaseCapture Lib "user32" () As Long
 Private Declare Function LoadCursor Lib "user32" Alias "LoadCursorA" (ByVal hInstance As Long, ByVal lpCursorName As Long) As Long
@@ -1927,7 +1933,7 @@ Private Sub Form_Load()
     LoadMainTab
 
     ' Set window topmost based on frmMain checkbox
-    If frmMain.chkForeground.Value = 1 Then
+    If frmMain.chkForegroundValue = 1 Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
     Else
         SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS

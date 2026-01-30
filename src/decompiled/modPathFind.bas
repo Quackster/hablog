@@ -1095,7 +1095,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX, 1)
 
         ' Get height data from gHeightMap
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY - 1)
 
         ' Calculate height difference
         dTileHeight = Val(sTile)
@@ -1135,7 +1135,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1173,7 +1173,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1211,7 +1211,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY - 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1249,7 +1249,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX + 1, CurrentY)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1287,7 +1287,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY), CurrentX, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX - 1, CurrentY)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1325,7 +1325,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX + 1, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1363,7 +1363,7 @@ Public Function FindPathPublic(ByVal SocketIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX + 1, 1)
 
-        vTileData = gHeightMap(gUserData(SocketIndex).PublicRoomId, CurrentX, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gUserData(SocketIndex).PublicRoomId, CurrentX, CurrentY - 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1431,7 +1431,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY - 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1461,7 +1461,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1491,7 +1491,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1521,7 +1521,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY - 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1551,7 +1551,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY), CurrentX + 2, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX + 1, CurrentY)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1581,7 +1581,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY), CurrentX, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX - 1, CurrentY)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1611,7 +1611,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY + 1), CurrentX + 1, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX, CurrentY + 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX, CurrentY + 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1641,7 +1641,7 @@ Public Function FindPathPublicAlt(ByVal BotIndex As Integer, ByVal CurrentX As I
         aHeightRows = Split(HeightMap, Chr$(&HD))
         sTile = Mid(aHeightRows(CurrentY - 1), CurrentX + 1, 1)
 
-        vTileData = gHeightMap(gBotData(BotIndex).PublicRoomId, CurrentX, CurrentY - 1).TileType
+        vTileData = GetHeightMapTileType(gBotData(BotIndex).PublicRoomId, CurrentX, CurrentY - 1)
 
         dTileHeight = Val(sTile)
         dHeightDiff = dTileHeight - dCurrentHeight
@@ -1688,7 +1688,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
     ' Room 28 (0x1C) - Info Bus Park
     If lCurrentRoom = 28 Then
         ' Check if info bus doors are open
-        If frmMain.chkInfoBus.Value = 1 Then
+        If frmMain.InfoBusOpen = 1 Then
             SendData SocketIndex, "AGbus open"
 
             ' Pathway transitions
@@ -1761,8 +1761,8 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         If dPosX = 26 And dPosY = 5 Then
             ' Check ticket status and checkbox
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Or _
-               (sTickets = "0" And gUserData(SocketIndex).TicketStatus = "." Or frmMain.chkLido.Value = 0) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Or _
+               (sTickets = "0" And gUserData(SocketIndex).TicketStatus = "." Or frmMain.chkLidoValue = 0) Then
                 gUserData(SocketIndex).PosX = 27
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 27
@@ -2087,10 +2087,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (21, 9) - Path transition
         If dPosX = 21 And dPosY = 9 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 21
                 gUserData(SocketIndex).DestY = 8
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 20
                 gUserData(SocketIndex).PosY = 9
                 gUserData(SocketIndex).DestX = 20
@@ -2100,10 +2100,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (21, 8) - Path transition
         If dPosX = 21 And dPosY = 8 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 21
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 20
                 gUserData(SocketIndex).PosY = 8
                 gUserData(SocketIndex).DestX = 20
@@ -2113,10 +2113,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (21, 7) - Path transition
         If dPosX = 21 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 22
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 20
                 gUserData(SocketIndex).PosY = 7
                 gUserData(SocketIndex).DestX = 20
@@ -2126,10 +2126,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (22, 7) - Path transition
         If dPosX = 22 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 23
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 22
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 22
@@ -2139,10 +2139,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (23, 7) - Path transition
         If dPosX = 23 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 24
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 23
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 23
@@ -2152,10 +2152,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (24, 7) - Path transition
         If dPosX = 24 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 25
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 24
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 24
@@ -2165,10 +2165,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (25, 7) - Path transition
         If dPosX = 25 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 25
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 25
@@ -2178,10 +2178,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (26, 7) - Path transition
         If dPosX = 26 And dPosY = 7 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 6
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 27
                 gUserData(SocketIndex).PosY = 7
                 gUserData(SocketIndex).DestX = 27
@@ -2191,10 +2191,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (26, 6) - Path transition
         If dPosX = 26 And dPosY = 6 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 5
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 27
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 27
@@ -2204,10 +2204,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Position (26, 5) - Ticket gate check with frmMain.txtMaxTickets
         If dPosX = 26 And dPosY = 5 Then
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1 And frmMain.txtMaxTickets.Text = "0") Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1 And frmMain.txtMaxTicketsText = "0") Then
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 4
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 27
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 27
@@ -2226,7 +2226,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             Set oTextStream = Nothing
             lTickets = CLng(sTickets) - 1
 
-            If frmMain.chkLido.Value = 1 And frmMain.txtMaxTickets.Text = "0" And _
+            If frmMain.chkLidoValue = 1 And frmMain.txtMaxTicketsText = "0" And _
                gUserData(SocketIndex).TicketStatus <> "." And sTickets <> "0" And _
                gUserData(SocketIndex).TicketUsed = 0 Then
 
@@ -2237,15 +2237,14 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
                 ' Notify user of ticket usage
                 SendData SocketIndex, "A|" & CStr(lTickets) & Chr$(1)
-                frmMain.txtMaxTickets.Text = "1"
+                frmMain.txtMaxTicketsText = "1"
 
                 ' Set destination coordinates
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 3
-                frmMain.txtMaxTickets.Text = "0"
+                frmMain.txtMaxTicketsText = "0"
 
                 ' Broadcast door close to all users in same room
-                Dim i As Variant
                 For i = 1 To frmMain.SockI
                     If frmMain.Sock(CInt(i)).State = 7 And gUserData(CInt(i)).PublicRoomId = gUserData(SocketIndex).PublicRoomId Then
                         SendData CInt(i), "AGdoor close" & Chr$(1)
@@ -2256,7 +2255,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
                 gUserData(SocketIndex).PoolTrigger = CStr(False)
                 gUserData(SocketIndex).PoolAnimation = 0
                 SendData SocketIndex, "A}"
-                frmMain.tmrLido.Enabled = True
+                frmMain.tmrLido1.Enabled = True
             Else
                 ' Move user back if ticket conditions not met
                 gUserData(SocketIndex).PosX = 26
@@ -2273,7 +2272,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
         If dPosX = 20 And dPosY = 19 Then
             gUserData(SocketIndex).TargetPos = "6,6"
             RemoveUserFromPublicRoom 36, "AGSplash1 exit" & Chr$(1)
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             gUserData(SocketIndex).Movement = "walk"
             gUserData(SocketIndex).Height = CStr(8)
             gUserData(SocketIndex).Swim = 0
@@ -2294,10 +2293,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 9
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 25
                 gUserData(SocketIndex).PosY = 9
                 gUserData(SocketIndex).DestX = 25
@@ -2311,10 +2310,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 24
                 gUserData(SocketIndex).DestY = 8
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 24
                 gUserData(SocketIndex).PosY = 8
                 gUserData(SocketIndex).DestX = 24
@@ -2328,10 +2327,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 23
                 gUserData(SocketIndex).DestY = 7
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 23
                 gUserData(SocketIndex).PosY = 7
                 gUserData(SocketIndex).DestX = 23
@@ -2345,10 +2344,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 22
                 gUserData(SocketIndex).DestY = 6
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 22
                 gUserData(SocketIndex).PosY = 6
                 gUserData(SocketIndex).DestX = 22
@@ -2362,10 +2361,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 21
                 gUserData(SocketIndex).DestY = 5
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 21
                 gUserData(SocketIndex).PosY = 5
                 gUserData(SocketIndex).DestX = 21
@@ -2379,10 +2378,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 21
                 gUserData(SocketIndex).DestY = 4
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 20
                 gUserData(SocketIndex).PosY = 4
                 gUserData(SocketIndex).DestX = 20
@@ -2396,10 +2395,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             sTickets = oTextStream.ReadAll
             Set oTextStream = Nothing
 
-            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLido.Value = 1) Then
+            If (sTickets = "0" And gUserData(SocketIndex).TicketStatus <> "." And frmMain.chkLidoValue = 1) Then
                 gUserData(SocketIndex).DestX = 21
                 gUserData(SocketIndex).DestY = 3
-            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLido.Value = 0 Then
+            ElseIf (sTickets = "0" And gUserData(SocketIndex).TicketStatus = ".") Or frmMain.chkLidoValue = 0 Then
                 gUserData(SocketIndex).PosX = 20
                 gUserData(SocketIndex).PosY = 3
                 gUserData(SocketIndex).DestX = 20
@@ -2549,10 +2548,10 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Park gate/entrance transitions at (28, 5)
         If dPosX = 28 And dPosY = 5 Then
-            If frmMain.chkParkGate.Value = 1 Then
+            If frmMain.chkParkGateValue = 1 Then
                 gUserData(SocketIndex).DestX = 28
                 gUserData(SocketIndex).DestY = 5
-            ElseIf frmMain.chkParkGate.Value = 0 Then
+            ElseIf frmMain.chkParkGateValue = 0 Then
                 gUserData(SocketIndex).DestX = 29
                 gUserData(SocketIndex).DestY = 5
             End If
@@ -2711,7 +2710,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
         If dPosX = 21 And dPosY = 28 Then
             gUserData(SocketIndex).DestX = 19
             gUserData(SocketIndex).DestY = (gUserData(SocketIndex).DestY = 28) And 19
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             RemoveUserFromPublicRoom 25, "AGSplash0 exit" & Chr$(1)
             gUserData(SocketIndex).Height = CStr(8)
             gUserData(SocketIndex).TargetPos = "6,6"
@@ -2742,7 +2741,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
         ' Splash exit at (17, 22) - Exit pool
         If dPosX = 17 And dPosY = 22 Then
             gUserData(SocketIndex).TargetPos = "0,0"
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             RemoveUserFromPublicRoom 36, "AGSplash0 exit" & Chr$(1)
             gUserData(SocketIndex).Swim = 0
             gUserData(SocketIndex).Movement = "walk"
@@ -2768,7 +2767,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
         ' Alternative splash exit at (31, 11)
         If dPosX = 31 And dPosY = 11 Then
             gUserData(SocketIndex).TargetPos = "0,0"
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             RemoveUserFromPublicRoom 36, "AGSplash2 exit" & Chr$(1)
             gUserData(SocketIndex).Swim = 0
             gUserData(SocketIndex).Movement = "walk"
@@ -2782,7 +2781,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
         If dPosX = 20 And dPosY = 19 Then
             gUserData(SocketIndex).TargetPos = "6,6"
             RemoveUserFromPublicRoom 36, "AGSplash1 exit" & Chr$(1)
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             gUserData(SocketIndex).Movement = "walk"
             gUserData(SocketIndex).Height = CStr(8)
             gUserData(SocketIndex).Swim = 0
@@ -2793,7 +2792,6 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Ticket gate entry at (26, 4) - Pool access control
         If dPosX = 26 And dPosY = 4 Then
-            Dim oTextStream As Object
             Dim sTicketFile As String
             Dim vTickets As Variant
 
@@ -2804,8 +2802,8 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
             Set oTextStream = Nothing
 
             ' Check if user has tickets and ticket system is enabled
-            If frmMain.chkLido.Value = 1 And frmMain.txtLidoPrice.Text = "0" And _
-               gUserData(SocketIndex).TicketStatus <> "." And frmMain.txtLidoDoorStatus.Text = "1" And _
+            If frmMain.chkLidoValue = 1 And frmMain.txtLidoPriceText = "0" And _
+               gUserData(SocketIndex).TicketStatus <> "." And frmMain.txtLidoDoorStatusText = "1" And _
                gUserData(SocketIndex).PoolDoorOpen = 0 And vTickets = 0 And vTickets = False Then
                 ' User has ticket - consume one and grant access
                 ' Write reduced ticket count
@@ -2817,12 +2815,12 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
                 SendData SocketIndex, "A|" & CStr(vTickets - 1) & Chr$(1)
 
                 ' Update door status
-                frmMain.txtLidoDoorStatus.Text = "1"
+                frmMain.txtLidoDoorStatusText = "1"
                 gUserData(SocketIndex).DestX = 26
                 gUserData(SocketIndex).DestY = 3
 
                 ' Reset pool door control
-                frmMain.txtLidoDoorStatus.Text = "0"
+                frmMain.txtLidoDoorStatusText = "0"
 
                 ' Broadcast door close to all users in room
                 For i = 1 To frmMain.SockI
@@ -2836,7 +2834,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
                 gUserData(SocketIndex).PoolTrigger = CStr(False)
                 gUserData(SocketIndex).PoolZone = 0
                 SendData SocketIndex, "A}"
-                frmMain.tmrLidoDoor.Enabled = True
+                frmMain.tmrLido2.Enabled = True
                 Exit Sub
             Else
                 ' No ticket or blocked - reset position
@@ -2872,7 +2870,7 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Pool exit at (12, 12) with height check
         If dPosX = 12 And dPosY = 12 And gUserData(SocketIndex).Height = "4.0" Then
-            frmMain.Sock(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             RemoveUserFromPublicRoom 27, "AGSplash0 exit" & Chr$(1)
             gUserData(SocketIndex).Height = "7.0"
             gUserData(SocketIndex).Swim = 0
@@ -2890,28 +2888,28 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
     If lCurrentRoom = 25 Then
         ' Changing room 1 - Entry at (17, 11)
         If dPosX = 17 And dPosY = 11 Then
-            If frmMain.txtCurtain1.Text = "0" Then
-                frmMain.txtCurtain1.Text = "1"
+            If frmMain.txtCurtain1Text = "0" Then
+                frmMain.txtCurtain1Text = "1"
                 ' Broadcast curtain close to all users in room
                 For i = 1 To frmMain.SockI
                     If frmMain.Sock(CInt(i)).State = 7 And gUserData(CInt(i)).PublicRoomId = gUserData(SocketIndex).PublicRoomId Then
                         SendData CInt(i), Chr$(1) & "AGcurtains1 close"
                     End If
                 Next i
-                frmMain.tmrCurtain1.Enabled = True
+                ' frmMain.tmrCurtain1.Enabled = True ' Timer not available
                 SendData SocketIndex, "A" ' Freeze user for changing
             End If
         End If
 
         ' Changing room 1 - Exit after 3 seconds
-        If frmMain.txtCurtain1.Text = "3" Then
+        If frmMain.txtCurtain1Text = "3" Then
             ' Broadcast curtain open to all users in room
             For i = 1 To frmMain.SockI
                 If frmMain.Sock(CInt(i)).State = 7 And gUserData(CInt(i)).PublicRoomId = gUserData(SocketIndex).PublicRoomId Then
                     SendData CInt(i), Chr$(1) & "AGcurtains1 open"
                 End If
             Next i
-            frmMain.txtCurtain1.Text = "0"
+            frmMain.txtCurtain1Text = "0"
             SendData SocketIndex, "Aa" ' Unfreeze user
             gUserData(SocketIndex).DestX = 19
             gUserData(SocketIndex).DestY = 11
@@ -2919,28 +2917,28 @@ Public Sub CheckPublicRoomTransition(ByVal SocketIndex As Integer)
 
         ' Changing room 2 - Entry at (17, 9)
         If dPosX = 17 And dPosY = 9 Then
-            If frmMain.txtCurtain2.Text = "0" Then
-                frmMain.txtCurtain2.Text = "1"
+            If frmMain.txtCurtain2Text = "0" Then
+                frmMain.txtCurtain2Text = "1"
                 ' Broadcast curtain close to all users in room
                 For i = 1 To frmMain.SockI
                     If frmMain.Sock(CInt(i)).State = 7 And gUserData(CInt(i)).PublicRoomId = gUserData(SocketIndex).PublicRoomId Then
                         SendData CInt(i), Chr$(1) & "AGcurtains2 close"
                     End If
                 Next i
-                frmMain.tmrCurtain2.Enabled = True
+                ' frmMain.tmrCurtain2.Enabled = True ' Timer not available
                 SendData SocketIndex, "A" ' Freeze user for changing
             End If
         End If
 
         ' Changing room 2 - Exit after 3 seconds
-        If frmMain.txtCurtain2.Text = "3" Then
+        If frmMain.txtCurtain2Text = "3" Then
             ' Broadcast curtain open to all users in room
             For i = 1 To frmMain.SockI
                 If frmMain.Sock(CInt(i)).State = 7 And gUserData(CInt(i)).PublicRoomId = gUserData(SocketIndex).PublicRoomId Then
                     SendData CInt(i), Chr$(1) & "AGcurtains2 open"
                 End If
             Next i
-            frmMain.txtCurtain2.Text = "0"
+            frmMain.txtCurtain2Text = "0"
             SendData SocketIndex, "Aa" ' Unfreeze user
             gUserData(SocketIndex).DestX = 19
             gUserData(SocketIndex).DestY = 9

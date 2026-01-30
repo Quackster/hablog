@@ -183,7 +183,7 @@ Private Sub Form_Load()
     Dim i As Variant
 
     ' Set window position based on foreground checkbox
-    If frmMain.chkForeground.Value = 1 Then
+    If frmMain.chkForegroundValue = 1 Then
         SetWindowPos Me.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FLAGS
     Else
         SetWindowPos Me.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS
@@ -275,10 +275,10 @@ Private Sub auto_poweroff_pc_Click()
     ' Toggle PC power off setting
     If Me.auto_poweroff_pc.Value = 1 Then
         ' Enable PC power off
-        WriteINI "server", "auto_close", CStr(frmMain.chkForeground.Value) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & ",1", gSettingsFile
+        WriteINI "server", "auto_close", CStr(frmMain.chkForegroundValue) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & ",1", gSettingsFile
     Else
         ' Disable PC power off
-        WriteINI "server", "auto_close", CStr(frmMain.chkForeground.Value) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & ",0", gSettingsFile
+        WriteINI "server", "auto_close", CStr(frmMain.chkForegroundValue) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & ",0", gSettingsFile
     End If
 End Sub
 
@@ -287,7 +287,7 @@ Private Sub Combo1_Click()
     Me.timeselected.Caption = Me.Combo1.Text & "/" & Me.Combo2.Text & "/00"
 
     ' Save settings
-    WriteINI "server", "auto_close", CStr(frmMain.chkForeground.Value) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & "," & CStr(frmAutoClose.auto_poweroff_pc.Value), gSettingsFile
+    WriteINI "server", "auto_close", CStr(frmMain.chkForegroundValue) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & "," & CStr(frmAutoClose.auto_poweroff_pc.Value), gSettingsFile
 
     ' Calculate warning message time
     auto_message_sel
@@ -298,7 +298,7 @@ Private Sub Combo2_Click()
     Me.timeselected.Caption = Me.Combo1.Text & "/" & Me.Combo2.Text & "/00"
 
     ' Save settings
-    WriteINI "server", "auto_close", CStr(frmMain.chkForeground.Value) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & "," & CStr(frmAutoClose.auto_poweroff_pc.Value), gSettingsFile
+    WriteINI "server", "auto_close", CStr(frmMain.chkForegroundValue) & "," & Me.Combo1.Text & "," & Me.Combo2.Text & "," & CStr(frmAutoClose.auto_poweroff_pc.Value), gSettingsFile
 
     ' Calculate warning message time
     auto_message_sel
@@ -355,7 +355,7 @@ Public Sub autoclose()
     Dim sAutoMessage As String
 
     ' Check if foreground checkbox is enabled
-    If frmMain.chkForeground.Value = 1 Then
+    If frmMain.chkForegroundValue = 1 Then
         ' Load auto_close settings: format is "foreground,hour,minute,poweroff"
         sAutoClose = GetINI("server", "auto_close", gSettingsFile)
         vParts = Split(sAutoClose, ",")

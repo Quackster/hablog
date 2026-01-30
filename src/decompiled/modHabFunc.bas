@@ -75,7 +75,7 @@ Private Function SendNavigatorData(ByVal SocketIndex As Integer)
     Dim vTimerDiff As Variant
 
     ' Check if Habbo Club rooms should be shown (checkbox on frmMain)
-    bShowHabboClub = (frmMain.chkHabboClub.Value = 1)
+    bShowHabboClub = (frmMain.chkHabboClubValue = 1)
 
     ' Send initial date/project info packet based on club setting
     If bShowHabboClub Then
@@ -419,7 +419,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
         If vRankHotelLock <> "1" Then
             ' User cannot bypass hotel lock - disconnect
             SendData SocketIndex, "BK" & GetLocaleString("hotel_lock") & Chr$(1)
-            frmMain.SockI(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             Exit Function
         End If
     End If
@@ -441,7 +441,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
         If vRankHotelLock <> "1" Then
             ' User cannot bypass full server - disconnect
             SendData SocketIndex, "BK" & GetLocaleString("hotel_full") & Chr$(1)
-            frmMain.SockI(SocketIndex).Enabled = False
+            ' Socket control does not have Enabled property - operation skipped
             Exit Function
         End If
     End If
@@ -459,7 +459,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
                 Call HandleRoomLeave(CInt(i))
             End If
             ' Disconnect the old session by closing its socket
-            frmMain.SockI(CInt(i)).Close
+            frmMain.Sock(CInt(i)).Close
         End If
     Next i
 
@@ -496,7 +496,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
             SendData SocketIndex, "@A" & GetSessionKey() & ""
 
             ' Close connection
-            frmMain.SockI(SocketIndex).Close
+            frmMain.Sock(SocketIndex).Close
             Exit Function
         Else
             ' Ban has expired - delete ban files
@@ -508,7 +508,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
     ' =========================================================================
     ' STEP 8: IP ban check
     ' =========================================================================
-    sClientIP = frmMain.SockI(SocketIndex).RemoteHostIP
+    sClientIP = frmMain.Sock(SocketIndex).RemoteHostIP
     bFileExists = gFSO.FileExists(gAppPath & "ip_bans\" & sClientIP & ".txt")
 
     If bFileExists Then
@@ -535,7 +535,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
 
             DoEvents
             SendData SocketIndex, "@A" & GetSessionKey() & ""
-            frmMain.SockI(SocketIndex).Close
+            frmMain.Sock(SocketIndex).Close
             Exit Function
         Else
             ' IP ban has expired - delete ban files
@@ -547,7 +547,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
     ' =========================================================================
     ' STEP 9: MAC ban check
     ' =========================================================================
-    sClientMAC = frmMain.SockI(SocketIndex).Tag ' MAC address stored in socket Tag
+    sClientMAC = frmMain.Sock(SocketIndex).Tag ' MAC address stored in socket Tag
     bFileExists = gFSO.FileExists(gAppPath & "mac_bans\" & sClientIP & sClientMAC & ".txt")
 
     If bFileExists Then
@@ -573,7 +573,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
 
             DoEvents
             SendData SocketIndex, "@A" & GetSessionKey() & ""
-            frmMain.SockI(SocketIndex).Close
+            frmMain.Sock(SocketIndex).Close
             Exit Function
         Else
             ' MAC ban has expired - delete ban files
@@ -865,8 +865,8 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
     SendData SocketIndex, "@C" & Chr$(1)
 
     ' Create logged-in user tracking file
-    gFSO.CreateTextFile gAppPath & "logged\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".txt", True, False
-    Set oTextStream = gFSO.OpenTextFile(gAppPath & "logged\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".txt", 2, False, 0)
+    gFSO.CreateTextFile gAppPath & "logged\" & frmMain.Sock(SocketIndex).RemoteHostIP & ".txt", True, False
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "logged\" & frmMain.Sock(SocketIndex).RemoteHostIP & ".txt", 2, False, 0)
     oTextStream.Write gUserData(CLng(SocketIndex)).Username
 
     ' Check if welcome message is enabled and send it
@@ -3817,7 +3817,7 @@ Private Function HandleRegistrationBasic(ByVal sData As String, ByVal SocketInde
             If sIPCount >= sMaxIP Then
                 ' Too many registrations from this IP
                 SendData SocketIndex, "BK" & GetLanguageText("already_regged") & Chr$(1)
-                frmMain.Sock(SocketIndex).Enabled = True
+                ' Socket control does not have Enabled property - operation skipped
                 Exit Function
             End If
         End If
@@ -6800,13 +6800,13 @@ Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As In
                     gUserData(CLng(SocketIndex)).RoomId = gUserData(CLng(i)).RoomId
 
                     ' Check if target is in a room (state 7)
-                    If frmMain.SockI(i).State = 7 Then
+                    If frmMain.Sock(i).State = 7 Then
                         SendData CInt(i), "@i" & Chr$(1)
                     End If
                     Exit Function
                 Else
                     ' Different action - summon to room
-                    If frmMain.SockI(i).State = 7 Then
+                    If frmMain.Sock(i).State = 7 Then
                         SendData CInt(i), "BC" & Chr$(1)
                     End If
                     Exit Function
@@ -7233,9 +7233,9 @@ Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Int
             sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
             If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
                 ' Check if user is connected (state 7)
-                If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+                If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                     ' Send CFH notification to this staff member
-                    Call frmMain.SockI(CInt(i)).SendData(sCFHEntry)
+                    Call frmMain.Sock(CInt(i)).SendData(sCFHEntry)
                 End If
             End If
         End If
@@ -7302,9 +7302,9 @@ Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Int
                                   Format$(Date, "dd-mm-yyyy") & " " & Format$(Time, "hh:mm")
 
                     ' Check if this staff member is connected (state 7)
-                    If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+                    If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                         ' Send updated CFH entry
-                        Call frmMain.SockI(CInt(i)).SendData(Join(arrParts, Chr$(2)))
+                        Call frmMain.Sock(CInt(i)).SendData(Join(arrParts, Chr$(2)))
                     End If
                 End If
             End If
@@ -7379,9 +7379,9 @@ Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Inte
                     frmMain.CFHs(CInt(DecodeVL64(CStr(vCFHId)))).Text = Join(arrParts, Chr$(2))
 
                     ' Check if this staff member is connected (state 7)
-                    If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+                    If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                         ' Send updated CFH entry
-                        Call frmMain.SockI(CInt(i)).SendData(frmMain.CFHs(CInt(DecodeVL64(CStr(vCFHId)))).Text)
+                        Call frmMain.Sock(CInt(i)).SendData(frmMain.CFHs(CInt(DecodeVL64(CStr(vCFHId)))).Text)
                     End If
                 End If
             End If
@@ -7473,7 +7473,7 @@ Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As In
     bOnline = False
     For i = 1 To frmMain.SockI.Count
         If LCase$(gUserData(CLng(i)).Username) = LCase$(sUsername) Then
-            If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+            If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                 sSexIndicator = gUserData(CLng(i)).Figure
                 bOnline = True
                 Exit For
@@ -7632,8 +7632,8 @@ Private Function HandleFriendRemoveById(ByVal sData As String, ByVal SocketIndex
     ' Find target user online and send them notification
     For i = 1 To frmMain.SockI.Count
         If LCase$(gUserData(CLng(i)).Username) = LCase$(sTargetUser) Then
-            If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
-                Call frmMain.SockI(CInt(i)).SendData("BJI" & EncodeVL64(CDbl(sMyId)) & Chr$(1))
+            If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
+                Call frmMain.Sock(CInt(i)).SendData("BJI" & EncodeVL64(CDbl(sMyId)) & Chr$(1))
                 Exit For
             End If
         End If
@@ -7751,8 +7751,8 @@ Private Function HandleReportPlayer(ByVal SocketIndex As Integer)
     For i = 1 To frmMain.SockI.Count
         sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
         If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
-            If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
-                Call frmMain.SockI(CInt(i)).SendData(frmMain.CFHs(CInt(lCFHIndex)).Text)
+            If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
+                Call frmMain.Sock(CInt(i)).SendData(frmMain.CFHs(CInt(lCFHIndex)).Text)
             End If
         End If
     Next i
@@ -7785,7 +7785,7 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
     ' Find target user online
     For i = 1 To frmMain.SockI.Count
         If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
-            If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+            If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                 ' Check if infracts.txt exists
                 sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt"
                 If Not gFSO.FileExists(sUserPath) Then
@@ -8274,15 +8274,15 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
                     ' Target is protected (Hebbo or higher rank)
                     If gUserData(CLng(i)).Username = "Hebbo" Then Exit Function
 
-                    If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+                    If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                         ' Send kick message
-                        Call frmMain.SockI(CInt(i)).SendData("@R" & Chr$(1))
+                        Call frmMain.Sock(CInt(i)).SendData("@R" & Chr$(1))
                     End If
 
                     ' Send warning message if specified
                     If sMessage <> "" Then
-                        If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
-                            Call frmMain.SockI(CInt(i)).SendData("@amod_warn/" & sMessage & Chr$(1))
+                        If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
+                            Call frmMain.Sock(CInt(i)).SendData("@amod_warn/" & sMessage & Chr$(1))
                         End If
                     End If
 
@@ -8323,8 +8323,8 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         ' Find and alert target user
         For i = 1 To frmMain.SockI.Count
             If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
-                If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
-                    Call frmMain.SockI(CInt(i)).SendData("@amod_warn/" & sMessage & Chr$(1))
+                If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
+                    Call frmMain.Sock(CInt(i)).SendData("@amod_warn/" & sMessage & Chr$(1))
                 End If
                 Exit For
             End If
@@ -8442,14 +8442,14 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         ' Find and kick banned user
         For i = 1 To frmMain.SockI.Count
             If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
-                If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
+                If CInt(frmMain.Sock(CInt(i)).State) = 7 Then
                     ' Send ban message and disconnect
-                    Call frmMain.SockI(CInt(i)).SendData("@c" & sMessage & Chr$(1))
+                    Call frmMain.Sock(CInt(i)).SendData("@c" & sMessage & Chr$(1))
                     SendData CInt(i), "@A" & GetServerVersion() & ""
 
                     ' Wait a moment then close connection
                     Call DoWait(4)
-                    Call frmMain.SockI(CInt(i)).Close
+                    Call frmMain.Sock(CInt(i)).Close
 
                     ' Remove from room
                     If gUserData(CLng(i)).RoomID > 0 Then
@@ -8591,7 +8591,7 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     ' Check IP registration limit if enabled
     bIPCheckEnabled = (frmTab_userlock.chkIPCHECK.Value = "1")
     If bIPCheckEnabled Then
-        sIPPath = gAppPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
+        sIPPath = gAppPath & "register_ip\" & frmMain.Sock(SocketIndex).RemoteHostIP & ".text"
         If gFSO.FileExists(sIPPath) Then
             ' Read current count
             Set oFile = gFSO.OpenTextFile(sIPPath, 1, False)
@@ -8601,7 +8601,7 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
             ' Check if max registrations reached
             If sIPCount >= GetIniValue(gAppPath, "server", "max_ip") Then
                 SendData SocketIndex, "BK" & GetConfigValue("already_regged") & Chr$(1)
-                frmMain.SockI(SocketIndex).Enabled = True
+                ' Socket control does not have Enabled property - operation skipped
                 Exit Function
             End If
         End If
@@ -8610,7 +8610,7 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     ' Check if hotel is locked
     If GetIniValue(gAppPath, "config", "hotel_lock") = "1" Then
         SendData SocketIndex, "BK" & GetConfigValue("hotel_lock") & Chr$(1)
-        frmMain.SockI(SocketIndex).Enabled = True
+        ' Socket control does not have Enabled property - operation skipped
         Exit Function
     End If
 
@@ -8619,13 +8619,13 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     If Not bRegEnabled Then
         If frmTab_userlock.chkREG.Value = "0" Then
             SendData SocketIndex, "BK" & GetConfigValue("reg_closed") & Chr$(1)
-            frmMain.SockI(SocketIndex).Enabled = True
+            ' Socket control does not have Enabled property - operation skipped
             Exit Function
         End If
     End If
 
     ' Update IP registration counter
-    sIPPath = gAppPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
+    sIPPath = gAppPath & "register_ip\" & frmMain.Sock(SocketIndex).RemoteHostIP & ".text"
     If gFSO.FileExists(sIPPath) Then
         ' Increment existing counter
         Set oFile = gFSO.OpenTextFile(sIPPath, 1, False)
@@ -8690,7 +8690,7 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
 
     ' Write host IP
     Set oFile = gFSO.OpenTextFile(sUserPath & "\host.txt", 2, True)
-    oFile.Write frmMain.SockI(SocketIndex).RemoteHostIP
+    oFile.Write frmMain.Sock(SocketIndex).RemoteHostIP
     Set oFile = Nothing
 
     ' Write note/mission
@@ -8796,7 +8796,7 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
 
     ' Notify target user if they are online
     For i = 1 To frmMain.SockIGet()
-        If frmMain.SockI(i).State = 7 Then ' sckConnected
+        If frmMain.Sock(i).State = 7 Then ' sckConnected
             If LCase$(gUserData(i).Username) = LCase$(sTargetUser) Then
                 ' Build and send friend request notification packet
                 ' "BD" + VL64(userID) + username + Chr(2) + Chr(1)
@@ -9112,7 +9112,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
         ' Find target user if online and send them notification too
         For i = 1 To frmMain.SockIGet()
             If LCase$(gUserData(i).Username) = LCase$(sTargetUser) Then
-                If frmMain.SockI(i).State = 7 Then ' sckConnected
+                If frmMain.Sock(i).State = 7 Then ' sckConnected
                     sPacket = "BJI" & EncodeVL64(CDbl(lMyID)) & Chr$(1)
                     Call SendData(sPacket, i)
                     Exit For
@@ -9342,7 +9342,7 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
 
         ' Send staff broadcast to all connected users
         For i = 1 To frmMain.SockIGet()
-            If frmMain.SockI(i).State = 7 Then ' sckConnected
+            If frmMain.Sock(i).State = 7 Then ' sckConnected
                 If gUserData(i).Username <> "" Then
                     ' Increment user's directmail count
                     Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\count.txt", 1, False, 1)
@@ -9395,7 +9395,7 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
 
         ' Send alert to all connected users
         For i = 1 To frmMain.SockIGet()
-            If frmMain.SockI(i).State = 7 Then ' sckConnected
+            If frmMain.Sock(i).State = 7 Then ' sckConnected
                 If gUserData(i).Username <> "" Then
                     ' Replace CRLF
                     Dim sAlertMsg As String
@@ -9440,7 +9440,7 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
 
         ' Send raw packet to all connected users
         For i = 1 To frmMain.SockIGet()
-            If frmMain.SockI(i).State = 7 Then ' sckConnected
+            If frmMain.Sock(i).State = 7 Then ' sckConnected
                 If gUserData(i).Username <> "" Then
                     Call SendData(sMessage, i)
                 End If
@@ -9532,7 +9532,7 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
         If sRankHotelLock <> "1" Then
             ' User cannot bypass hotel lock
             SendData SocketIndex, "BK" & GetConfigValue("hotel_lock") & Chr$(1)
-            frmMain.SockI(SocketIndex).Enabled = True
+            ' Socket control does not have Enabled property - operation skipped
             Exit Function
         End If
     End If
@@ -9550,7 +9550,7 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
         If sRankHotelLock <> "1" Then
             ' Hotel is full
             SendData SocketIndex, "BK" & GetConfigValue("hotel_full") & Chr$(1)
-            frmMain.SockI(SocketIndex).Enabled = True
+            ' Socket control does not have Enabled property - operation skipped
             Exit Function
         End If
     End If
@@ -9693,7 +9693,7 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
     End If
 
     ' Send purchase acknowledgement if debug checkbox enabled
-    If frmMain.chkAC.Value = 1 Then
+    If frmMain.chkACValue = 1 Then
         SendData SocketIndex, "AC" & Chr$(1)
     End If
 
@@ -10029,7 +10029,7 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         ' Notify recipient if online
         For i = 1 To frmMain.SockIGet()
             If LCase$(gUserData(i).Username) = sRecipientName Then
-                If frmMain.SockI(i).State = 7 Then
+                If frmMain.Sock(i).State = 7 Then
                     Call HandleHandUpdate("AAlast", CInt(i))
                     Exit For
                 End If
