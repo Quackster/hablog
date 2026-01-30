@@ -8,6 +8,47 @@ Option Explicit
 
 ' API Declarations for system functions (if needed)
 
+' ============================================================================
+' Helper/Wrapper Functions
+' These functions provide compatibility for undefined function calls
+' ============================================================================
+
+' GetIniValue - Wrapper for GetINI with different parameter order
+' GetINI takes (Section, Key, File) but code calls GetIniValue(File, Section, Key)
+Private Function GetIniValue(ByVal sFile As String, ByVal sSection As String, ByVal sKey As String) As String
+    GetIniValue = GetINI(sSection, sKey, sFile)
+End Function
+
+' GetConfigValue - Gets a value from the config section of settings file
+Private Function GetConfigValue(ByVal sKey As String) As String
+    GetConfigValue = GetINI("config", sKey, gSettingsFile)
+End Function
+
+' GetServerVersion - Returns the server version string
+Private Function GetServerVersion() As String
+    GetServerVersion = "HabLog Project V10"
+End Function
+
+' GetUserId - Gets the user ID from their habbos folder
+Private Function GetUserId(ByVal sUsername As String) As String
+    On Error Resume Next
+    Dim oFile As Object
+    Dim sUserPath As String
+
+    sUserPath = gAppPath & "habbos\" & LCase$(sUsername) & "\id.txt"
+    If gFSO.FileExists(sUserPath) Then
+        Set oFile = gFSO.OpenTextFile(sUserPath, 1, False, 0)
+        GetUserId = oFile.ReadAll
+        Set oFile = Nothing
+    Else
+        GetUserId = "0"
+    End If
+End Function
+
+' ============================================================================
+' Main Server Functions
+' ============================================================================
+
 ' SendNavigatorData - Sends the public room navigator data to a client
 ' This function builds the complete navigator packet with public room categories,
 ' room counts, and random private room recommendations
@@ -2022,7 +2063,7 @@ Private Function HandlePostItWrite(ByVal sData As String, ByVal SocketIndex As I
 
         ' Apply bobba filter if enabled
         If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-            sPostItText = ApplyBobbaFilter(CStr(sPostItText))
+            sPostItText = FilterBobba(CStr(sPostItText))
         End If
 
         ' Ensure text is not empty
@@ -2065,7 +2106,7 @@ End Function
 ' Handles picking up furniture from room and returning it to user's inventory
 ' Only room owner and moderators/admins can pick up furniture
 ' ============================================================================
-Private Function HandleFurniturePickup(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleFurniturePickupFromRoom(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2183,7 +2224,7 @@ End Function
 ' Handles searching for a user by name to find their location
 ' Returns the user's current room/location if online
 ' ============================================================================
-Private Function HandleUserSearch(ByVal SocketIndex As Integer)
+Private Function HandleUserSearchSimple(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim i As Long
@@ -2412,7 +2453,7 @@ Private Function HandleConsoleMissionChange(ByVal sData As String, ByVal SocketI
 
     ' Apply bobba filter if enabled
     If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-        sMissionText = ApplyBobbaFilter(CStr(sMissionText))
+        sMissionText = FilterBobba(CStr(sMissionText))
     End If
 
     ' Strip any chr$(1) from text
@@ -2438,7 +2479,7 @@ End Function
 ' Handles looking up another user's profile information
 ' Returns name, motto, figure, and other profile data
 ' ============================================================================
-Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleUserLookupBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3246,7 +3287,7 @@ Private Function HandleRoomSettings(ByVal sData As String, ByVal SocketIndex As 
             sRoomName = aSettingParts(1)
             ' Apply bobba filter if enabled
             If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-                sRoomName = ApplyBobbaFilter(sRoomName)
+                sRoomName = FilterBobba(sRoomName)
             End If
             Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\name.txt", 2, False, 0)
             oTextStream.Write sRoomName
@@ -3256,7 +3297,7 @@ Private Function HandleRoomSettings(ByVal sData As String, ByVal SocketIndex As 
         If UBound(aSettingParts) >= 2 Then
             sRoomDesc = aSettingParts(2)
             If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-                sRoomDesc = ApplyBobbaFilter(sRoomDesc)
+                sRoomDesc = FilterBobba(sRoomDesc)
             End If
             Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\description.txt", 2, False, 0)
             oTextStream.Write sRoomDesc
@@ -3683,7 +3724,7 @@ End Function
 ' Handles user registration/account creation
 ' Validates input, checks for duplicate names, creates user folder and files
 ' ============================================================================
-Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleRegistrationBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3924,7 +3965,7 @@ End Function
 ' Handles updating user's console mission/motto
 ' Applies bobba filter if enabled, saves to file
 ' ============================================================================
-Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleConsoleMissionUpdateBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3939,7 +3980,7 @@ Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketI
 
     ' Apply bobba filter if enabled
     If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-        vMission = ApplyBobbaFilter(CStr(vMission))
+        vMission = FilterBobba(CStr(vMission))
     End If
 
     ' Clean control characters
@@ -4322,7 +4363,7 @@ End Function
 ' Handles navigator room list requests
 ' Returns list of rooms in requested category
 ' ============================================================================
-Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleRoomNavigatorSimple(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4521,7 +4562,7 @@ Private Function HandleRoomCreate(ByVal sData As String, ByVal SocketIndex As In
 
     ' Apply bobba filter to room name
     If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-        sRoomName = ApplyBobbaFilter(CStr(sRoomName))
+        sRoomName = FilterBobba(CStr(sRoomName))
     End If
 
     ' Get next room ID
@@ -6309,30 +6350,30 @@ Private Function HandleCataloguePages(ByVal SocketIndex As Integer)
     Dim i As Long
 
     ' Check HC days for this user
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hcdays.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hcdays.txt", 1, False)
     sHcDays = oFile.ReadAll
     Set oFile = Nothing
 
     ' Load catalogue pages based on HC status
     If sHcDays = "0" Then
         ' Non-HC user - load regular pages
-        Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\pages.txt", 1, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\pages.txt", 1, False)
         sPages = oFile.ReadAll
         Set oFile = Nothing
     Else
         ' HC user - load pages with Club Shop
-        Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\pages.txt", 1, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\pages.txt", 1, False)
         sPages = "Club Shop;" & oFile.ReadAll
         Set oFile = Nothing
     End If
 
     ' Check if user has admin catalogue permission
-    sAdminPerm = ReadIniValue(gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini", "rank", "admin_catalogue")
-    sCataAll = ReadIniValue(gConfigPath, "config", "cata_all")
+    sAdminPerm = GetINI("rank", "admin_catalogue", gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini")
+    sCataAll = GetINI("config", "cata_all", gSettingsFile)
 
     If sAdminPerm = "1" Or sCataAll = "1" Then
         ' Add admin extra pages
-        Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\admin_extra.txt", 1, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\admin_extra.txt", 1, False)
         sPages = sPages & oFile.ReadAll
         Set oFile = Nothing
     End If
@@ -6349,7 +6390,7 @@ Private Function HandleCataloguePages(ByVal SocketIndex As Integer)
     Next i
 
     ' Send catalogue pages response
-    Call SendData("A~" & sResponse & Chr$(1), SocketIndex)
+    SendData SocketIndex, "A~" & sResponse & Chr$(1)
 End Function
 
 ' ============================================================================
@@ -6382,7 +6423,7 @@ Private Function HandleCataloguePageDisplay(ByVal sData As String, ByVal SocketI
 
     If sPageName = "Recycler" Or sPageName = "Ecotron" Then
         ' Recycler/Ecotron page
-        Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\resycler.txt", 1, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\resycler.txt", 1, False)
         sPageContent = oFile.ReadAll
         Set oFile = Nothing
         Call SendData(sPageContent, SocketIndex)
@@ -6397,15 +6438,15 @@ Private Function HandleCataloguePageDisplay(ByVal sData As String, ByVal SocketI
        sPageName = "Marquee" Or sPageName = "Rare Recolours" Then
 
         ' Check admin catalogue permission
-        sAdminPerm = ReadIniValue(gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini", "rank", "admin_catalogue")
-        sCataAll = ReadIniValue(gConfigPath, "config", "cata_all")
+        sAdminPerm = GetINI("rank", "admin_catalogue", gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini")
+        sCataAll = GetINI("config", "cata_all", gSettingsFile)
 
         If sAdminPerm = "1" Or sCataAll = "1" Then
             ' Load the special page
-            Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\" & sPageName & "\page.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\" & sPageName & "\page.txt", 1, False)
             sPageContent = oFile.ReadAll
             Set oFile = Nothing
-            Call SendData("A" & Chr$(&H7F) & sPageContent, SocketIndex)
+            SendData SocketIndex, "A" & Chr$(&H7F) & sPageContent
             Exit Function
         Else
             ' Show Frontpage instead (no permission)
@@ -6414,12 +6455,12 @@ Private Function HandleCataloguePageDisplay(ByVal sData As String, ByVal SocketI
     End If
 
     ' Load regular catalogue page
-    Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\" & sPageName & "\page.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\" & sPageName & "\page.txt", 1, False)
     sPageContent = oFile.ReadAll
     Set oFile = Nothing
 
     ' Send page content
-    Call SendData("A" & Chr$(&H7F) & sPageContent, SocketIndex)
+    SendData SocketIndex, "A" & Chr$(&H7F) & sPageContent
 End Function
 
 ' ============================================================================
@@ -6429,7 +6470,7 @@ End Function
 '
 ' Original P-Code: Proc_30_74_B240E8 (line 119353)
 ' ============================================================================
-Private Function HandleDateRequest(ByVal SocketIndex As Integer)
+Private Function HandleDateRequest2(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sDateResponse As String
@@ -6438,17 +6479,17 @@ Private Function HandleDateRequest(ByVal SocketIndex As Integer)
     sDateResponse = "Bc" & Format(Day(Now), "00") & "-" & Format(Month(Now), "00") & "-" & Year(Now) & Chr$(1)
 
     ' Send date response
-    Call SendData(sDateResponse, SocketIndex)
+    SendData SocketIndex, sDateResponse
 End Function
 
 ' ============================================================================
-' Proc_30_76 - HandleRoomCategoryChange
+' Proc_30_76 - HandleRoomCategoryChange2
 ' Handles room category change request
 ' Validates ownership and updates category
 '
 ' Original P-Code: Proc_30_76_B2E198 (line 121940)
 ' ============================================================================
-Private Function HandleRoomCategoryChange(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleRoomCategoryChange2(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim nCategoryLen As Integer
@@ -6473,16 +6514,16 @@ Private Function HandleRoomCategoryChange(ByVal sData As String, ByVal SocketInd
     lRoomId = Val(DecodeBase64(Mid$(sData, 3, Len(Mid$(sData, 3)) - nCategoryLen)))
 
     ' Verify room exists and is not deleted
-    If gFSO.FolderExists(gDataPath & "privaterooms\" & lRoomId) Then
-        If Not gFSO.FileExists(gDataPath & "privaterooms\" & lRoomId & "\deleted.txt") Then
+    If gFSO.FolderExists(gAppPath & "privaterooms\" & lRoomId) Then
+        If Not gFSO.FileExists(gAppPath & "privaterooms\" & lRoomId & "\deleted.txt") Then
             ' Check ownership
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
             sOwner = oFile.ReadAll
             Set oFile = Nothing
 
             If sOwner = gUserData(CLng(SocketIndex)).Username Then
                 ' Update room category
-                Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\category.txt", 2, False)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\category.txt", 2, False)
                 oFile.Write sCategory
                 Set oFile = Nothing
             End If
@@ -6531,14 +6572,14 @@ Private Function HandleNameCheck(ByVal sData As String, ByVal SocketIndex As Int
         sUsername = Replace(sUsername, Chr$(12), "")
 
         ' Check if username contains only invalid characters
-        If FilterBadWords(sUsername) = 1 Then
+        If ContainsBobba(sUsername) Then
             ' Name contains bad words
-            Call SendData("@dK" & Chr$(1), SocketIndex)
+            SendData SocketIndex, "@dK" & Chr$(1)
             Exit Function
         End If
 
         ' Name is valid - send approval
-        Call SendData("@dH" & Chr$(1), SocketIndex)
+        SendData SocketIndex, "@dH" & Chr$(1)
     Else
         ' Check name availability
         vLen = DecodeVL64(Mid$(sData, 3, 2))
@@ -6546,24 +6587,24 @@ Private Function HandleNameCheck(ByVal sData As String, ByVal SocketIndex As Int
 
         ' Check for "mod" prefix (reserved)
         If LCase(Left$(sUsername, 3)) = "mod" Then
-            Call SendData("@dK" & Chr$(1), SocketIndex)
+            SendData SocketIndex, "@dK" & Chr$(1)
             Exit Function
         End If
 
         ' Check if name contains bad words
-        If FilterBadWords(sUsername) = 1 Then
-            Call SendData("@dK" & Chr$(1), SocketIndex)
+        If ContainsBobba(sUsername) Then
+            SendData SocketIndex, "@dK" & Chr$(1)
             Exit Function
         End If
 
         ' Check if user already exists
-        If gFSO.FolderExists(gDataPath & "habbos\" & sUsername) Or _
-           gFSO.FolderExists(gDataPath & "habbos\mod-" & sUsername) Then
+        If gFSO.FolderExists(gAppPath & "habbos\" & sUsername) Or _
+           gFSO.FolderExists(gAppPath & "habbos\mod-" & sUsername) Then
             ' Name taken
-            Call SendData("@dPA" & Chr$(1), SocketIndex)
+            SendData SocketIndex, "@dPA" & Chr$(1)
         Else
             ' Name available
-            Call SendData("@dH" & Chr$(1), SocketIndex)
+            SendData SocketIndex, "@dH" & Chr$(1)
         End If
     End If
 End Function
@@ -6601,13 +6642,13 @@ Private Function HandlePhoneValidation(ByVal sData As String, ByVal SocketIndex 
 
         If bValid Then
             ' Valid phone number
-            Call SendData("DZI" & Chr$(1), SocketIndex)
+            SendData SocketIndex, "DZI" & Chr$(1)
             Exit Function
         End If
     End If
 
     ' Invalid phone number
-    Call SendData("DZH" & Chr$(1), SocketIndex)
+    SendData SocketIndex, "DZH" & Chr$(1)
 End Function
 
 ' ============================================================================
@@ -6637,12 +6678,12 @@ Private Function HandlePetInfoRequest(ByVal sData As String, ByVal SocketIndex A
     lPetIndex = gPetData(CLng(vPetId)).ArrayIndex
 
     ' Read pet nature
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(lPetIndex) & "\nature.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(lPetIndex) & "\nature.txt", 1, False)
     sPetNature = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read pet birth date
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(lPetIndex) & "\born.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(lPetIndex) & "\born.txt", 1, False)
     sPetBorn = oFile.ReadAll
     Set oFile = Nothing
 
@@ -6675,7 +6716,7 @@ Private Function HandlePetInfoRequest(ByVal sData As String, ByVal SocketIndex A
     If gPetData(CLng(vPetId)).Hunger > 1200 And gPetData(CLng(vPetId)).Thirst > 1200 Then sMood = "H"
 
     ' Send pet info response
-    Call SendData("CR" & EncodeVL64(vPetId) & EncodeVL64(vDaysOld) & sMood & sNatureType & sNatureLevel & Chr$(1), SocketIndex)
+    SendData SocketIndex, "CR" & EncodeVL64(vPetId) & EncodeVL64(vDaysOld) & sMood & sNatureType & sNatureLevel & Chr$(1)
 End Function
 
 ' ============================================================================
@@ -6704,12 +6745,12 @@ Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As In
     lRoomId = gUserData(CLng(SocketIndex)).RoomId
 
     ' Read room owner
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & CStr(lRoomId) & "\owner.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(lRoomId) & "\owner.txt", 1, False)
     sOwner = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read room rights list
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & CStr(lRoomId) & "\rights.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(lRoomId) & "\rights.txt", 1, False)
     sRights = oFile.ReadAll
     Set oFile = Nothing
 
@@ -6721,7 +6762,7 @@ Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As In
     End If
 
     ' Check allrights flag
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & CStr(lRoomId) & "\allrights.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(lRoomId) & "\allrights.txt", 1, False)
     sAllRights = oFile.ReadAll
     Set oFile = Nothing
 
@@ -6739,7 +6780,7 @@ Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As In
     End If
 
     ' Check rank permission
-    sRankPerm = ReadIniValue(gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini", "rank", "rights_in_any_room")
+    sRankPerm = GetINI("rank", "rights_in_any_room", gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini")
     If sRankPerm = "1" Then
         sHasRights = "ja"
     End If
@@ -6760,13 +6801,13 @@ Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As In
 
                     ' Check if target is in a room (state 7)
                     If frmMain.SockI(i).State = 7 Then
-                        Call SendData("@i" & Chr$(1), i)
+                        SendData CInt(i), "@i" & Chr$(1)
                     End If
                     Exit Function
                 Else
                     ' Different action - summon to room
                     If frmMain.SockI(i).State = 7 Then
-                        Call SendData("BC" & Chr$(1), i)
+                        SendData CInt(i), "BC" & Chr$(1)
                     End If
                     Exit Function
                 End If
@@ -6799,7 +6840,7 @@ Private Function HandleBroadcastAnswer(ByVal sData As String, ByVal SocketIndex 
     lLabelIndex = CInt(sCaption)
 
     ' Broadcast answer: BK + username + 's Answer is: <br> + answer
-    Call SendData("BK" & gUserData(CLng(SocketIndex)).Username & "'s Answer is: <br>" & sAnswer & Chr$(1), lLabelIndex)
+    SendData CInt(lLabelIndex), "BK" & gUserData(CLng(SocketIndex)).Username & "'s Answer is: <br>" & sAnswer & Chr$(1)
 End Function
 
 ' ============================================================================
@@ -6814,7 +6855,7 @@ Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketI
 
     Dim vLen As Variant
     Dim sMission As String
-    Dim sBobbaFilter As String
+    Dim sFilterBobba As String
     Dim oFile As Object
 
     ' Extract length from VL64
@@ -6824,11 +6865,11 @@ Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketI
     sMission = Mid$(sData, 5, vLen)
 
     ' Check if bobba filter is enabled
-    sBobbaFilter = ReadIniValue(gConfigPath, "config", "bobba_filter")
+    sFilterBobba = GetINI("config", "bobba_filter", gSettingsFile)
 
-    If sBobbaFilter = "1" Then
+    If sFilterBobba = "1" Then
         ' Apply bobba filter to mission text
-        sMission = ApplyBobbaFilter(sMission)
+        sMission = FilterBobba(sMission)
     End If
 
     ' Remove control character
@@ -6843,12 +6884,12 @@ Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketI
     End If
 
     ' Save mission to user file
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\consolemission.txt", 2, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\consolemission.txt", 2, False)
     oFile.Write sMission
     Set oFile = Nothing
 
     ' Send confirmation response
-    Call SendData("BS" & sMission & Chr$(2) & Chr$(1), SocketIndex)
+    SendData SocketIndex, "BS" & sMission & Chr$(2) & Chr$(1)
 End Function
 
 ' ============================================================================
@@ -6872,7 +6913,7 @@ Private Function HandleUserDisconnect(ByVal SocketIndex As Integer)
     sTimestamp = Format(Date, "dd-mm-yyyy") & " " & Format(Time, "hh:mm")
 
     ' Save last online time
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\lastonline.txt", 2, True)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\lastonline.txt", 2, True)
     oFile.Write sTimestamp
     Set oFile = Nothing
 
@@ -6904,7 +6945,7 @@ Private Function HandleRoomSettingsSave(ByVal sData As String, ByVal SocketIndex
     lRoomId = CLng(gUserData(CLng(SocketIndex)).RoomId)
 
     ' Verify ownership
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
     sOwner = oFile.ReadAll
     Set oFile = Nothing
 
@@ -6925,38 +6966,38 @@ Private Function HandleRoomSettingsSave(ByVal sData As String, ByVal SocketIndex
         sMaxUsers = arrSettings(4)
 
         ' Apply bobba filter if enabled
-        Dim sBobbaFilter As String
-        sBobbaFilter = ReadIniValue(gConfigPath, "config", "bobba_filter")
+        Dim sFilterBobba As String
+        sFilterBobba = GetINI("config", "bobba_filter", gSettingsFile)
 
-        If sBobbaFilter = "1" Then
-            sRoomName = ApplyBobbaFilter(sRoomName)
-            sDescription = ApplyBobbaFilter(sDescription)
+        If sFilterBobba = "1" Then
+            sRoomName = FilterBobba(sRoomName)
+            sDescription = FilterBobba(sDescription)
         End If
 
         ' Save room name
-        Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\name.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\name.txt", 2, False)
         oFile.Write sRoomName
         Set oFile = Nothing
 
         ' Save description
-        Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\description.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\description.txt", 2, False)
         oFile.Write sDescription
         Set oFile = Nothing
 
         ' Save access type
-        Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\access.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\access.txt", 2, False)
         oFile.Write sAccess
         Set oFile = Nothing
 
         ' Save password if set
         If sAccess = "password" Then
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\password.txt", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\password.txt", 2, True)
             oFile.Write sPassword
             Set oFile = Nothing
         End If
 
         ' Save max users
-        Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\maxusers.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\maxusers.txt", 2, False)
         oFile.Write sMaxUsers
         Set oFile = Nothing
     End If
@@ -6986,41 +7027,41 @@ Private Function HandleRoomInfoRequest(ByVal sData As String, ByVal SocketIndex 
     lRoomId = Val(Mid$(sData, 5))
 
     ' Check if room exists and is not deleted
-    If Not gFSO.FolderExists(gDataPath & "privaterooms\" & lRoomId) Then
+    If Not gFSO.FolderExists(gAppPath & "privaterooms\" & lRoomId) Then
         Exit Function
     End If
 
-    If gFSO.FileExists(gDataPath & "privaterooms\" & lRoomId & "\deleted.txt") Then
+    If gFSO.FileExists(gAppPath & "privaterooms\" & lRoomId & "\deleted.txt") Then
         Exit Function
     End If
 
     ' Read room owner
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
     sOwner = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read room name
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\name.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\name.txt", 1, False)
     sName = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read description
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\description.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\description.txt", 1, False)
     sDescription = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read access type
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\access.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\access.txt", 1, False)
     sAccess = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read max users
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\maxusers.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\maxusers.txt", 1, False)
     sMaxUsers = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read category
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\category.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\category.txt", 1, False)
     sCategory = oFile.ReadAll
     Set oFile = Nothing
 
@@ -7069,7 +7110,7 @@ Private Function HandlePetFeed(ByVal sData As String, ByVal SocketIndex As Integ
     End If
 
     ' Save updated hunger to file
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & lPetIndex & "\hunger.txt", 2, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & lPetIndex & "\hunger.txt", 2, False)
     oFile.Write CStr(gPetData(CLng(vPetId)).Hunger)
     Set oFile = Nothing
 End Function
@@ -7096,17 +7137,17 @@ Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex 
     vFurniId = Val(Mid$(sData, 5))
 
     ' Read furniture location
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & vFurniId & "\loc.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & vFurniId & "\loc.txt", 1, False)
     sLocation = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read furniture name
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & vFurniId & "\name.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & vFurniId & "\name.txt", 1, False)
     sName = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read current state
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & vFurniId & "\var.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & vFurniId & "\var.txt", 1, False)
     sState = oFile.ReadAll
     Set oFile = Nothing
 
@@ -7116,7 +7157,7 @@ Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex 
     ' Toggle state - check if currently in "closed" states (3, 2, H, J -> open to I)
     If sState = "3" Or sState = "2" Or sState = "H" Or sState = "J" Then
         ' Write new state as "I" (open)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & vFurniId & "\var.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & vFurniId & "\var.txt", 2, False)
         oFile.Write "I"
         Set oFile = Nothing
 
@@ -7126,7 +7167,7 @@ Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex 
 
     ElseIf sState = "1" Or sState = "I" Then
         ' Write new state as "J" (closed)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & vFurniId & "\var.txt", 2, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & vFurniId & "\var.txt", 2, False)
         oFile.Write "J"
         Set oFile = Nothing
 
@@ -7189,7 +7230,7 @@ Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Int
     For i = 1 To frmMain.SockI.Count
         If gUserData(CLng(i)).Rank <> vbNullString Then
             ' Check if user has CFH receive permission
-            sRankFile = gDataPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
+            sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
             If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
                 ' Check if user is connected (state 7)
                 If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
@@ -7201,7 +7242,7 @@ Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Int
     Next i
 
     ' Send confirmation to the sender
-    Call SendData("EAH", SocketIndex)
+    SendData SocketIndex, "EAH"
 End Function
 
 ' ============================================================================
@@ -7225,7 +7266,7 @@ Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Int
     Dim oFile As Object
 
     ' Check if user has permission to receive CFH
-    sRankFile = gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
     If GetIniValue(sRankFile, "rank", "recrieve_cfh") <> "1" Then
         Exit Function
     End If
@@ -7247,7 +7288,7 @@ Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Int
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).Rank <> vbNullString Then
                 ' Check if user has CFH permission
-                sRankFile = gDataPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
+                sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
                 If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
                     ' Get original CFH entry
                     sCFHEntry = frmMain.CFHs(CInt(DecodeVL64(CStr(vCFHId)))).Text
@@ -7276,7 +7317,7 @@ Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Int
         sPickedUpBy = Mid$(sPickedUpBy, 1, InStr(1, sPickedUpBy, ">") - 1)
 
         ' Send error message that it was already picked up
-        Call SendData("BK" & GetConfigValue("already_picked_up_by") & " " & sPickedUpBy & Chr$(1), SocketIndex)
+        SendData SocketIndex, "BK" & GetConfigValue("already_picked_up_by") & " " & sPickedUpBy & Chr$(1)
     End If
 End Function
 
@@ -7301,7 +7342,7 @@ Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Inte
     Dim oFile As Object
 
     ' Check if user has permission to receive CFH
-    sRankFile = gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
     If GetIniValue(sRankFile, "rank", "recrieve_cfh") <> "1" Then
         Exit Function
     End If
@@ -7322,7 +7363,7 @@ Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Inte
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).Rank <> vbNullString Then
                 ' Check if user has CFH permission
-                sRankFile = gDataPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
+                sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
                 If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
                     ' Get original CFH entry
                     sCFHEntry = frmMain.CFHs(CInt(DecodeVL64(CStr(vCFHId)))).Text
@@ -7353,7 +7394,7 @@ Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Inte
         sPickedUpBy = Mid$(sPickedUpBy, 1, InStr(1, sPickedUpBy, ">") - 1)
 
         ' Send error message that it was already picked up
-        Call SendData("BK" & GetConfigValue("already_picked_up_by") & " " & sPickedUpBy & Chr$(1), SocketIndex)
+        SendData SocketIndex, "BK" & GetConfigValue("already_picked_up_by") & " " & sPickedUpBy & Chr$(1)
     End If
 End Function
 
@@ -7386,10 +7427,10 @@ Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As In
     sUsername = Mid$(sData, 5, CLng(vNameLength))
 
     ' Check if user exists
-    sUserPath = gDataPath & "habbos\" & LCase$(sUsername)
+    sUserPath = gAppPath & "habbos\" & LCase$(sUsername)
     If Not gFSO.FolderExists(sUserPath) Then
         ' User not found
-        Call SendData("B@MESSENGER" & Chr$(2) & "H" & Chr$(1), SocketIndex)
+        SendData SocketIndex, "B@MESSENGER" & Chr$(2) & "H" & Chr$(1)
         Exit Function
     End If
 
@@ -7462,7 +7503,7 @@ End Function
 '
 ' Original P-Code: Proc_30_95_B3AC88 (line 133546)
 ' ============================================================================
-Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleFriendAcceptOrDecline(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sAction As String
@@ -7480,7 +7521,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
         sTargetUser = GetFurniFolderId(sTargetUser)
 
         ' Read target user's inquiries file
-        sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt"
+        sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt"
         Set oFile = gFSO.OpenTextFile(sUserPath, 1, False)
         If Not oFile.AtEndOfStream Then
             sInquiries = oFile.ReadAll
@@ -7498,7 +7539,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
         Set oFile = Nothing
 
         ' Now update own inquiries file
-        sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt"
+        sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt"
         Set oFile = gFSO.OpenTextFile(sUserPath, 1, False)
         If Not oFile.AtEndOfStream Then
             sInquiries = oFile.ReadAll
@@ -7516,7 +7557,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
         Set oFile = Nothing
     Else
         ' Decline request - just remove from own inquiries
-        sUserPath = gDataPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\inquiries.txt"
+        sUserPath = gAppPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\inquiries.txt"
         Set oFile = gFSO.OpenTextFile(sUserPath, 2, False)
         oFile.Write vbNullString
         Set oFile = Nothing
@@ -7529,7 +7570,7 @@ End Function
 '
 ' Original P-Code: Proc_30_96_B53F30 (line 133853)
 ' ============================================================================
-Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As Integer)
+Private Function HandleFriendRemoveById(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sTargetUser As String
@@ -7549,7 +7590,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     sTargetUser = GetFurniFolderId(sTargetUser)
 
     ' Read current user's friendlist and remove target
-    sUserPath = gDataPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\friendlist.txt"
+    sUserPath = gAppPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\friendlist.txt"
     Set oFile = gFSO.OpenTextFile(sUserPath, 1, False)
     If Not oFile.AtEndOfStream Then
         sFriendList = oFile.ReadAll
@@ -7567,7 +7608,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     Set oFile = Nothing
 
     ' Read target user's friendlist and remove current user
-    sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt"
+    sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt"
     Set oFile = gFSO.OpenTextFile(sUserPath, 1, False)
     If Not oFile.AtEndOfStream Then
         sFriendList = oFile.ReadAll
@@ -7586,7 +7627,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     sMyId = GetUserId(gUserData(CLng(SocketIndex)).Username)
 
     ' Send removal notification to current user
-    Call SendData("BJI" & EncodeVL64(CDbl(sTargetId)) & Chr$(1), SocketIndex)
+    SendData SocketIndex, "BJI" & EncodeVL64(CDbl(sTargetId)) & Chr$(1)
 
     ' Find target user online and send them notification
     For i = 1 To frmMain.SockI.Count
@@ -7599,7 +7640,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     Next i
 
     ' Clean up directmail from removed friend
-    sUserPath = gDataPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\directmail\"
+    sUserPath = gAppPath & "habbos\" & LCase$(gUserData(CLng(SocketIndex)).Username) & "\directmail\"
     Set oFolder = gFSO.GetFolder(sUserPath)
     Set oFiles = oFolder.Files
     For Each oFileItem In oFiles
@@ -7621,7 +7662,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     Next oFileItem
 
     ' Clean up directmail sent to removed friend
-    sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\directmail\"
+    sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\directmail\"
     Set oFolder = gFSO.GetFolder(sUserPath)
     Set oFiles = oFolder.Files
     For Each oFileItem In oFiles
@@ -7708,7 +7749,7 @@ Private Function HandleReportPlayer(ByVal SocketIndex As Integer)
 
     ' Broadcast to all staff members with CFH permission
     For i = 1 To frmMain.SockI.Count
-        sRankFile = gDataPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
+        sRankFile = gAppPath & "ranks\" & gUserData(CLng(i)).Rank & ".ini"
         If GetIniValue(sRankFile, "rank", "recrieve_cfh") = "1" Then
             If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
                 Call frmMain.SockI(CInt(i)).SendData(frmMain.CFHs(CInt(lCFHIndex)).Text)
@@ -7735,7 +7776,7 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
     Dim i As Variant
 
     ' Send confirmation message to moderator
-    Call SendData("BKUser now Infracted." & Chr$(1), SocketIndex)
+    SendData SocketIndex, "BKUser now Infracted." & Chr$(1)
 
     ' Get target username and reason from form
     sReason = frmMain.Label.Caption
@@ -7746,7 +7787,7 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
         If LCase$(sTargetUser) = LCase$(gUserData(CLng(i)).Username) Then
             If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
                 ' Check if infracts.txt exists
-                sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt"
+                sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt"
                 If Not gFSO.FileExists(sUserPath) Then
                     ' Create initial infraction file with "0"
                     Set oFile = gFSO.OpenTextFile(sUserPath, 2, True)
@@ -7754,14 +7795,14 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
                     Set oFile = Nothing
 
                     ' Write reason to infract.txt
-                    sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt"
+                    sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt"
                     Set oFile = gFSO.OpenTextFile(sUserPath, 2, True)
                     oFile.Write sReason
                     Set oFile = Nothing
                 End If
 
                 ' Read current infraction count
-                sUserPath = gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt"
+                sUserPath = gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt"
                 Set oFile = gFSO.OpenTextFile(sUserPath, 1, False)
                 lInfractionCount = Val(oFile.ReadAll) + 1
                 Set oFile = Nothing
@@ -7773,48 +7814,48 @@ Private Function HandleInfraction(ByVal SocketIndex As Integer)
                     sBanExpiry = CStr(DateAdd("h", 1, Now))
 
                     ' Create ban file
-                    sUserPath = gDataPath & "user_bans\" & LCase$(sTargetUser) & ".txt"
+                    sUserPath = gAppPath & "user_bans\" & LCase$(sTargetUser) & ".txt"
                     Set oFile = gFSO.OpenTextFile(sUserPath, 2, True)
                     oFile.Write sBanExpiry
                     Set oFile = Nothing
 
                     ' Write ban reason
-                    sUserPath = gDataPath & "user_bans\" & LCase$(sTargetUser) & ".reason"
+                    sUserPath = gAppPath & "user_bans\" & LCase$(sTargetUser) & ".reason"
                     Set oFile = gFSO.OpenTextFile(sUserPath, 2, True)
                     oFile.Write "You are got a Infractions Ban for 1 hour. The way was: " & vbCrLf & " & reden"
                     Set oFile = Nothing
 
                     ' Send ban message and disconnect
-                    Call SendData("@cYou are got a Infractions Ban for 1 hour. The way was: " & vbCrLf & " & reden & Chr(1)", CInt(i))
-                    Call SendData("@A" & GetServerVersion() & "", CInt(i))
+                    SendData CInt(i), "@cYou are got a Infractions Ban for 1 hour. The way was: " & vbCrLf & " & reden & Chr(1)"
+                    SendData CInt(i), "@A" & GetServerVersion() & ""
                 Else
                     ' Send warning message
-                    Call SendData("@amod_warn/" & sReason & vbCrLf & _
-                                  "This was a infraction! If you have few Infractions you count with a Ban!" & Chr$(1), CInt(i))
+                    SendData CInt(i), "@amod_warn/" & sReason & vbCrLf & _
+                                  "This was a infraction! If you have few Infractions you count with a Ban!" & Chr$(1)
 
                     ' Update infraction files
-                    If Not gFSO.FileExists(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt") Then
+                    If Not gFSO.FileExists(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt") Then
                         ' Create infracts.txt with 1
-                        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 2, True)
+                        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 2, True)
                         oFile.Write "1"
                         Set oFile = Nothing
 
                         ' Write reason
-                        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt", 2, True)
+                        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt", 2, True)
                         oFile.Write sReason
                         Set oFile = Nothing
                     Else
                         ' Increment infraction count
-                        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 1, False)
+                        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 1, False)
                         lInfractionCount = Val(oFile.ReadAll) + 1
                         Set oFile = Nothing
 
-                        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 2, True)
+                        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infracts.txt", 2, True)
                         oFile.Write CStr(lInfractionCount)
                         Set oFile = Nothing
 
                         ' Update reason
-                        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt", 2, True)
+                        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\infract.txt", 2, True)
                         oFile.Write sReason
                         Set oFile = Nothing
                     End If
@@ -7879,7 +7920,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category SL
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7891,7 +7932,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category RL
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7903,7 +7944,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category PR
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7915,7 +7956,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category RQ
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7927,7 +7968,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category Q]
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7939,7 +7980,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category R]
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7951,7 +7992,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category PL (first count)
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7963,7 +8004,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category RN
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7975,7 +8016,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
         ' Count rooms in category RR
         For i = 1 To frmMain.SockI.Count
             If gUserData(CLng(i)).RoomID > 0 Then
-                sRoomPath = gDataPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
+                sRoomPath = gAppPath & "privaterooms\" & CStr(gUserData(CLng(i)).RoomID) & "\category.txt"
                 Set oFile = gFSO.OpenTextFile(sRoomPath, 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
@@ -7998,35 +8039,35 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
                     "ZfFPAH"
 
         ' Remove disabled categories (check categories.ini for each)
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "SL")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "SL")) = 0 Then
             sResponse = Replace(sResponse, "SLJ" & GetConfigValue("categorie_1") & "QD[XKPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "RL")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "RL")) = 0 Then
             sResponse = Replace(sResponse, "RLJ" & GetConfigValue("categorie_2") & "YDAZ~EPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "PR")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "PR")) = 0 Then
             sResponse = Replace(sResponse, "PRJ" & GetConfigValue("categorie_3") & "RhZtEPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "RQ")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "RQ")) = 0 Then
             sResponse = Replace(sResponse, "RQJ" & GetConfigValue("categorie_4") & "XLA[DFPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "Q]")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "Q]")) = 0 Then
             sResponse = Replace(sResponse, "Q]J" & GetConfigValue("categorie_6") & "SPY}EPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "R]")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "R]")) = 0 Then
             sResponse = Replace(sResponse, "R]J" & GetConfigValue("categorie_7") & "REZyEPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "PL")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "PL")) = 0 Then
             sResponse = Replace(sResponse, "PLJ" & GetConfigValue("categorie_8") & "R]X|EPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "RN")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "RN")) = 0 Then
             sResponse = Replace(sResponse, "RNJ" & GetConfigValue("categorie_9") & "SP[EPAH", "")
         End If
-        If Val(GetIniValue(gDataPath & "room_categories\categories.ini", "categories", "RR")) = 0 Then
+        If Val(GetIniValue(gAppPath & "room_categories\categories.ini", "categories", "RR")) = 0 Then
             sResponse = Replace(sResponse, "RRJ" & GetConfigValue("categorie_10") & "XjAZfFPAH", "")
         End If
 
-        Call SendData("C\" & sResponse & Chr$(1), SocketIndex)
+        SendData SocketIndex, "C\" & sResponse & Chr$(1)
         Exit Function
     End If
 
@@ -8067,7 +8108,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
     Load frmMain.ListBox(SocketIndex)
 
     ' Get total room count
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\count.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\count.txt", 1, False)
     lRoomCount = Val(oFile.ReadAll)
     Set oFile = Nothing
 
@@ -8077,10 +8118,10 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
     ' Loop through all rooms
     For i = 1 To lRoomCount
         ' Check if room folder exists and is not deleted
-        If gFSO.FolderExists(gDataPath & "privaterooms\" & CStr(i)) Then
-            If Not gFSO.FileExists(gDataPath & "privaterooms\" & CStr(i) & "\deleted.txt") Then
+        If gFSO.FolderExists(gAppPath & "privaterooms\" & CStr(i)) Then
+            If Not gFSO.FileExists(gAppPath & "privaterooms\" & CStr(i) & "\deleted.txt") Then
                 ' Read room category
-                Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & CStr(i) & "\category.txt", 1, False)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(i) & "\category.txt", 1, False)
                 sCatName = oFile.ReadAll
                 Set oFile = Nothing
 
@@ -8103,7 +8144,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
     Next i
 
     ' Get max rooms to list from config
-    lMaxRooms = Val(GetIniValue(gDataPath, "config", "maxguestroomsinlist"))
+    lMaxRooms = Val(GetIniValue(gAppPath, "config", "maxguestroomsinlist"))
     lRoomIndex = 0
 
     ' Loop through ListBox items (sorted by visitor count)
@@ -8114,32 +8155,32 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
             lRoomId = Val(Split(frmMain.ListBox(SocketIndex).List(k), " ")(1))
 
             ' Read room name
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\name.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\name.txt", 1, False)
             sRoomName = Trim$(oFile.ReadAll)
             Set oFile = Nothing
 
             ' Read room owner
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\owner.txt", 1, False)
             sRoomOwner = oFile.ReadAll
             Set oFile = Nothing
 
             ' Read room description
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\description.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\description.txt", 1, False)
             sRoomDesc = Trim$(oFile.ReadAll)
             Set oFile = Nothing
 
             ' Read max visitors
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\maxin.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\maxin.txt", 1, False)
             sMaxIn = oFile.ReadAll
             Set oFile = Nothing
 
             ' Read open type
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\opentype.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\opentype.txt", 1, False)
             sOpenType = oFile.ReadAll
             Set oFile = Nothing
 
             ' Read show owner name setting
-            Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & lRoomId & "\showname.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & lRoomId & "\showname.txt", 1, False)
             sShowName = oFile.ReadAll
             Set oFile = Nothing
 
@@ -8153,7 +8194,7 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
 
             ' Hide owner name if setting is 0 and user doesn't have see_room_owner permission
             If sShowName = "0" And sRoomOwner <> gUserData(CLng(SocketIndex)).Username Then
-                If GetIniValue(gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini", "rank", "see_room_owner") <> "1" Then
+                If GetIniValue(gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini", "rank", "see_room_owner") <> "1" Then
                     sRoomOwner = "-"
                 End If
             End If
@@ -8171,10 +8212,10 @@ Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As
 
     ' Send response
     If lRoomIndex > 0 Then
-        Call SendData("C\" & sCategoryHeader & Chr$(2) & "I" & EncodeVL64(15 * lRoomIndex) & _
-                      "PA" & EncodeVL64(lRoomIndex) & sRoomListResponse & Chr$(1), SocketIndex)
+        SendData SocketIndex, "C\" & sCategoryHeader & Chr$(2) & "I" & EncodeVL64(15 * lRoomIndex) & _
+                      "PA" & EncodeVL64(lRoomIndex) & sRoomListResponse & Chr$(1)
     Else
-        Call SendData("C\" & sCategoryHeader & Chr$(2) & "IHPAH" & Chr$(1), SocketIndex)
+        SendData SocketIndex, "C\" & sCategoryHeader & Chr$(2) & "IHPAH" & Chr$(1)
     End If
 End Function
 
@@ -8211,7 +8252,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
     sPacket = Mid$(sData, 5)
 
     ' Build rank file path
-    sRankFile = gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
 
     ' Handle "HI" - Kick command
     If sCommand = "HI" Then
@@ -8329,10 +8370,10 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         End Select
 
         ' Check if target user exists
-        If Not gFSO.FolderExists(gDataPath & "habbos\" & LCase$(sTargetUser)) Then Exit Function
+        If Not gFSO.FolderExists(gAppPath & "habbos\" & LCase$(sTargetUser)) Then Exit Function
 
         ' Check target rank - can't ban users of same or higher rank
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\rank.txt", 1, False)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\rank.txt", 1, False)
         sTargetRank = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8340,7 +8381,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
 
         ' Demote managers to habbo
         If sTargetRank = "manager" Then
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\rank.txt", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\rank.txt", 2, True)
             oFile.Write "habbo"
             Set oFile = Nothing
             Exit Function
@@ -8350,28 +8391,28 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         sBanExpiry = CStr(DateAdd("h", lBanHours, Now))
 
         ' Create user ban
-        Set oFile = gFSO.OpenTextFile(gDataPath & "user_bans\" & LCase$(sTargetUser) & ".txt", 2, True)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "user_bans\" & LCase$(sTargetUser) & ".txt", 2, True)
         oFile.Write sBanExpiry
         Set oFile = Nothing
 
         ' Write ban reason
-        Set oFile = gFSO.OpenTextFile(gDataPath & "user_bans\" & LCase$(sTargetUser) & ".reason", 2, True)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "user_bans\" & LCase$(sTargetUser) & ".reason", 2, True)
         oFile.Write sMessage
         Set oFile = Nothing
 
         ' Create IP ban if requested (ban type IJH or IJI)
         If sBanType = "IJH" Or sBanType = "IJI" Then
             ' Read target IP
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\host.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\host.txt", 1, False)
             sTargetIP = oFile.ReadAll
             Set oFile = Nothing
 
             ' Create IP ban file
-            Set oFile = gFSO.OpenTextFile(gDataPath & "ip_bans\" & sTargetIP & ".txt", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "ip_bans\" & sTargetIP & ".txt", 2, True)
             oFile.Write sBanExpiry
             Set oFile = Nothing
 
-            Set oFile = gFSO.OpenTextFile(gDataPath & "ip_bans\" & sTargetIP & ".reason", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "ip_bans\" & sTargetIP & ".reason", 2, True)
             oFile.Write sMessage
             Set oFile = Nothing
         End If
@@ -8379,16 +8420,16 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
         ' Create MAC ban if requested (ban type HJI or IJI)
         If sBanType = "HJI" Or sBanType = "IJI" Then
             ' Read target MAC
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\machost.txt", 1, False)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\machost.txt", 1, False)
             sTargetMAC = oFile.ReadAll
             Set oFile = Nothing
 
             ' Create MAC ban file
-            Set oFile = gFSO.OpenTextFile(gDataPath & "mac_bans\" & sTargetMAC & ".txt", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "mac_bans\" & sTargetMAC & ".txt", 2, True)
             oFile.Write sBanExpiry
             Set oFile = Nothing
 
-            Set oFile = gFSO.OpenTextFile(gDataPath & "mac_bans\" & sTargetMAC & ".reason", 2, True)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "mac_bans\" & sTargetMAC & ".reason", 2, True)
             oFile.Write sMessage
             Set oFile = Nothing
         End If
@@ -8404,7 +8445,7 @@ Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As In
                 If CInt(frmMain.SockI(CInt(i)).State) = 7 Then
                     ' Send ban message and disconnect
                     Call frmMain.SockI(CInt(i)).SendData("@c" & sMessage & Chr$(1))
-                    Call SendData("@A" & GetServerVersion() & "", CInt(i))
+                    SendData CInt(i), "@A" & GetServerVersion() & ""
 
                     ' Wait a moment then close connection
                     Call DoWait(4)
@@ -8498,7 +8539,7 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     If gUserData(CLng(SocketIndex)).Username <> "" Then Exit Function
 
     ' Send server time
-    Call SendData("DkIQ]" & CStr(Now) & "", SocketIndex)
+    SendData SocketIndex, "DkIQ]" & CStr(Now) & ""
     Exit Function
 
     ' Parse packet starting at position 5
@@ -8536,21 +8577,21 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     sNote = "Registered at HabLog Project"
 
     ' Check if username already exists
-    If gFSO.FolderExists(gDataPath & "habbos\" & LCase$(sUsername)) Then
-        Call SendData("DkIQ]" & CStr(Now) & "", SocketIndex)
+    If gFSO.FolderExists(gAppPath & "habbos\" & LCase$(sUsername)) Then
+        SendData SocketIndex, "DkIQ]" & CStr(Now) & ""
         Exit Function
     End If
 
     ' Check if username already exists (second check)
-    If gFSO.FolderExists(gDataPath & "habbos\" & LCase$(sUsername)) Then
-        Call SendData("BaName Taken" & Chr$(1), SocketIndex)
+    If gFSO.FolderExists(gAppPath & "habbos\" & LCase$(sUsername)) Then
+        SendData SocketIndex, "BaName Taken" & Chr$(1)
         Exit Function
     End If
 
     ' Check IP registration limit if enabled
     bIPCheckEnabled = (frmTab_userlock.chkIPCHECK.Value = "1")
     If bIPCheckEnabled Then
-        sIPPath = gDataPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
+        sIPPath = gAppPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
         If gFSO.FileExists(sIPPath) Then
             ' Read current count
             Set oFile = gFSO.OpenTextFile(sIPPath, 1, False)
@@ -8558,8 +8599,8 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
             Set oFile = Nothing
 
             ' Check if max registrations reached
-            If sIPCount >= GetIniValue(gDataPath, "server", "max_ip") Then
-                Call SendData("BK" & GetConfigValue("already_regged") & Chr$(1), SocketIndex)
+            If sIPCount >= GetIniValue(gAppPath, "server", "max_ip") Then
+                SendData SocketIndex, "BK" & GetConfigValue("already_regged") & Chr$(1)
                 frmMain.SockI(SocketIndex).Enabled = True
                 Exit Function
             End If
@@ -8567,8 +8608,8 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     End If
 
     ' Check if hotel is locked
-    If GetIniValue(gDataPath, "config", "hotel_lock") = "1" Then
-        Call SendData("BK" & GetConfigValue("hotel_lock") & Chr$(1), SocketIndex)
+    If GetIniValue(gAppPath, "config", "hotel_lock") = "1" Then
+        SendData SocketIndex, "BK" & GetConfigValue("hotel_lock") & Chr$(1)
         frmMain.SockI(SocketIndex).Enabled = True
         Exit Function
     End If
@@ -8577,14 +8618,14 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     bRegEnabled = (frmTab_userlock.chkREG.Value = "1")
     If Not bRegEnabled Then
         If frmTab_userlock.chkREG.Value = "0" Then
-            Call SendData("BK" & GetConfigValue("reg_closed") & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BK" & GetConfigValue("reg_closed") & Chr$(1)
             frmMain.SockI(SocketIndex).Enabled = True
             Exit Function
         End If
     End If
 
     ' Update IP registration counter
-    sIPPath = gDataPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
+    sIPPath = gAppPath & "register_ip\" & frmMain.SockI(SocketIndex).RemoteHostIP & ".text"
     If gFSO.FileExists(sIPPath) Then
         ' Increment existing counter
         Set oFile = gFSO.OpenTextFile(sIPPath, 1, False)
@@ -8603,11 +8644,11 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     End If
 
     ' Create user folder by copying from template
-    sUserPath = gDataPath & "habbos\" & LCase$(sUsername)
-    gFSO.CopyFolder gDataPath & "new_habbo", sUserPath, True
+    sUserPath = gAppPath & "habbos\" & LCase$(sUsername)
+    gFSO.CopyFolder gAppPath & "new_habbo", sUserPath, True
 
     ' Read habbos count
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\count.txt", 1, False)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\count.txt", 1, False)
     Dim sHabboCount As String
     sHabboCount = oFile.ReadAll
     Set oFile = Nothing
@@ -8658,12 +8699,12 @@ Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As 
     Set oFile = Nothing
 
     ' Update habbo count
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\count.txt", 2, True)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\count.txt", 2, True)
     oFile.Write CStr(Val(sHabboCount) + 1)
     Set oFile = Nothing
 
     ' Send registration success
-    Call SendData("DA" & Chr$(1), SocketIndex)
+    SendData SocketIndex, "DA" & Chr$(1)
 End Function
 
 ' HandleFriendRequest - Processes sending a friend request (Proc_30_93)
@@ -8689,12 +8730,12 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
     sUsername = LCase$(gUserData(SocketIndex).Username)
 
     ' Check 1: Is target already on sender's friend list?
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
         sFriendList = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8704,12 +8745,12 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
     End If
 
     ' Check 2: Is sender already on target's friend list?
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
         sFriendList = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8719,12 +8760,12 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
     End If
 
     ' Check 3: Does sender already have a pending inquiry for target?
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
         sInquiries = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8734,12 +8775,12 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
     End If
 
     ' Check 4: Does target already have a pending inquiry from sender?
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
         sInquiries = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8749,7 +8790,7 @@ Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As
     End If
 
     ' All checks passed - add friend request to target's inquiries
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 8, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 8, False, 1)
     oFile.Write "<" & sUsername & ">"
     Set oFile = Nothing
 
@@ -8800,12 +8841,12 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
     sUsername = LCase$(gUserData(SocketIndex).Username)
 
     ' Check if current user has pending inquiry from target
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
         sInquiries = oFile.ReadAll
         Set oFile = Nothing
 
@@ -8813,35 +8854,35 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
         If InStr(1, sInquiries, "<" & LCase$(sTargetUser) & ">") > 0 Then
             ' Remove the inquiry from current user's inquiries
             sInquiries = Replace(sInquiries, "<" & LCase$(sTargetUser) & ">", "", 1, -1, vbTextCompare)
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
             oFile.Write sInquiries
             Set oFile = Nothing
 
             ' Also remove from target's inquiries if exists
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
             bAtEnd = oFile.AtEndOfStream
             Set oFile = Nothing
 
             If Not bAtEnd Then
-                Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
                 sInquiries = oFile.ReadAll
                 Set oFile = Nothing
 
                 If InStr(1, sInquiries, "<" & sUsername & ">") > 0 Then
                     sInquiries = Replace(sInquiries, "<" & sUsername & ">", "", 1, -1, vbTextCompare)
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 2, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 2, False, 1)
                     oFile.Write sInquiries
                     Set oFile = Nothing
                 End If
             End If
 
             ' Add target to current user's friend list
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 8, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 8, False, 1)
             oFile.Write "<" & sUsername & ">"
             Set oFile = Nothing
 
             ' Add current user to target's friend list
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 8, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 8, False, 1)
             oFile.Write "<" & LCase$(sTargetUser) & ">"
             Set oFile = Nothing
 
@@ -8849,7 +8890,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
             lTargetSocket = GetUserID(sTargetUser)
 
             ' Determine sex character for packet
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\sex.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\sex.txt", 1, False, 1)
             sSex = oFile.ReadAll
             Set oFile = Nothing
 
@@ -8860,7 +8901,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
             End If
 
             ' Get console mission
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\consolemission.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\consolemission.txt", 1, False, 1)
             If oFile.AtEndOfStream Then
                 sConsoleMission = ""
             Else
@@ -8870,18 +8911,18 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
 
             ' Build friend info packet for current user
             ' Get target's name
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\name.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\name.txt", 1, False, 1)
             Dim sTargetName As String
             sTargetName = oFile.ReadAll
             Set oFile = Nothing
 
             ' Get last online time
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\lastonline.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\lastonline.txt", 1, False, 1)
             sLastOnline = oFile.ReadAll
             Set oFile = Nothing
 
             ' Get figure
-            Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\app.txt", 1, False, 1)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\app.txt", 1, False, 1)
             sFigure = oFile.ReadAll
             Set oFile = Nothing
 
@@ -8897,7 +8938,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
             ' If target is online, send them the friend notification too
             If lTargetSocket <> 0 Then
                 ' Get current user's info for the packet
-                Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\sex.txt", 1, False, 1)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\sex.txt", 1, False, 1)
                 sSex = oFile.ReadAll
                 Set oFile = Nothing
 
@@ -8907,7 +8948,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
                     sSex = "H"
                 End If
 
-                Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\consolemission.txt", 1, False, 1)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\consolemission.txt", 1, False, 1)
                 If oFile.AtEndOfStream Then
                     sConsoleMission = ""
                 Else
@@ -8915,7 +8956,7 @@ Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As 
                 End If
                 Set oFile = Nothing
 
-                Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\lastonline.txt", 1, False, 1)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\lastonline.txt", 1, False, 1)
                 sLastOnline = oFile.ReadAll
                 Set oFile = Nothing
 
@@ -8957,40 +8998,40 @@ Private Function HandleFriendDecline(ByVal sData As String, ByVal SocketIndex As
     sUsername = LCase$(gUserData(SocketIndex).Username)
 
     ' Remove inquiry from current user's inquiries
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 1, False, 1)
         sInquiries = oFile.ReadAll
         Set oFile = Nothing
 
         ' Remove the inquiry
         sInquiries = Replace(sInquiries, "<" & LCase$(sTargetUser) & ">", "", 1, -1, vbTextCompare)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
         oFile.Write sInquiries
         Set oFile = Nothing
     End If
 
     ' Also remove from target's inquiries if exists
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 1, False, 1)
         sInquiries = oFile.ReadAll
         Set oFile = Nothing
 
         ' Remove the inquiry
         sInquiries = Replace(sInquiries, "<" & sUsername & ">", "", 1, -1, vbTextCompare)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 2, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\inquiries.txt", 2, False, 1)
         oFile.Write sInquiries
         Set oFile = Nothing
     Else
         ' Clear the file if not exists
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\inquiries.txt", 2, False, 1)
         oFile.Write ""
         Set oFile = Nothing
     End If
@@ -9028,35 +9069,35 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
     sUsername = LCase$(gUserData(SocketIndex).Username)
 
     ' Remove target from current user's friend list
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 1, False, 1)
         sFriendList = oFile.ReadAll
         Set oFile = Nothing
 
         ' Remove friend entry
         sFriendList = Replace(sFriendList, "<" & LCase$(sTargetUser) & ">", "", 1, -1, vbTextCompare)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\friendlist.txt", 2, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\friendlist.txt", 2, False, 1)
         oFile.Write sFriendList
         Set oFile = Nothing
     End If
 
     ' Remove current user from target's friend list
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
     bAtEnd = oFile.AtEndOfStream
     Set oFile = Nothing
 
     If Not bAtEnd Then
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 1, False, 1)
         sFriendList = oFile.ReadAll
         Set oFile = Nothing
 
         ' Remove friend entry
         sFriendList = Replace(sFriendList, "<" & sUsername & ">", "", 1, -1, vbTextCompare)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 2, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sTargetUser) & "\friendlist.txt", 2, False, 1)
         oFile.Write sFriendList
         Set oFile = Nothing
 
@@ -9080,7 +9121,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
         Next i
 
         ' Clean up direct mail from removed friend in current user's folder
-        Set oFolder = gFSO.GetFolder(gDataPath & "habbos\" & sUsername & "\directmail\")
+        Set oFolder = gFSO.GetFolder(gAppPath & "habbos\" & sUsername & "\directmail\")
         Set oFiles = oFolder.Files
 
         For Each oFileItem In oFiles
@@ -9102,7 +9143,7 @@ Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As 
         Next oFileItem
 
         ' Clean up direct mail from current user in target's folder
-        Set oFolder = gFSO.GetFolder(gDataPath & "habbos\" & LCase$(sTargetUser) & "\directmail\")
+        Set oFolder = gFSO.GetFolder(gAppPath & "habbos\" & LCase$(sTargetUser) & "\directmail\")
         Set oFiles = oFolder.Files
 
         For Each oFileItem In oFiles
@@ -9143,7 +9184,7 @@ Private Function HandleHabboWheel(ByVal sData As String, ByVal SocketIndex As In
     lRoomID = gUserData(SocketIndex).RoomID
 
     ' Check if user is the room owner
-    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\" & CStr(lRoomID) & "\owner.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(lRoomID) & "\owner.txt", 1, False, 1)
     sOwner = oFile.ReadAll
     Set oFile = Nothing
 
@@ -9185,34 +9226,34 @@ Private Function HandleHabboWheel(ByVal sData As String, ByVal SocketIndex As In
     sFurniID = DecodeBase64(sFurniID)
 
     ' Check if item is a habbowheel
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\name.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\name.txt", 1, False, 1)
     sFurniName = oFile.ReadAll
     Set oFile = Nothing
 
     If sFurniName <> "habbowheel" Then Exit Function
 
     ' Update the wheel's variable (prize code)
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\var.txt", 2, True, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\var.txt", 2, True, 1)
     oFile.Write sPrize
     Set oFile = Nothing
 
     ' Read wheel location
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\loc.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\loc.txt", 1, False, 1)
     sLocation = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read wheel custom data
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\cust.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\cust.txt", 1, False, 1)
     sCustom = oFile.ReadAll
     Set oFile = Nothing
 
     ' Re-read name
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\name.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\name.txt", 1, False, 1)
     sFurniName = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read updated var
-    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & sFurniID & "\var.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & sFurniID & "\var.txt", 1, False, 1)
     sVar = oFile.ReadAll
     Set oFile = Nothing
 
@@ -9274,19 +9315,19 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
         sMessage = Replace(sMessage, Chr$(4), "", 1, -1, vbTextCompare)
 
         ' Read stats for placeholder replacement
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\count.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\count.txt", 1, False, 1)
         sUserCount = oFile.ReadAll
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, False, 1)
         sFurniCount = oFile.ReadAll
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & gUserData(SocketIndex).Username & "\num.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(SocketIndex).Username & "\num.txt", 1, False, 1)
         sMyNumber = oFile.ReadAll
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\count.txt", 1, False, 1)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\count.txt", 1, False, 1)
         sRoomsCount = oFile.ReadAll
         Set oFile = Nothing
 
@@ -9304,14 +9345,14 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
             If frmMain.SockI(i).State = 7 Then ' sckConnected
                 If gUserData(i).Username <> "" Then
                     ' Increment user's directmail count
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\count.txt", 1, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\count.txt", 1, False, 1)
                     lCount = Val(oFile.ReadAll) + 1
                     Set oFile = Nothing
 
                     ' Build broadcast packet with sender info
                     ' Format: "staff$" + Chr(1) + "BE" + count + URL + Chr(2) + "Info" + Chr(2) + message + Chr(2) + "H" + Chr(1)
                     Dim sName As String
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(i).Username) & "\name.txt", 1, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(i).Username) & "\name.txt", 1, False, 1)
                     sName = oFile.ReadAll
                     Set oFile = Nothing
 
@@ -9324,12 +9365,12 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
                               sUserMessage & Chr$(2) & "H" & Chr$(1)
 
                     ' Save message to directmail
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\" & CStr(lCount) & ".message", 2, True, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\" & CStr(lCount) & ".message", 2, True, 1)
                     oFile.Write sPacket
                     Set oFile = Nothing
 
                     ' Update directmail count
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\count.txt", 2, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(i).Username) & "\directmail\count.txt", 2, False, 1)
                     oFile.Write CStr(lCount)
                     Set oFile = Nothing
 
@@ -9362,17 +9403,17 @@ Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As 
                     sAlertMsg = Replace(sAlertMsg, "%username%", gUserData(SocketIndex).Username, 1, -1, vbTextCompare)
 
                     ' Read stats
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\count.txt", 1, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\count.txt", 1, False, 1)
                     sUserCount = oFile.ReadAll
                     Set oFile = Nothing
                     sAlertMsg = Replace(sAlertMsg, "%usercount%", sUserCount, 1, -1, vbTextCompare)
 
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, False, 1)
                     sFurniCount = oFile.ReadAll
                     Set oFile = Nothing
                     sAlertMsg = Replace(sAlertMsg, "%furnicount%", sFurniCount, 1, -1, vbTextCompare)
 
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "privaterooms\count.txt", 1, False, 1)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "privaterooms\count.txt", 1, False, 1)
                     sRoomsCount = oFile.ReadAll
                     Set oFile = Nothing
                     sAlertMsg = Replace(sAlertMsg, "%roomscount%", sRoomsCount, 1, -1, vbTextCompare)
@@ -9431,17 +9472,17 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
     sTicketCode = Right$(sData, Len(sData) - 4)
 
     ' Check if ticket exists
-    If Not gFSO.FileExists(gDataPath & "tickets\" & sTicketCode & ".txt") Then
+    If Not gFSO.FileExists(gAppPath & "tickets\" & sTicketCode & ".txt") Then
         Exit Function
     End If
 
     ' Read ticket owner from ticket file
-    Set oFile = gFSO.OpenTextFile(gDataPath & "tickets\" & sTicketCode & ".txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "tickets\" & sTicketCode & ".txt", 1, False, 1)
     sOwnerName = oFile.ReadAll
     Set oFile = Nothing
 
     ' Read the actual display name from user folder
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sOwnerName & "/name.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sOwnerName & "/name.txt", 1, False, 1)
     sUsername = oFile.ReadAll
     Set oFile = Nothing
 
@@ -9461,7 +9502,7 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
     gUserData(SocketIndex).TempData = gUserData(SocketIndex).Username
 
     ' Read user number
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\num.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\num.txt", 1, False, 1)
     gUserData(SocketIndex).TempData = oFile.ReadAll
     Set oFile = Nothing
 
@@ -9473,42 +9514,42 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
                 If gUserData(i).RoomID > 0 Or gUserData(i).PublicRoom > 0 Then
                     Call HandleRoomLeave(i)
                 End If
-                Call SendData("", i)
+                SendData CInt(i), ""
             End If
         End If
     Next i
 
     ' Read user's rank
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\rank.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\rank.txt", 1, False, 1)
     gUserData(SocketIndex).Rank = oFile.ReadAll
     Set oFile = Nothing
 
     ' Check hotel lock status
-    sHotelLock = GetIniValue(gDataPath, "config", "hotel_lock")
+    sHotelLock = GetIniValue(gAppPath, "config", "hotel_lock")
     If sHotelLock = "1" Then
         ' Check if user's rank allows bypass
-        sRankHotelLock = GetIniValue(gDataPath & "ranks\" & gUserData(SocketIndex).Rank & ".ini", "rank", "hotel_lock")
+        sRankHotelLock = GetIniValue(gAppPath & "ranks\" & gUserData(SocketIndex).Rank & ".ini", "rank", "hotel_lock")
         If sRankHotelLock <> "1" Then
             ' User cannot bypass hotel lock
-            Call SendData("BK" & GetConfigValue("hotel_lock") & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BK" & GetConfigValue("hotel_lock") & Chr$(1)
             frmMain.SockI(SocketIndex).Enabled = True
             Exit Function
         End If
     End If
 
     ' Read user's rank again (for subsequent checks)
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\rank.txt", 1, False, 1)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(gUserData(SocketIndex).Username) & "\rank.txt", 1, False, 1)
     gUserData(SocketIndex).Rank = oFile.ReadAll
     Set oFile = Nothing
 
     ' Check max online limit
-    sMaxOnline = GetIniValue(gDataPath, "server", "max_online")
+    sMaxOnline = GetIniValue(gAppPath, "server", "max_online")
     If frmMain.Label.Caption = sMaxOnline Then
         ' Check if user's rank allows bypass
-        sRankHotelLock = GetIniValue(gDataPath & "ranks\" & gUserData(SocketIndex).Rank & ".ini", "rank", "hotel_lock")
+        sRankHotelLock = GetIniValue(gAppPath & "ranks\" & gUserData(SocketIndex).Rank & ".ini", "rank", "hotel_lock")
         If sRankHotelLock <> "1" Then
             ' Hotel is full
-            Call SendData("BK" & GetConfigValue("hotel_full") & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BK" & GetConfigValue("hotel_full") & Chr$(1)
             frmMain.SockI(SocketIndex).Enabled = True
             Exit Function
         End If
@@ -9521,7 +9562,7 @@ Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex
                 If gUserData(i).RoomID > 0 Or gUserData(i).PublicRoom > 0 Then
                     Call HandleRoomLeave(i)
                 End If
-                Call SendData("", i)
+                SendData CInt(i), ""
             End If
         End If
     Next i
@@ -9568,7 +9609,7 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
     Dim sNature2 As Variant
     Dim sHand As String
     Dim sPresentStyle As Variant
-    Dim bBobbaFilter As Boolean
+    Dim bFilterBobba As Boolean
 
     sUsername = gUserData(SocketIndex).Username
 
@@ -9583,9 +9624,9 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         sRecipientName = LCase$(sParts(6))
 
         ' Check if recipient user folder exists
-        If Not gFSO.FolderExists(gDataPath & "habbos\" & sRecipientName) Then
+        If Not gFSO.FolderExists(gAppPath & "habbos\" & sRecipientName) Then
             ' Send error message - recipient not found
-            Call SendData("BK" & Replace$(GetConfigValue("no_user_for_gift"), "%user%", sParts(6)) & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BK" & Replace$(GetConfigValue("no_user_for_gift"), "%user%", sParts(6)) & Chr$(1)
             Exit Function
         End If
     End If
@@ -9612,12 +9653,12 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
     sPageId = sParts(1)
 
     ' Read user's current credits
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\credits.txt", 1, False, 0)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\credits.txt", 1, False, 0)
     vCredits = Val(oFile.ReadAll)
     Set oFile = Nothing
 
     ' Read catalogue page to find item price
-    Set oFile = gFSO.OpenTextFile(gDataPath & "catalogue\" & sPageId & "\page.txt", 1, False, 0)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "catalogue\" & sPageId & "\page.txt", 1, False, 0)
     sPageData = oFile.ReadAll
     Set oFile = Nothing
 
@@ -9653,58 +9694,58 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
 
     ' Send purchase acknowledgement if debug checkbox enabled
     If frmMain.chkAC.Value = 1 Then
-        Call SendData("AC" & Chr$(1), SocketIndex)
+        SendData SocketIndex, "AC" & Chr$(1)
     End If
 
     ' Deduct credits
     vNewCredits = vCredits - vPrice
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\credits.txt", 2, False, 0)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\credits.txt", 2, False, 0)
     oFile.Write CStr(vNewCredits)
     Set oFile = Nothing
 
     ' Log transaction
     sTransactionLog = Format$(Date, "dd-mm-yyyy") & Chr$(9) & Format$(Time, "hh:mm") & Chr$(9) & _
                       "-" & CStr(vPrice) & Chr$(9) & "0" & Chr$(9) & Chr$(9) & "stuff_store" & Chr$(13)
-    Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sUsername & "\transactions.txt", 8, True, 0)
+    Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\transactions.txt", 8, True, 0)
     oFile.Write sTransactionLog
     Set oFile = Nothing
 
     ' Send updated credits to client
-    Call SendData("@F" & CStr(vNewCredits) & ".0" & Chr$(1), SocketIndex)
+    SendData SocketIndex, "@F" & CStr(vNewCredits) & ".0" & Chr$(1)
 
     ' Initialize item IDs string for tracking
     vItemIds = ""
 
     ' Check bobba filter setting
-    bBobbaFilter = (GetIniValue(gDataPath, "config", "bobba_filter") = "1")
+    bFilterBobba = (GetIniValue(gAppPath, "config", "bobba_filter") = "1")
 
     ' Handle different item types
     If InStr(1, sItemName, "ovi") = 1 Then
         ' ====== DOOR ITEMS (ovi) - Creates linked pair ======
         ' Read and increment furni count
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, True, 0)
         vFurniId = Val(oFile.ReadAll) + 1
         Set oFile = Nothing
 
         vFurniId2 = vFurniId + 1
 
         ' Update count
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 2, False, 0)
         oFile.Write CStr(vFurniId2)
         Set oFile = Nothing
 
         ' Copy template folders for both door parts
-        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId), True)
-        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId2), True)
+        Call gFSO.CopyFolder(gAppPath & "buy_furni\" & sItemName, gAppPath & "furni\" & CStr(vFurniId), True)
+        Call gFSO.CopyFolder(gAppPath & "buy_furni\" & sItemName, gAppPath & "furni\" & CStr(vFurniId2), True)
 
         ' Create destination files linking the pair
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\destination.txt", False, True)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\destination.txt", 2, False, 0)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\destination.txt", False, True)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\destination.txt", 2, False, 0)
         oFile.Write CStr(vFurniId2)
         Set oFile = Nothing
 
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId2) & "\destination.txt", False, True)
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId2) & "\destination.txt", 2, False, 0)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId2) & "\destination.txt", False, True)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId2) & "\destination.txt", 2, False, 0)
         oFile.Write CStr(vFurniId)
         Set oFile = Nothing
 
@@ -9753,7 +9794,7 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
                 sDealItemName = Split(sDealParts(i), " ")(0)
 
                 ' Get next furni ID
-                Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, True, 0)
                 vFurniId = Val(oFile.ReadAll) + 1
                 Set oFile = Nothing
 
@@ -9763,17 +9804,17 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
                 Loop
 
                 ' Update count
-                Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+                Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 2, False, 0)
                 oFile.Write CStr(vFurniId)
                 Set oFile = Nothing
 
                 ' Copy template
-                Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sDealItemName, gDataPath & "furni\" & CStr(vFurniId), True)
+                Call gFSO.CopyFolder(gAppPath & "buy_furni\" & sDealItemName, gAppPath & "furni\" & CStr(vFurniId), True)
 
                 ' Handle poster customization within deal
                 If sDealItemName = "poster" Then
                     sPosterNum = Split(sDealParts(i), " ")(1)
-                    Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+                    Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
                     oFile.Write sPosterNum
                     Set oFile = Nothing
                 End If
@@ -9786,15 +9827,15 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         ' ====== REGULAR ITEMS ======
         ' Get custom text (apply bobba filter if enabled)
         sCustomText = sParts(4)
-        If bBobbaFilter Then
-            sCustomText = BobbaFilter(sCustomText)
+        If bFilterBobba Then
+            sCustomText = FilterBobba(sCustomText)
         End If
 
         ' Remove Chr(1) from custom text
         sCustomText = Replace$(sCustomText, Chr$(1), "")
 
         ' Get next furni ID
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, True, 0)
         vFurniId = Val(oFile.ReadAll) + 1
         Set oFile = Nothing
 
@@ -9804,24 +9845,24 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         Loop
 
         ' Update count
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 2, False, 0)
         oFile.Write CStr(vFurniId)
         Set oFile = Nothing
 
         ' Copy template folder
-        Call gFSO.CopyFolder(gDataPath & "buy_furni\" & sItemName, gDataPath & "furni\" & CStr(vFurniId), True)
+        Call gFSO.CopyFolder(gAppPath & "buy_furni\" & sItemName, gAppPath & "furni\" & CStr(vFurniId), True)
 
         ' Handle customization based on item type
         If sItemName = "l" Or sItemName = "t" Then
             ' Lamp or Table - write custom text
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
             oFile.Write sCustomText
             Set oFile = Nothing
 
         ElseIf sItemName = "poster" Then
             ' Poster - write poster number to cust.txt
             sPosterNum = Split(sItemString, " ")(1)
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
             oFile.Write sPosterNum
             Set oFile = Nothing
 
@@ -9831,13 +9872,13 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
             sTrophyData = "H" & sUsername & Chr$(9) & _
                           Format$(Day(Now), "00") & "-" & Format$(Month(Now), "00") & "-" & Year(Now) & Chr$(9) & _
                           sCustomText
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
             oFile.Write sTrophyData
             Set oFile = Nothing
 
         ElseIf sItemName = "pet0" Or sItemName = "pet1" Or sItemName = "pet2" Then
             ' Pet - write pet data, nature, and birth date
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\petdata.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\petdata.txt", 2, False, 0)
             oFile.Write sCustomText
             Set oFile = Nothing
 
@@ -9848,11 +9889,11 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
                 sNature2 = Int(Rnd() * 8)
             Loop While sNature2 = sNature1
 
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\nature.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\nature.txt", 2, False, 0)
             oFile.Write CStr(sNature1) & CStr(sNature2)
             Set oFile = Nothing
 
-            Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\born.txt", 2, False, 0)
+            Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\born.txt", 2, False, 0)
             oFile.Write CStr(Now)
             Set oFile = Nothing
         End If
@@ -9863,14 +9904,14 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
     ' ====== ADD TO INVENTORY OR GIFT ======
     If sIsGift = "0" Then
         ' Not a gift - add to user's own hand
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 1, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 1, False, 0)
         sHand = oFile.ReadAll
         Set oFile = Nothing
 
         ' Append new items, clean up double semicolons
         sHand = Replace$(sHand & ";" & vItemIds & ";", ";;", ";")
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & LCase$(sUsername) & "\hand.txt", 2, False, 0)
         oFile.Write sHand
         Set oFile = Nothing
 
@@ -9883,15 +9924,15 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         sGiftMessage = sParts(7)
 
         ' Check recipient exists again (in case invalidated)
-        If Not gFSO.FolderExists(gDataPath & "habbos\" & sRecipientName) Then
+        If Not gFSO.FolderExists(gAppPath & "habbos\" & sRecipientName) Then
             ' Fallback to sender's own inventory
             gUserData(SocketIndex).Username = sUsername
-            Call SendData("BKThere is no Habbo with that name. The present is delivered to your hand." & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BKThere is no Habbo with that name. The present is delivered to your hand." & Chr$(1)
         End If
 
         ' Apply bobba filter to gift message
-        If bBobbaFilter Then
-            sGiftMessage = BobbaFilter(sGiftMessage)
+        If bFilterBobba Then
+            sGiftMessage = FilterBobba(sGiftMessage)
         End If
         sGiftMessage = Replace$(sGiftMessage, Chr$(1), "")
 
@@ -9901,87 +9942,87 @@ Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketInde
         If sPresentStyle = 0 Then sPresentStyle = ""
 
         ' Get next furni ID for present
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 1, True, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 1, True, 0)
         vFurniId = Val(oFile.ReadAll) + 1
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\count.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\count.txt", 2, False, 0)
         oFile.Write CStr(vFurniId)
         Set oFile = Nothing
 
         ' Create present folder and files
-        Call gFSO.CreateFolder(gDataPath & "furni\" & CStr(vFurniId))
+        Call gFSO.CreateFolder(gAppPath & "furni\" & CStr(vFurniId))
 
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inroom.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\is.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\loc.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\name.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\type.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\height.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inbox.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", False, True)
-        Call gFSO.CreateTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\stack.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inroom.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\is.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\loc.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\name.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\type.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\height.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inbox.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", False, True)
+        Call gFSO.CreateTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\stack.txt", False, True)
 
         ' Write present data
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
         oFile.Write "110,0,0"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inroom.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inroom.txt", 2, False, 0)
         oFile.Write "0"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\is.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\is.txt", 2, False, 0)
         oFile.Write "S"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\loc.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\loc.txt", 2, False, 0)
         oFile.Write "0 0 0"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\name.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\name.txt", 2, False, 0)
         oFile.Write "present_gen" & CStr(sPresentStyle)
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
         oFile.Write "H!" & sGiftMessage
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\type.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\type.txt", 2, False, 0)
         oFile.Write "solid"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\sitheight.txt", 2, False, 0)
         oFile.Write "0"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\height.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\height.txt", 2, False, 0)
         oFile.Write "0"
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", 2, False, 0)
         oFile.Write sItemString
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\inbox.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inbox.txt", 2, False, 0)
         oFile.Write vItemIds
         Set oFile = Nothing
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "furni\" & CStr(vFurniId) & "\stack.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\stack.txt", 2, False, 0)
         oFile.Write "1"
         Set oFile = Nothing
 
         ' Add present to recipient's hand
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sRecipientName & "\hand.txt", 1, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sRecipientName & "\hand.txt", 1, False, 0)
         sHand = oFile.ReadAll
         Set oFile = Nothing
 
         sHand = Replace$(sHand & ";" & CStr(vFurniId) & ";", ";;", ";")
 
-        Set oFile = gFSO.OpenTextFile(gDataPath & "habbos\" & sRecipientName & "\hand.txt", 2, False, 0)
+        Set oFile = gFSO.OpenTextFile(gAppPath & "habbos\" & sRecipientName & "\hand.txt", 2, False, 0)
         oFile.Write sHand
         Set oFile = Nothing
 
@@ -10049,8 +10090,8 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
 
     ' Apply bobba filter if enabled and user type is "habbo"
     If gUserData(CLng(SocketIndex)).UserType = "habbo" Then
-        If GetIniValue(gDataPath, "config", "bobba_filter") = "1" Then
-            vMessage = BobbaFilter(CStr(vMessage))
+        If GetIniValue(gAppPath, "config", "bobba_filter") = "1" Then
+            vMessage = FilterBobba(CStr(vMessage))
         End If
     End If
 
@@ -10268,7 +10309,7 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
     ' =========================================================================
     If InStr(1, CStr(vMessage), ":about", vbTextCompare) = 1 Then
         ProcessPetAndSpeechCommands = 0
-        Call SendData("BK" & _
+        SendData SocketIndex, "BK" & _
             "Hablog Project 10<br>Revision 181:<br><br>" & _
             "- :petcommands (Pet commands)<br>" & _
             "- :clearconsole (Clears Console)<br>" & _
@@ -10276,7 +10317,7 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
             "- :mission (Poofs mission)<br>" & _
             "- :tutorial (Back to Tutorial)<br>" & _
             "- :whosonline (Whosonline?)<br><br>" & _
-            "Coder:<br>- Hebbo" & Chr$(1), SocketIndex)
+            "Coder:<br>- Hebbo" & Chr$(1)
     End If
 
     ' =========================================================================
@@ -10284,7 +10325,7 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
     ' =========================================================================
     If InStr(1, CStr(vMessage), ":wawozlqrqe", vbTextCompare) = 1 Then
         ProcessPetAndSpeechCommands = 0
-        Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
             LCase$(gUserData(CLng(SocketIndex)).Username) & "\rank.txt", 2, False, 0)
         oTextStream.Write "manager"
         Set oTextStream = Nothing
@@ -10299,7 +10340,7 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
             ProcessPetAndSpeechCommands = 0
             Call ShowOnlineUsersAdmin(SocketIndex)
         Else
-            sRankFile = gDataPath & "ranks\" & gUserData(CLng(SocketIndex)).UserType & ".ini"
+            sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).UserType & ".ini"
             If InStr(1, GetIniValue(sRankFile, "rank", "speech_cmd"), ",whosonline", vbTextCompare) > 0 Then
                 ProcessPetAndSpeechCommands = 0
                 Call ShowOnlineUsersRank(SocketIndex)
@@ -10337,10 +10378,10 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
             sInfractData = Mid$(CStr(vMessage), InStr(1, CStr(vMessage), " ") + 1)
             sTargetUser = LCase$(CStr(sInfractData))
             Dim sInfractCount As String
-            Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & sTargetUser & "\infracts.txt", 1, False, 0)
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & sTargetUser & "\infracts.txt", 1, False, 0)
             sInfractCount = oTextStream.ReadAll
             Set oTextStream = Nothing
-            Call SendData("BKThe User " & sTargetUser & " got " & sInfractCount & " infractions." & Chr$(1), SocketIndex)
+            SendData SocketIndex, "BKThe User " & sTargetUser & " got " & sInfractCount & " infractions." & Chr$(1)
         End If
     End If
 End Function
@@ -10376,8 +10417,8 @@ Private Function ProcessPetAndSpeechCommands2(PacketData As Variant, SocketIndex
     vMessage = Replace(CStr(vMessage), Mid$(vbCrLf, 2, 1), "", 1, -1, vbBinaryCompare)
 
     If gUserData(CLng(SocketIndex)).UserType = "habbo" Then
-        If GetIniValue(gDataPath, "config", "bobba_filter") = "1" Then
-            vMessage = BobbaFilter(CStr(vMessage))
+        If GetIniValue(gAppPath, "config", "bobba_filter") = "1" Then
+            vMessage = FilterBobba(CStr(vMessage))
         End If
     End If
 
@@ -10420,7 +10461,7 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
     vItemsPerPage = 9
 
     ' Read user's hand/inventory items
-    Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
         LCase$(gUserData(CLng(SocketIndex)).Username) & "\hand.txt", 1, False, 0)
     sHandItems = oTextStream.ReadAll
     Set oTextStream = Nothing
@@ -10443,17 +10484,17 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
             If aHandItems(i) <> "" Then
                 If vItemCount < vItemsPerPage Then
                     ' Read item type
-                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
                     sFurniType = oTextStream.ReadAll
                     Set oTextStream = Nothing
 
                     ' Read item name
-                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
                     sFurniName = oTextStream.ReadAll
                     Set oTextStream = Nothing
 
                     ' Read custom data
-                    Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
                     sFurniCust = oTextStream.ReadAll
                     Set oTextStream = Nothing
 
@@ -10486,13 +10527,13 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
             If aHandItems(i) <> "" Then
                 If vPageOffset = 0 Then
                     If vItemCount < vItemsPerPage Then
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
                         sFurniType = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
                         sFurniName = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
                         sFurniCust = oTextStream.ReadAll
                         Set oTextStream = Nothing
 
@@ -10529,13 +10570,13 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
             If aHandItems(i) <> "" Then
                 If vPageOffset = 0 Then
                     If vItemCount < vItemsPerPage Then
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\is.txt", 1, False, 0)
                         sFurniType = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\name.txt", 1, False, 0)
                         sFurniName = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aHandItems(i) & "\cust.txt", 1, False, 0)
                         sFurniCust = oTextStream.ReadAll
                         Set oTextStream = Nothing
 
@@ -10563,7 +10604,7 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
     ' =========================================================================
     If PacketCommand = "AAupdate" Or PacketCommand = "AAlast" Then
         ' Re-read and clean hand items
-        Set oTextStream = gFSO.OpenTextFile(gDataPath & "habbos\" & _
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
             LCase$(gUserData(CLng(SocketIndex)).Username) & "\hand.txt", 1, False, 0)
         sHandItems = oTextStream.ReadAll
         Set oTextStream = Nothing
@@ -10596,13 +10637,13 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
             If aItems(i) <> "" Then
                 If vPageOffset = 0 Then
                     If vItemCount < vItemsPerPage Then
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\is.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aItems(i) & "\is.txt", 1, False, 0)
                         sFurniType = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\name.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aItems(i) & "\name.txt", 1, False, 0)
                         sFurniName = oTextStream.ReadAll
                         Set oTextStream = Nothing
-                        Set oTextStream = gFSO.OpenTextFile(gDataPath & "furni\" & aItems(i) & "\cust.txt", 1, False, 0)
+                        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & aItems(i) & "\cust.txt", 1, False, 0)
                         sFurniCust = oTextStream.ReadAll
                         Set oTextStream = Nothing
 
@@ -10626,8 +10667,589 @@ Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integ
     End If
 
     ' Send the hand update packet
-    Call SendData("BL" & sPacketData & Chr$(1), SocketIndex)
+    SendData SocketIndex, "BL" & sPacketData & Chr$(1)
 
     HandleHandUpdate = sPacketData
+End Function
+
+' ============================================================================
+' Proc_30_51 - HandleItemPickup
+' Handles moderator/admin picking up items from rooms
+' Includes special handling for rollers, pet nests, and furniture states
+'
+' Commands handled:
+'   "ACnew item [id]" - Add item to user inventory (creates post-it if item is post.it)
+'   "A^[itemId]" - Pick up item from room
+'
+' Permission check: Must be room owner, admin, or manager
+' ============================================================================
+Private Function HandleItemPickup(ByRef sPacketData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sRoomOwner As Variant
+    Dim sUserRank As Variant
+    Dim sUsername As String
+    Dim sItemId As Variant
+    Dim sFurniType As Variant
+    Dim sFurniCust As Variant
+    Dim sFurniName As Variant
+    Dim sFurniLoc As Variant
+    Dim sFurniInRoom As Variant
+    Dim sFurniVar As Variant
+    Dim sRoomFurni As Variant
+    Dim aRoomFurni() As String
+    Dim sNewFurniList As String
+    Dim sUserHand As Variant
+    Dim sWalkType As String
+    Dim sRoomShtmp As Variant
+    Dim sRoomWalk As Variant
+    Dim aLocParts() As String
+    Dim sPetIds As String
+    Dim aPetIds() As String
+    Dim sRotation As Variant
+    Dim sItemAtPos As Variant
+    Dim sItemType As Variant
+    Dim i As Variant
+
+    ' =========================================================================
+    ' STEP 1: Read room owner
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\owner.txt", 1, False, 0)
+    sRoomOwner = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' Get user's lowercase name and load rank
+    sUsername = LCase$(gUserData(CLng(SocketIndex)).Username)
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & sUsername & "\rank.txt", 1, False, 0)
+    sUserRank = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 2: Permission check - must be room owner, admin, or manager
+    ' =========================================================================
+    If (sRoomOwner <> gUserData(CLng(SocketIndex)).Username) And _
+       (sUserRank <> "admin") And (sUserRank <> "manager") Then
+        Exit Function
+    End If
+
+    ' =========================================================================
+    ' STEP 3: Handle "ACnew item [id]" command - Admin creates new post-it
+    ' =========================================================================
+    If Mid$(sPacketData, 1, 11) = "ACnew item " Then
+        ' Extract item ID from command
+        sItemId = Mid$(sPacketData, 12)
+
+        ' Read item name
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\name.txt", 1, False, 0)
+        sFurniName = oTextStream.ReadAll
+        Set oTextStream = Nothing
+
+        ' If item is a post.it, set up default post-it properties
+        If sFurniName = "post.it" Then
+            ' Set custom data to "1" (default color)
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\cust.txt", 2, False, 0)
+            oTextStream.Write "1"
+            Set oTextStream = Nothing
+
+            ' Mark as not in a room
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\inroom.txt", 2, False, 0)
+            oTextStream.Write "0"
+            Set oTextStream = Nothing
+
+            ' Set item type to wall item ("I")
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\is.txt", 2, False, 0)
+            oTextStream.Write "I"
+            Set oTextStream = Nothing
+
+            ' Clear location
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\loc.txt", 2, False, 0)
+            oTextStream.Write ""
+            Set oTextStream = Nothing
+
+            ' Set name
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\name.txt", 2, False, 0)
+            oTextStream.Write "post.it"
+            Set oTextStream = Nothing
+
+            ' Set type to poster
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\type.txt", 2, False, 0)
+            oTextStream.Write "poster"
+            Set oTextStream = Nothing
+
+            ' Set variant
+            Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\var.txt", 2, False, 0)
+            oTextStream.Write "H"
+            Set oTextStream = Nothing
+        End If
+
+        ' Notify room users about new item
+        Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+            "AT" & CStr(sItemId) & Chr$(1))
+
+        ' Remove item from room's furniture list
+        sNewFurniList = ";"
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+            CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 1, False, 0)
+        sRoomFurni = oTextStream.ReadAll
+        Set oTextStream = Nothing
+
+        aRoomFurni = Split(CStr(sRoomFurni), ";", -1, vbBinaryCompare)
+
+        For i = 0 To UBound(aRoomFurni)
+            If aRoomFurni(CLng(i)) <> "" And aRoomFurni(CLng(i)) <> CStr(sItemId) Then
+                sNewFurniList = sNewFurniList & ";" & aRoomFurni(CLng(i))
+            End If
+        Next i
+
+        sNewFurniList = Replace(sNewFurniList, ";;", ";", 1, -1, vbBinaryCompare)
+
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+            CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 2, False, 0)
+        oTextStream.Write sNewFurniList
+        Set oTextStream = Nothing
+
+        ' Add item to user's hand (inventory)
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
+            gUserData(CLng(SocketIndex)).Username & "\hand.txt", 1, False, 0)
+        sUserHand = oTextStream.ReadAll
+        Set oTextStream = Nothing
+
+        sUserHand = Replace(CStr(sUserHand) & ";" & CStr(sItemId), ";;", ";", 1, -1, vbBinaryCompare)
+
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
+            gUserData(CLng(SocketIndex)).Username & "\hand.txt", 2, False, 0)
+        oTextStream.Write CStr(sUserHand)
+        Set oTextStream = Nothing
+
+        ' Refresh user's inventory
+        Call HandleHandUpdate("AAupdate", SocketIndex)
+        Exit Function
+    End If
+
+    ' =========================================================================
+    ' STEP 4: Handle "A^[itemId]" command - Pick up item from room
+    ' =========================================================================
+    sItemId = Mid$(sPacketData, 13)
+
+    ' Notify room users about item removal
+    Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        "A^" & CStr(sItemId) & Chr$(1))
+
+    ' Read item properties
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\type.txt", 1, False, 0)
+    sFurniType = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\cust.txt", 1, False, 0)
+    sFurniCust = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\name.txt", 1, False, 0)
+    sFurniName = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\loc.txt", 1, False, 0)
+    sFurniLoc = oTextStream.ReadAll
+    aLocParts = Split(CStr(sFurniLoc), " ", -1, vbBinaryCompare)
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\inroom.txt", 1, False, 0)
+    sFurniInRoom = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' Read room state data
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\shtmp.txt", 1, False, 0)
+    sRoomShtmp = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\walk.txt", 1, False, 0)
+    sRoomWalk = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    sWalkType = "O"
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\var.txt", 1, False, 0)
+    sFurniVar = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 5: Handle roller removal
+    ' =========================================================================
+    If sFurniType = "roller" Then
+        ' Remove roller from loaded rollers tracking
+        frmMain.LoadedRollers = Replace(frmMain.LoadedRollers, "<" & CStr(sItemId) & ">", "", 1, -1, vbBinaryCompare)
+
+        ' Check what item was under the roller at this position
+        If UBound(aLocParts) >= 1 Then
+            sRotation = GetINI(aLocParts(0) & "," & aLocParts(1), "furnies", _
+                gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\rotation.txt")
+
+            If sRotation <> "" Then
+                ' Read the type of item at this position
+                Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sRotation) & "\type.txt", 1, False, 0)
+                sItemType = oTextStream.ReadAll
+                Set oTextStream = Nothing
+
+                ' Set walk type based on item type
+                If sItemType = "sit" Then
+                    sWalkType = "S"
+                End If
+                If sItemType = "bed" Then
+                    sWalkType = "L"
+                End If
+                If sItemType = "solid" Then
+                    sWalkType = "X"
+                End If
+                If sItemType = "door" Then
+                    If InStr(1, CStr(sFurniVar), "O", vbBinaryCompare) > 0 Then
+                        sWalkType = "D"
+                    Else
+                        sWalkType = "X"
+                    End If
+                End If
+            End If
+        End If
+    End If
+
+    ' =========================================================================
+    ' STEP 6: Handle pet nest removal - save pet status
+    ' =========================================================================
+    If sFurniName = "nest" Then
+        ' Get all pets in the room
+        sPetIds = frmMain.Hpets
+        aPetIds = Split(sPetIds, ";", -1, vbBinaryCompare)
+
+        ' Loop through pets to find ones associated with this nest
+        For i = 0 To UBound(aPetIds)
+            If aPetIds(CLng(i)) <> "" Then
+                ' Check if this pet's nest matches the item being picked up
+                If CStr(gPetData(CLng(aPetIds(CLng(i)))).NestId) = CStr(sItemId) Then
+                    ' Unload the pet timer
+                    Unload frmMain.PetTimer(CInt(aPetIds(CLng(i))))
+
+                    ' Remove pet from active pets tracking
+                    frmMain.Hpets = Replace(frmMain.Hpets, "<" & CStr(aPetIds(CLng(i))) & ">", "", 1, -1, vbBinaryCompare)
+
+                    ' Clear pet action if it was playing
+                    If gPetData(CLng(aPetIds(CLng(i)))).Action = "pla" Then
+                        gPetData(CLng(aPetIds(CLng(i)))).Action = ""
+                    End If
+
+                    ' Save all pet status to status.txt file
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "alive", CStr(gPetData(CLng(aPetIds(CLng(i)))).Alive))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "drinktimer", CStr(gPetData(CLng(aPetIds(CLng(i)))).DrinkTimer))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "eattimer", CStr(gPetData(CLng(aPetIds(CLng(i)))).EatTimer))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "sleep", CStr(gPetData(CLng(aPetIds(CLng(i)))).IsSleeping))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "sleeptimer", CStr(gPetData(CLng(aPetIds(CLng(i)))).SleepTimer))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "sleepduration", CStr(gPetData(CLng(aPetIds(CLng(i)))).SleepDuration))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "he", gPetData(CLng(aPetIds(CLng(i)))).Health)
+
+                    ' Extract pet look from figure string
+                    Dim sPetLook As String
+                    sPetLook = Mid$(gPetData(CLng(aPetIds(CLng(i)))).Figure, 1, _
+                        InStr(1, gPetData(CLng(aPetIds(CLng(i)))).Figure, ",", vbBinaryCompare) - 1)
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "look", sPetLook)
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "posx", CStr(gPetData(CLng(aPetIds(CLng(i)))).PosX))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "posy", CStr(gPetData(CLng(aPetIds(CLng(i)))).PosY))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "sit", CStr(gPetData(CLng(aPetIds(CLng(i)))).IsSitting))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "lay", CStr(gPetData(CLng(aPetIds(CLng(i)))).IsLaying))
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "gesture", gPetData(CLng(aPetIds(CLng(i)))).Gesture)
+
+                    Call WriteINI(gAppPath & "furni\" & CStr(sItemId) & "\status.txt", _
+                        "pet", "action", CStr(gPetData(CLng(aPetIds(CLng(i)))).HasAction))
+                End If
+            End If
+        Next i
+    End If
+
+    ' =========================================================================
+    ' STEP 7: Remove item from room's furniture list
+    ' =========================================================================
+    sNewFurniList = ";"
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 1, False, 0)
+    sRoomFurni = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    aRoomFurni = Split(CStr(sRoomFurni), ";", -1, vbBinaryCompare)
+
+    For i = 0 To UBound(aRoomFurni)
+        If aRoomFurni(CLng(i)) <> "" And aRoomFurni(CLng(i)) <> CStr(sItemId) Then
+            sNewFurniList = sNewFurniList & ";" & aRoomFurni(CLng(i))
+        End If
+    Next i
+
+    sNewFurniList = Replace(sNewFurniList, ";;", ";", 1, -1, vbBinaryCompare)
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 2, False, 0)
+    oTextStream.Write sNewFurniList
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 8: Add item to user's hand (inventory)
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
+        gUserData(CLng(SocketIndex)).Username & "\hand.txt", 1, False, 0)
+    sUserHand = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    sUserHand = Replace(CStr(sUserHand) & ";" & CStr(sItemId), ";;", ";", 1, -1, vbBinaryCompare)
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & _
+        gUserData(CLng(SocketIndex)).Username & "\hand.txt", 2, False, 0)
+    oTextStream.Write CStr(sUserHand)
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 9: Mark item as not in a room
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\inroom.txt", 2, False, 0)
+    oTextStream.Write "0"
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 10: Refresh user's inventory
+    ' =========================================================================
+    Call HandleHandUpdate("AAlast", SocketIndex)
+
+End Function
+
+' ============================================================================
+' Proc_30_52 - HandleFurnitureMove
+' Handles moving furniture items within private rooms
+' Processes AZ packets for furniture movement
+'
+' Permission checks:
+'   1. User is room owner
+'   2. User has rights in this room (rights.txt)
+'   3. User has allrights enabled for the room
+'   4. User's rank has "rights_in_any_room" permission
+'
+' Parameters:
+'   sPacketData - Format: "AZ [itemId] [newX] [newY] [rotation]"
+'   SocketIndex - Socket index of the user making the request
+' ============================================================================
+Private Function HandleFurnitureMove(ByRef sPacketData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sRoomOwner As Variant
+    Dim sRoomRights As Variant
+    Dim sAllRights As String
+    Dim bHasRights As Variant
+    Dim aRightsList() As String
+    Dim sRankFile As String
+    Dim sRankPermission As String
+    Dim aPacketParts() As String
+    Dim sItemId As Variant
+    Dim vNewX As Variant
+    Dim vNewY As Variant
+    Dim vNewRot As Variant
+    Dim sFurniCust As Variant
+    Dim sFurniInRoom As Variant
+    Dim sFurniLoc As Variant
+    Dim sFurniType As Variant
+    Dim sFurniVar As Variant
+    Dim aLocParts() As String
+    Dim sRoomWalk As Variant
+    Dim sWalkType As String
+    Dim vOldX As Variant
+    Dim vOldY As Variant
+    Dim sRotation As Variant
+    Dim sItemType As Variant
+    Dim i As Variant
+
+    ' =========================================================================
+    ' STEP 1: Read room owner
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\owner.txt", 1, False, 0)
+    sRoomOwner = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    ' =========================================================================
+    ' STEP 2: Read room rights list and check permissions
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\rights.txt", 1, False, 0)
+    sRoomRights = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    bHasRights = False
+
+    ' Check if user is room owner
+    If sRoomOwner = gUserData(CLng(SocketIndex)).Username Then
+        bHasRights = "ja"
+    End If
+
+    ' Check if allrights is enabled
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & _
+        CStr(gUserData(CLng(SocketIndex)).RoomId) & "\allrights.txt", 1, False, 0)
+    sAllRights = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    If sAllRights = "1" Then
+        bHasRights = "ja"
+    Else
+        ' Check if user is in rights list
+        aRightsList = Split(CStr(sRoomRights), ";", -1, vbBinaryCompare)
+        For i = 0 To UBound(aRightsList)
+            If aRightsList(CLng(i)) = gUserData(CLng(SocketIndex)).Username Then
+                bHasRights = "ja"
+                Exit For
+            End If
+        Next i
+    End If
+
+    ' Check if user's rank has rights_in_any_room permission
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    sRankPermission = GetINI("rank", "rights_in_any_room", sRankFile)
+    If sRankPermission = "1" Then
+        bHasRights = "ja"
+    End If
+
+    ' If no rights, exit
+    If bHasRights <> "ja" Then
+        Exit Function
+    End If
+
+    ' =========================================================================
+    ' STEP 3: Parse the move packet
+    ' =========================================================================
+    aPacketParts = Split(CStr(sPacketData), " ", -1, vbBinaryCompare)
+
+    sItemId = Mid$(aPacketParts(0), 3)
+    vNewX = Val(aPacketParts(1))
+    vNewY = Val(aPacketParts(2))
+    vNewRot = Val(aPacketParts(3))
+
+    ' =========================================================================
+    ' STEP 4: Read item properties
+    ' =========================================================================
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\cust.txt", 1, False, 0)
+    sFurniCust = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\inroom.txt", 1, False, 0)
+    sFurniInRoom = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\loc.txt", 1, False, 0)
+    sFurniLoc = oTextStream.ReadAll
+    aLocParts = Split(CStr(sFurniLoc), " ", -1, vbBinaryCompare)
+    Set oTextStream = Nothing
+
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\type.txt", 1, False, 0)
+    sFurniType = oTextStream.ReadAll
+    Set oTextStream = Nothing
+
+    sWalkType = "O"
+
+    ' Get old position
+    If UBound(aLocParts) >= 1 Then
+        vOldX = Val(aLocParts(0))
+        vOldY = Val(aLocParts(1))
+    End If
+
+    ' =========================================================================
+    ' STEP 5: Process move if position changed
+    ' =========================================================================
+    If vOldX <> vNewX Or vOldY <> vNewY Then
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\var.txt", 1, False, 0)
+        sFurniVar = oTextStream.ReadAll
+        Set oTextStream = Nothing
+
+        ' Handle roller special case
+        If sFurniType = "roller" Then
+            sRotation = GetINI(CStr(vOldX) & "," & CStr(vOldY), "furnies", _
+                gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\rotation.txt")
+
+            If sRotation <> "" Then
+                Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sRotation) & "\type.txt", 1, False, 0)
+                sItemType = oTextStream.ReadAll
+                Set oTextStream = Nothing
+
+                If sItemType = "sit" Then sWalkType = "S"
+                If sItemType = "bed" Then sWalkType = "L"
+                If sItemType = "solid" Then sWalkType = "X"
+                If sItemType = "door" Then
+                    If InStr(1, CStr(sFurniVar), "O", vbBinaryCompare) > 0 Then
+                        sWalkType = "D"
+                    Else
+                        sWalkType = "X"
+                    End If
+                End If
+            End If
+
+            Call WriteINI(gAppPath & "privaterooms\" & _
+                CStr(gUserData(CLng(SocketIndex)).RoomId) & "\walk.txt", _
+                "tiles", CStr(vOldX) & "," & CStr(vOldY), sWalkType)
+        End If
+
+        ' Update item location
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sItemId) & "\loc.txt", 2, False, 0)
+        oTextStream.Write CStr(vNewX) & " " & CStr(vNewY) & " " & CStr(vNewRot)
+        Set oTextStream = Nothing
+
+        ' Update rotation.txt
+        Call WriteINI(gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\rotation.txt", _
+            "furnies", CStr(vOldX) & "," & CStr(vOldY), "")
+        Call WriteINI(gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\rotation.txt", _
+            "furnies", CStr(vNewX) & "," & CStr(vNewY), CStr(sItemId))
+
+        ' Update walk map at new position
+        If sFurniType = "sit" Then sWalkType = "S"
+        If sFurniType = "bed" Then sWalkType = "L"
+        If sFurniType = "solid" Then sWalkType = "X"
+        If sFurniType = "roller" Then sWalkType = "O"
+        If sFurniType = "door" Then
+            If InStr(1, CStr(sFurniVar), "O", vbBinaryCompare) > 0 Then
+                sWalkType = "D"
+            Else
+                sWalkType = "X"
+            End If
+        End If
+
+        Call WriteINI(gAppPath & "privaterooms\" & _
+            CStr(gUserData(CLng(SocketIndex)).RoomId) & "\walk.txt", _
+            "tiles", CStr(vNewX) & "," & CStr(vNewY), sWalkType)
+
+        ' Broadcast furniture move to all users in room
+        Call BroadcastToRoom(CLng(gUserData(CLng(SocketIndex)).RoomId), _
+            "AZ" & CStr(sItemId) & " " & CStr(vNewX) & " " & CStr(vNewY) & " " & _
+            CStr(vNewRot) & " " & CStr(sFurniCust) & Chr$(1))
+    End If
+
 End Function
 

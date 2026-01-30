@@ -3627,3 +3627,263 @@ Private Sub ProcessBuyClub(ByVal Index As Integer, ByVal packetData As String)
     On Error Resume Next
     Call modPackets.ProcessBuyClub(Index, packetData)
 End Sub
+
+' ============================================================================
+' Socket Connection Request Handler (socket_UnknownEvent_C / ConnectionRequest)
+' Handles new incoming socket connections
+'
+' When a new client connects:
+'   1. If FreeSockets is empty, create new socket index (increment SockI)
+'   2. Load all required timer controls for the new socket
+'   3. If FreeSockets has available sockets, reuse one from the pool
+'   4. Enable the socket and accept the connection
+' ============================================================================
+Private Sub SockI_ConnectionRequest(Index As Integer, ByVal requestID As Long)
+    On Error Resume Next
+
+    Dim nNewSocketIndex As Integer
+
+    ' Only process connection requests on the listening socket (Index 0)
+    If Index <> 0 Then Exit Sub
+
+    ' =========================================================================
+    ' Determine socket index to use
+    ' =========================================================================
+    If Me.FreeSockets = "" Then
+        ' No free sockets available - create a new one
+        nNewSocketIndex = Me.SockI + 1
+        Me.SockI = Me.SockI + 1
+
+        ' Load all required timer controls for this socket index
+        Load TimerDrink(nNewSocketIndex)
+        Load TimerVanish(nNewSocketIndex)
+        Load TimerVanishUpdate(nNewSocketIndex)
+        Load TimerVote(nNewSocketIndex)
+        Load TimerWave(nNewSocketIndex)
+        Load TimerGesture(nNewSocketIndex)
+        Load TimerTalk(nNewSocketIndex)
+        Load TimerDC(nNewSocketIndex)
+        Load TimerDice(nNewSocketIndex)
+        Load UseTimer(nNewSocketIndex)
+        Load TimerUpdate(nNewSocketIndex)
+        Load UpdateFurni(nNewSocketIndex)
+        Load TimerTeleport1(nNewSocketIndex)
+        Load TimerTeleport2(nNewSocketIndex)
+        Load TimerTeleport3(nNewSocketIndex)
+
+        ' Resize user data array
+        ReDim Preserve gUserData(0 To nNewSocketIndex)
+    Else
+        ' Reuse a socket from the free pool
+        nNewSocketIndex = CInt(Replace(Split(Me.FreeSockets, ">")(0), "<", "", 1, -1, vbBinaryCompare))
+
+        ' Remove this socket from free pool
+        Me.FreeSockets = Replace(Me.FreeSockets, "<" & CStr(nNewSocketIndex) & ">", "", 1, -1, vbBinaryCompare)
+
+        ' Unload and reload the socket control to reset it
+        Unload SockI(nNewSocketIndex)
+        Load SockI(nNewSocketIndex)
+    End If
+
+    ' =========================================================================
+    ' Accept the connection
+    ' =========================================================================
+    On Error Resume Next
+    SockI(nNewSocketIndex).Enabled = True
+    SockI(nNewSocketIndex).Accept requestID
+
+    ' Send initial handshake packet
+    Call SendData(nNewSocketIndex, "@@" & Chr$(1))
+
+End Sub
+
+' ============================================================================
+' Socket Data Arrival Handler
+' Processes incoming data from connected clients
+' Parses packets and routes them to appropriate handlers
+' ============================================================================
+Private Sub SockI_DataArrival(Index As Integer, ByVal bytesTotal As Long)
+    On Error Resume Next
+
+    Dim sReceivedData As String
+    Dim aPackets() As String
+    Dim sPacket As String
+    Dim sPacketHeader As String
+    Dim i As Long
+
+    ' Receive data from socket
+    SockI(Index).GetData sReceivedData, vbString
+
+    ' Add to socket queue (handle partial packets)
+    gUserData(Index).SocketQueue = gUserData(Index).SocketQueue & sReceivedData
+
+    ' Split by packet delimiter (Chr$(1))
+    aPackets = Split(gUserData(Index).SocketQueue, Chr$(1), -1, vbBinaryCompare)
+
+    ' Process all complete packets
+    For i = 0 To UBound(aPackets) - 1
+        sPacket = aPackets(i)
+        If Len(sPacket) >= 2 Then
+            ' Get packet header (first 2 characters)
+            sPacketHeader = Left$(sPacket, 2)
+
+            ' Route packet to appropriate handler
+            Call ProcessPacket(Index, sPacketHeader, sPacket)
+        End If
+    Next i
+
+    ' Keep incomplete packet in queue
+    gUserData(Index).SocketQueue = aPackets(UBound(aPackets))
+
+End Sub
+
+' ============================================================================
+' Socket Close Handler
+' Handles client disconnection
+' ============================================================================
+Private Sub SockI_Close(Index As Integer)
+    On Error Resume Next
+
+    ' If user was in a room, remove them
+    If gUserData(Index).RoomId > 0 Or gUserData(Index).PublicRoomId > 0 Then
+        Call HandleRoomLeave(Index)
+    End If
+
+    ' Clear user data
+    gUserData(Index).Username = ""
+    gUserData(Index).UserNum = 0
+    gUserData(Index).RoomId = 0
+    gUserData(Index).PublicRoomId = 0
+    gUserData(Index).SocketQueue = ""
+
+    ' Close socket
+    SockI(Index).Close
+
+    ' Add socket to free pool for reuse
+    Me.FreeSockets = Me.FreeSockets & "<" & CStr(Index) & ">"
+
+    ' Update online count
+    lblOnlineCount.Caption = CStr(Val(lblOnlineCount.Caption) - 1)
+
+End Sub
+
+' ============================================================================
+' Process Packet - Routes packets to appropriate handlers based on header
+' ============================================================================
+Private Sub ProcessPacket(ByVal Index As Integer, ByVal sHeader As String, ByVal sPacket As String)
+    On Error Resume Next
+
+    Select Case sHeader
+        ' Session/Authentication packets
+        Case "CN"  ' Client version
+            Call ProcessSession(Index, sPacket)
+        Case "@D"  ' Login
+            Call modHabFunc.HandleLogin(sPacket, Index)
+        Case "@Z"  ' SSO login
+            Call ProcessSSO(Index, sPacket)
+
+        ' Navigation packets
+        Case "C\"  ' Get navigator
+            Call SendNavigatorList(Index, sPacket)
+        Case "@P"  ' Go to room
+            Call ProcessGoToRoom(Index, sPacket)
+        Case "@y"  ' Get room info
+            Call SendRoomInfo(Index, sPacket)
+
+        ' Room packets
+        Case "@w"  ' Leave room
+            Call HandleRoomLeave(Index)
+        Case "@t"  ' Get room users
+            ' Handled by room entry
+        Case "@u"  ' Get room items
+            ' Handled by room entry
+
+        ' Chat packets
+        Case "@t"  ' Say
+            Call ProcessChat(Index, sPacket, "say")
+        Case "@w"  ' Shout
+            Call ProcessChat(Index, sPacket, "shout")
+        Case "@x"  ' Whisper
+            Call ProcessChat(Index, sPacket, "whisper")
+
+        ' Movement packets
+        Case "AW"  ' Walk
+            Call ProcessMovement(Index, sPacket)
+        Case "@{"  ' Look at
+            Call ProcessLookAt(Index, sPacket)
+
+        ' Avatar packets
+        Case "A^"  ' Dance
+            Call ProcessDance(Index, sPacket)
+        Case "Ai"  ' Wave
+            gUserData(Index).WaveStatus = True
+            gUserData(Index).NeedUpdate = True
+            TimerWave(Index).Enabled = True
+
+        ' Furniture packets
+        Case "AZ"  ' Move furniture
+            Call modHabFunc.HandleFurnitureMove(sPacket, Index)
+        Case "AB"  ' Place wallpaper/floor
+            Call modHabFunc.HandleRoomDecoration(sPacket, Index)
+        Case "A]"  ' Place item
+            Call ProcessPlaceFloorItem(Index, sPacket)
+        Case "A["  ' Pickup item
+            Call modHabFunc.HandleItemPickup(sPacket, Index)
+
+        ' Inventory packets
+        Case "AA"  ' Get hand/inventory
+            Call modHabFunc.HandleHandUpdate(sPacket, Index)
+
+        ' Trading packets
+        Case "AE"  ' Trade request
+            Call ProcessTradeRequest(Index, sPacket)
+        Case "AF"  ' Trade accept
+            Call ProcessTradeAccept(Index, sPacket)
+        Case "AG"  ' Trade offer
+            Call ProcessTradeOffer(Index, sPacket)
+        Case "AH"  ' Trade close
+            Call ProcessTradeClose(Index)
+
+        ' Messenger packets
+        Case "@g"  ' Init messenger
+            Call InitMessenger(Index)
+        Case "@o"  ' Buddy search
+            Call ProcessBuddySearch(Index, sPacket)
+        Case "@i"  ' Buddy request
+            Call ProcessBuddyRequest(Index, sPacket)
+        Case "@j"  ' Accept buddy
+            Call ProcessAcceptBuddy(Index, sPacket)
+        Case "@a"  ' Send message
+            Call ProcessSendMessage(Index, sPacket)
+
+        ' Catalog packets
+        Case "Ac"  ' Get catalog page
+            Call SendCatalogPage(Index, sPacket)
+        Case "Ad"  ' Purchase item
+            Call ProcessPurchase(Index, sPacket)
+
+        ' User info packets
+        Case "@e"  ' Get user info
+            Call SendUserInfo(Index)
+        Case "@f"  ' Get badges
+            Call SendUserBadges(Index)
+        Case "@h"  ' Update motto
+            Call ProcessUpdateMotto(Index, sPacket)
+        Case "@k"  ' Update figure
+            Call ProcessUpdateFigure(Index, sPacket)
+
+        ' Club packets
+        Case "Ar"  ' Get club status
+            Call SendClubStatus(Index)
+        Case "As"  ' Buy club
+            Call ProcessBuyClub(Index, sPacket)
+
+        Case Else
+            ' Unknown packet - log if debug mode
+            If Me.chkDebug.Value = 1 Then
+                Debug.Print "Unknown packet: " & sHeader & " - " & sPacket
+            End If
+    End Select
+
+End Sub
+
