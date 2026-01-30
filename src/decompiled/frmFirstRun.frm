@@ -98,19 +98,40 @@ Private Declare Function ReleaseCapture Lib "user32" () As Long
 Private Const WM_NCLBUTTONDOWN = &HA1
 Private Const HTCAPTION = 2
 
-Private Sub Image2_Click()
-    ReleaseCapture
-    SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+Private Sub Image2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    ' Allow dragging the form by the image, or unload on right-click
+    If Button = 1 Then
+        ' Left click - drag form
+        ReleaseCapture
+        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+    Else
+        ' Right click - unload form
+        Unload Me
+    End If
 End Sub
 
-Private Sub Image4_Click()
-    ReleaseCapture
-    SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+Private Sub Image4_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    ' Allow dragging the form by the image, or unload on right-click
+    If Button = 1 Then
+        ' Left click - drag form
+        ReleaseCapture
+        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+    Else
+        ' Right click - unload form
+        Unload Me
+    End If
 End Sub
 
-Private Sub Image3_Click()
-    ReleaseCapture
-    SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+Private Sub Image3_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    ' Allow dragging the form by the image, or unload on right-click
+    If Button = 1 Then
+        ' Left click - drag form
+        ReleaseCapture
+        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+    Else
+        ' Right click - unload form
+        Unload Me
+    End If
 End Sub
 
 Private Sub Timer1_Timer()
@@ -140,6 +161,7 @@ Private Sub Timer1_Timer()
     Image3.Visible = True
 
     ' Disable the timer
+    Timer1.Enabled = False
     Timer1.Enabled = False
 End Sub
 

@@ -249,3 +249,24 @@ Private Sub Picture1_MouseDown(Button As Integer, Shift As Integer, X As Single,
         Unload Me
     End If
 End Sub
+
+Private Sub CloseLayoutForm()
+    ' Unload the layout editor form
+    Unload frmTab_publicroom_layout
+End Sub
+
+Private Sub SaveStudioLayout()
+    ' Save studio layout to INI file
+    Dim sSettingsFile As String
+    Dim sLayout As String
+
+    sLayout = Me.Combo1.Text  ' Uses same combo for studio in this context
+    sSettingsFile = gAppPath & "configuration\settings.ini"
+
+    If sLayout = "-- Choose --" Then
+        MsgBox "You must choose a studio layout!", vbInformation
+        Exit Sub
+    End If
+
+    WriteINI "config", "studio_layout", sLayout, sSettingsFile
+End Sub

@@ -230,3 +230,8 @@ Private Sub Command1_Click()
         Next i
     End If
 End Sub
+
+Private Sub QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    ' QueryUnload handler - unload the frmCredits form reference
+    Unload frmCredits
+End Sub

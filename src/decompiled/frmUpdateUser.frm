@@ -202,3 +202,8 @@ Private Sub Command1_Click()
     ' Create update marker file
     gFSO.CreateTextFile App.Path & "\database\update\" & sTargetUser & ".UPDATE", False, True
 End Sub
+
+Private Sub QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    ' QueryUnload handler - unload the frmUpdateUser form reference
+    Unload frmUpdateUser
+End Sub

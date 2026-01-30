@@ -638,3 +638,12 @@ Private Sub Image16_Click()
     ' Close button clicked - hide form
     Me.Hide
 End Sub
+
+Private Sub CloseInfobusForm()
+    ' Unload the infobus poll form
+    Unload frmTab_publicroom_infobus
+End Sub
+
+Private Sub EmptyProc()
+    ' Empty procedure placeholder
+End Sub

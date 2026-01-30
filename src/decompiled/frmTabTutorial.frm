@@ -311,3 +311,12 @@ Private Sub Image1_Click(Index As Integer)
     ' Close button clicked - hide the form
     Me.Hide
 End Sub
+
+Private Sub Form_Activate()
+    ' Enable the form when activated
+    Me.Enabled = True
+End Sub
+
+Private Sub Form_Deactivate()
+    ' No action needed on deactivation
+End Sub

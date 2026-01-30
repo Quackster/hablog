@@ -297,3 +297,12 @@ Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y A
         Unload Me
     End If
 End Sub
+
+Private Sub HideBattleballForm()
+    ' Hide the BattleBall form
+    frmTab_publicroom_battleball.Hide
+End Sub
+
+Private Sub EmptyProc()
+    ' Empty procedure placeholder
+End Sub

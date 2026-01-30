@@ -181,3 +181,8 @@ Private Sub Picture1_MouseDown(Button As Integer, Shift As Integer, X As Single,
         Unload Me
     End If
 End Sub
+
+Private Sub CloseForm()
+    ' Unload the alert form
+    Unload frmAlert
+End Sub
