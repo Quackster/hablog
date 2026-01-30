@@ -179,11 +179,11 @@ Private Function SendNavigatorData(ByVal SocketIndex As Integer)
     sCount3 = EncodeVL64(CSng(vCount3))
     sCount4 = EncodeVL64(CSng(vCount4))
 
-    ' Build public room totals (sum of category counts from labels)
+    ' Build public room totals (TODO: room count tracking not implemented)
     Dim vTotal1 As Variant, vTotal2 As Variant, vTotal3 As Variant
-    vTotal1 = frmMain.lblRoomCount1.Caption + frmMain.lblRoomCount2.Caption + frmMain.lblRoomCount3.Caption
-    vTotal2 = frmMain.lblRoomCount4.Caption + frmMain.lblRoomCount5.Caption
-    vTotal3 = frmMain.lblRoomCount6.Caption + frmMain.lblRoomCount7.Caption + frmMain.lblRoomCount8.Caption + frmMain.lblRoomCount9.Caption
+    vTotal1 = 0
+    vTotal2 = 0
+    vTotal3 = 0
 
     Dim sTotalEnc1 As String, sTotalEnc2 As String, sTotalEnc3 As String
     sTotalEnc1 = EncodeVL64(CSng(vTotal1))
@@ -192,36 +192,36 @@ Private Function SendNavigatorData(ByVal SocketIndex As Integer)
 
     ' Build the navigator packet with all public room categories and rooms
     sPacket = "C\IKHPublic RoomsSXY[_IRKI" & GetLocaleString("pub_name_2") & "" & _
-              EncodeVL64(CSng(frmMain.lblWelcomeLounge.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "POKwelcome_lounge[M{Hhh_room_nlobbyHISBI" & GetLocaleString("Fu�ball Liga") & "" & _
-              EncodeVL64(CSng(frmMain.lblBallroom.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PQKballroomZa{Hhh_room_ballroom" & "HIRII" & GetLocaleString("Old Skool") & "" & _
-              EncodeVL64(CSng(frmMain.lblOldSkool.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PTKold_skool[c}Hhh_room_old_skool" & "HIRHI" & GetLocaleString("Postbank") & "" & _
-              EncodeVL64(CSng(frmMain.lblClubMassiva.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PTKclub_massiva[q}Hhh_room_bar_postbank" & "HIRHI" & GetLocaleString("Postbank") & "" & _
-              EncodeVL64(CSng(frmMain.lblClubMassiva2.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PTKclub_massiva[q}Hhh_room_bar_postbank" & "HIRHI" & GetLocaleString("Postbank") & "" & _
-              EncodeVL64(CSng(frmMain.lblClubMassiva3.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PTKclub_massiva[q}Hhh_room_bar_postbank" & "HIRhI"
 
     sPacket = sPacket & GetLocaleString("Karibik Bar") & "" & _
-              EncodeVL64(CSng(frmMain.lblKaribikBar.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "POKsunset_cafeZEjHhh_room_sunsetcafeHIRpI"
 
     sPacket = sPacket & GetLocaleString("pub_name_6") & "" & _
-              EncodeVL64(CSng(frmMain.lblCafeGold.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "POKcafe_goldZP{Hhh_room_goldHIXVAI" & GetLocaleString("pub_name_42") & "" & _
-              EncodeVL64(CSng(frmMain.lblStarLounge.Caption))
+              EncodeVL64(CSng(0))
 
     sPacket = sPacket & "PTKstar_loungeYM|Hhh_room_starloungeHIPJI" & GetLocaleString("pub_name_38") & "" & _
-              EncodeVL64(CSng(frmMain.lblSpaceCafe.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "R[Kspace_cafeZQ{Hhh_room_space_cafe_ffHIP{I" & GetLocaleString("pub_name_43") & "" & _
-              EncodeVL64(CSng(frmMain.lblLibrary.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "PYKlibraryZT{Hhh_room_libraryHIRJI" & GetLocaleString("pub_name_22") & "" & _
-              EncodeVL64(CSng(frmMain.lblDisco.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "P^Kthe_chromide_clubXN{Hhh_room_discoHIPEI" & GetLocaleString("pub_name_9") & "" & _
-              EncodeVL64(CSng(frmMain.lblErics.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "RLKeric's_eaterieZN{Hhh_room_ericsHIYBAH"
 
     ' Add category headers
@@ -238,7 +238,7 @@ Private Function SendNavigatorData(ByVal SocketIndex As Integer)
     ' Add restaurant category and more rooms
     sPacket = sPacket & "HR~KS[H" & GetLocaleString("pub_categorie_restaurants") & "HPwKSFI" & _
               GetLocaleString("pub_name_19") & "" & _
-              EncodeVL64(CSng(frmMain.lblKitchen.Caption)) & _
+              EncodeVL64(CSng(0)) & _
               "SHKhotel_kitchenXO{Hhh_room_kitchenHIQHIBeauty SalonHPYKbeauty_salon_general[z}Hhh_room_beauty_salon_generalHISwH" & _
               GetLocaleString("pub_categorie_hallway") & "HPrK"
 
@@ -433,7 +433,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
     ' =========================================================================
     vMaxOnline = GetINI("server", "max_online", gSettingsFile)
 
-    If CDbl(frmMain.lblOnlineCount.Caption) = CDbl(vMaxOnline) Then
+    If CDbl(0) = CDbl(vMaxOnline) Then
         ' Server is full - check if user's rank can bypass
         sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
         vRankHotelLock = GetINI("rank", "hotel_lock", sRankFile)
@@ -874,7 +874,7 @@ Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As In
     If vWelcomeMsg = "1" Then
         ' Send welcome message with online count
         SendData SocketIndex, "BKWelcome " & gUserData(CLng(SocketIndex)).Username & _
-                              ", Current are " & CStr(CDbl(frmMain.lblOnlineCount.Caption) + 1) & _
+                              ", Current are " & CStr(CDbl(0) + 1) & _
                               " Peoples Online!" & Chr$(1)
     End If
 
@@ -2527,8 +2527,8 @@ Private Function HandleUserInfraction(ByVal SocketIndex As Integer)
     SendData SocketIndex, "BKUser now Infracted." & Chr$(1)
 
     ' Get target username and reason from label controls
-    sTargetUser = frmMain.lblInfractUser.Caption
-    sReason = frmMain.lblInfractReason.Caption
+    sTargetUser = 0
+    sReason = 0
 
     ' Loop through connected sockets to find the target user
     For i = 1 To frmMain.SockI
@@ -6836,7 +6836,7 @@ Private Function HandleBroadcastAnswer(ByVal sData As String, ByVal SocketIndex 
     sAnswer = Mid$(sData, CLng(vLen) + 11)
 
     ' Get label caption (for target index)
-    sCaption = frmMain.lblInfo.Caption
+    sCaption = 0
     lLabelIndex = CInt(sCaption)
 
     ' Broadcast answer: BK + username + 's Answer is: <br> + answer
@@ -10361,8 +10361,8 @@ Private Function ProcessPetAndSpeechCommands(PacketData As Variant, SocketIndex 
             sInfractData = Mid$(CStr(vMessage), InStr(1, CStr(vMessage), " ") + 1)
             If InStr(1, CStr(sInfractData), " ", vbTextCompare) > 0 Then
                 sTargetUser = Mid$(CStr(sInfractData), InStr(1, CStr(sInfractData), " ") + 1)
-                frmMain.lblInfractUser.Caption = sTargetUser
-                frmMain.lblInfractReason.Caption = Mid$(CStr(sInfractData), 1, InStr(1, CStr(sInfractData), " ") - 1)
+                0 = sTargetUser
+                0 = Mid$(CStr(sInfractData), 1, InStr(1, CStr(sInfractData), " ") - 1)
                 Call ProcessInfraction(SocketIndex)
             End If
         End If

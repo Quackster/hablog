@@ -109,6 +109,87 @@ Public Type UserDataType
     ' Carry Items
     CarryItem As String         ' Item being carried (drink, etc.)
     CarryTimer As Integer       ' Carry item timer (ticks remaining)
+
+    ' Permission Flags
+    CanDisconnect As Boolean    ' Can disconnect other users
+    CanDebug As Boolean         ' Access to debug commands
+    CanWhenSunban As Boolean    ' Can check when user will be unbanned
+    CanFracts As Boolean        ' Can view infractions
+    CanInfract As Boolean       ' Can issue infractions
+    CanInfract2 As Boolean      ' Can issue infractions (alternate)
+    CanViewInfracts As Boolean  ' Can view infractions
+    CanWheres As Boolean        ' Can find where a user is
+    CanAnswer As Boolean        ' Can answer CFH calls
+    CanEmail As Boolean         ' Can view user emails
+    CanResetVoters As Boolean   ' Can reset poll voters
+    CanSetScores As Boolean     ' Can set game scores
+    CanSentLog As Boolean       ' Can view sent messages log
+    CanClearLog As Boolean      ' Can clear chat logs
+    CanGetClient As Boolean     ' Can get client info
+    CanStartLog As Boolean      ' Can start logging
+    CanStopLog As Boolean       ' Can stop logging
+    CanJail As Boolean          ' Can jail users
+    CanGiveCredits As Boolean   ' Can give credits to users
+    CanTakeCredits As Boolean   ' Can take credits from users
+    CanClearConsole As Boolean  ' Can clear console
+    CanClearHand As Boolean     ' Can clear user hand (inventory)
+    CanGiveDrink As Boolean     ' Can give drinks to users
+    CanMassCredits As Boolean   ' Can give credits to all users
+    CanBot As Boolean           ' Can control bots
+    CanPoll As Boolean          ' Can create/manage polls
+    CanGroup As Boolean         ' Can manage groups
+    CanWarp As Boolean          ' Can warp to locations
+    CanUserWarp As Boolean      ' Can warp users
+
+    ' Additional State Fields
+    RoomState As Integer        ' Room state
+    TradeState As Integer       ' Trade state
+    TradingWith As Integer      ' Trading partner index
+    IsTrading As Boolean        ' Is currently trading
+    IsSitting As Boolean        ' Is sitting (alternate)
+    IsLaying As Boolean         ' Is laying down
+    IsWalking As Boolean        ' Is walking
+    IsBanned As Boolean         ' Is banned
+    BannedState As Integer      ' Banned state
+    BannedUser As String        ' Banned by user
+
+    ' Direction and Dance
+    Direction As Integer        ' Body direction (0-7)
+    HeadDirection As Integer    ' Head direction (0-7)
+    DanceStyle As Integer       ' Dance style number
+
+    ' Location
+    CurrentLocation As String   ' Current location string
+    CurrentAction As String     ' Current action string
+    InHotelView As Boolean      ' In hotel view
+    InTeleporter As Boolean     ' In a teleporter
+    OwnerRoomId As Long         ' Owner's room ID
+
+    ' Teleporter Extended
+    TeleporterReady As Boolean  ' Teleporter is ready
+    TeleX As Integer            ' Teleporter X position
+    TeleY As Integer            ' Teleporter Y position
+    TeleHeight As Double        ' Teleporter height
+
+    ' Timer
+    TimerActive As Boolean      ' Timer is active
+    TimerEnabled As Boolean     ' Timer is enabled
+    TimerId As Integer          ' Timer ID
+    TimerInterval As Long       ' Timer interval
+    TimerData As String         ' Timer data
+
+    ' Misc Extended
+    ChatLog As String           ' Chat log
+    CommandValue As String      ' Command value
+    DirectMail As Boolean       ' Direct mail enabled
+    InventoryPage As Integer    ' Current inventory page
+    Tag As String               ' User tag
+    Tags As String              ' User tags
+    TypingStatus As Boolean     ' Is typing
+    UserType As Integer         ' User type
+    SomeFlag1 As Boolean        ' Misc flag 1
+    SomeFlag2 As Boolean        ' Misc flag 2
+    SomeFlag3 As Boolean        ' Misc flag 3
 End Type
 
 ' ============================================================================
@@ -246,6 +327,7 @@ Public gRoomData() As Variant           ' Room data array
 ' System State
 Public gIsWinNT As Integer              ' Windows NT flag (0 or 1)
 Public gShutdownPrivilege As Long       ' Shutdown privilege handle
+Public gLoggedInUsers As String         ' Logged in user IDs tracking
 
 ' Note: frmMain is auto-declared by VB6 as a form module
 ' Do not declare it here - just reference frmMain directly

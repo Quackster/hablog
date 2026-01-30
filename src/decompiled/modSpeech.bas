@@ -300,7 +300,7 @@ Public Sub GiveCreditsToAll()
     Dim sUsername As String
 
     ' Get amount from label caption
-    sAmount = frmMain.lblCreditsAmount.Caption
+    sAmount = frmMain.txtCreditsAmount.Text
 
     ' Loop through all sockets
     For i = 1 To frmMain.SockI
@@ -332,18 +332,14 @@ Public Sub GiveCreditsToAll()
 End Sub
 
 ' GiveBadgeToAll - Give badge to all online users
-' Uses frmMain label caption for badge name
-Public Sub GiveBadgeToAll()
+' Takes badge name as parameter
+Public Sub GiveBadgeToAll(ByVal sBadge As String)
     On Error Resume Next
 
     Dim i As Variant
-    Dim sBadge As Variant
     Dim oTextStream As Object
     Dim sCurrentBadges As Variant
     Dim sUsername As String
-
-    ' Get badge name from label caption
-    sBadge = frmMain.lblBadgeName.Caption
 
     ' Loop through all sockets
     For i = 1 To frmMain.SockI
@@ -394,7 +390,7 @@ Public Sub SendServerStats(ByVal SocketIndex As Integer)
     vHotelName = GetINI("config", "hotel_name", gSettingsFile)
 
     ' Get online count
-    sOnlineCount = frmMain.lblOnlineCount.Caption
+    sOnlineCount = CStr(frmMain.Listuseronline.ListCount)
 
     ' Build and send stats message
     SendData SocketIndex, "BK" & "Hey " & gUserData(CInt(SocketIndex)).Username & _
@@ -409,18 +405,10 @@ Public Sub SendServerStats(ByVal SocketIndex As Integer)
 End Sub
 
 ' SendPollToPrivateRoom - Send poll question to users in private room
-Public Sub SendPollToPrivateRoom()
+Public Sub SendPollToPrivateRoom(ByVal vRoomId As Long, ByVal vQuestion As String, ByVal vAnswers As String)
     On Error Resume Next
 
-    Dim vRoomId As Variant
-    Dim vQuestion As Variant
-    Dim vAnswers As Variant
     Dim sPollPacket As Variant
-
-    ' Get parameters from form labels
-    vRoomId = frmMain.lblPollRoom.Caption
-    vQuestion = frmMain.lblPollQuestion.Caption
-    vAnswers = frmMain.lblPollAnswers.Caption
 
     ' Build poll packet
     sPollPacket = "D}YqAThis is the Hablog Question System!" & _
@@ -436,18 +424,10 @@ Public Sub SendPollToPrivateRoom()
 End Sub
 
 ' SendPollToPublicRoom - Send poll question to users in public room
-Public Sub SendPollToPublicRoom()
+Public Sub SendPollToPublicRoom(ByVal vRoomId As Long, ByVal vQuestion As String, ByVal vAnswers As String)
     On Error Resume Next
 
-    Dim vRoomId As Variant
-    Dim vQuestion As Variant
-    Dim vAnswers As Variant
     Dim sPollPacket As Variant
-
-    ' Get parameters from form labels
-    vRoomId = frmMain.lblPollRoom.Caption
-    vQuestion = frmMain.lblPollQuestion.Caption
-    vAnswers = frmMain.lblPollAnswers.Caption
 
     ' Build poll packet
     sPollPacket = "D}YqAThis is the Hablog Question System!" & _
@@ -464,17 +444,8 @@ End Sub
 
 ' DeleteUser - Delete a user account (admin only)
 ' Protected usernames: Hebbo, Orakel, Carlos
-Public Sub DeleteUser(ByVal SocketIndex As Integer)
+Public Sub DeleteUser(ByVal SocketIndex As Integer, ByVal vTargetUser As String, ByVal vAdminUser As String)
     On Error Resume Next
-
-    Dim vTargetUser As Variant
-    Dim vAdminUser As Variant
-
-    ' Get target username from label
-    vTargetUser = frmMain.lblDeleteUser.Caption
-
-    ' Get admin username from label
-    vAdminUser = frmMain.lblAdminName.Caption
 
     ' Check if trying to delete protected user
     If vTargetUser = "Hebbo" Or vTargetUser = "Orakel" Or vTargetUser = "Carlos" Then

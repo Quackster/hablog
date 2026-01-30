@@ -143,9 +143,8 @@ Public Sub ShowFilterTab()
     frmSettings.title.Caption = GetLocaleString("tab_filter")
     frmSettings.filterLabel1.Caption = GetLocaleString("filterLabel1")
     frmSettings.filterLabel2.Caption = GetLocaleString("filterLabel2")
+    frmSettings.filterLabel3.Caption = GetLocaleString("filterLabel3")
     frmSettings.filterCommand1.Caption = GetLocaleString("filterCommand1")
-    frmSettings.filterCommand2.Caption = GetLocaleString("filterCommand2")
-    frmSettings.filterCommand3.Caption = GetLocaleString("restorebutton")
 
     ' Set background color
     frmSettings.Pictab_filter.BackColor = TAB_COLOR
@@ -313,8 +312,6 @@ Public Sub ShowRanksTab()
     frmSettings.ranksLabel2.Caption = GetLocaleString("ranksLabel2")
     frmSettings.ranksLabel3.Caption = GetLocaleString("ranksLabel3")
     frmSettings.ranksLabel4.Caption = GetLocaleString("ranksLabel4")
-    frmSettings.ranksLabel5.Caption = GetLocaleString("ranksLabel5")
-    frmSettings.ranksLabel6.Caption = GetLocaleString("ranksLabel6")
     frmSettings.ranksCommand1.Caption = GetLocaleString("savebutton")
     frmSettings.ranksCommand2.Caption = GetLocaleString("restorebutton")
 
