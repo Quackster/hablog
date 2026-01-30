@@ -11,7 +11,7 @@ Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hW
 ' GetIconHeight - Gets the icon height using SendMessage
 ' Returns the icon height value from a window
 Public Function GetIconHeight() As Long
-    GetIconHeight = SendMessage(Me.hWnd, &HBA, 0, 0&)
+    GetIconHeight = SendMessage(frmMain.hWnd, &HBA, 0, 0&)
 End Function
 
 ' FileExists - Checks if a file exists
@@ -122,7 +122,7 @@ Public Function DecodeVL64Simple(ByRef EncodedString As String) As Variant
         Next j
     Next i
 
-    DecodeVL64 = lResult
+    DecodeVL64Simple = lResult
 End Function
 
 ' EncodeVL64Simple - Encodes an integer to VL64 format (simple version)

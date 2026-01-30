@@ -337,6 +337,14 @@ Begin VB.Form frmMain
     Height = 300
     TabIndex = 215
   End
+    Begin VB.TextBox txtBobba
+    Left = 0
+    Top = 0
+    Width = 100
+    Height = 100
+    Visible = 0   'False
+    TabIndex = 216
+  End
   Begin VB.CheckBox chkChatlog
     Caption = "Chatlog"
     Left = 2400
@@ -1366,7 +1374,7 @@ Private Sub useronline_Timer()
     Call RefreshOnlineUsers
 End Sub
 
-Private Sub ConnectionTimer_Timer()
+Private Sub ConnectionTimer_Timer(Index As Integer)
     On Error Resume Next
 
     ' Check for connection timeouts
@@ -3076,7 +3084,7 @@ End Sub
 ' ConnectionTimer_Timer - Check connection status and send keep-alive
 ' ============================================================================
 
-Private Sub ConnectionTimer_Timer_Alt()
+Private Sub ConnectionTimer_Timer_Alt(Index As Integer)
     Dim i As Variant
     Dim keepAlivePacket As String
 

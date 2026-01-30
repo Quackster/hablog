@@ -1259,7 +1259,7 @@ Private Sub closefrmAutoClose_Click()
     Unload Me
 End Sub
 
-Private Sub heade_MouseDown(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub heade_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Button = 1 Then
         ReleaseCapture
         SendMessage Me.hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
