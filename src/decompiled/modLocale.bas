@@ -8,7 +8,7 @@ Public Function GetLocaleString(ByVal sKey As String) As String
 
     On Error GoTo ErrorHandler
 
-    sLang = GetINI("server", "lang", gConfigFile)
+    sLang = GetINI("server", "lang", gSettingsFile)
     sLocaleFile = App.Path & "\locale\" & sLang & "\locale.txt"
     sResult = GetINI("locale", sKey, sLocaleFile)
 

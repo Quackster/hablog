@@ -87,9 +87,10 @@ Public Function SanitizeString(ByRef InputString As String) As String
     SanitizeString = sResult
 End Function
 
-' DecodeVL64 - Decodes a VL64 encoded string to integer
+' DecodeVL64Simple - Decodes a VL64 encoded string to integer (simple version)
 ' VL64 is Habbo's variable-length 64-bit encoding
-Public Function DecodeVL64(ByRef EncodedString As String) As Variant
+' Note: Use modEncoding.DecodeVL64 for the full implementation
+Public Function DecodeVL64Simple(ByRef EncodedString As String) As Variant
     Dim sInput As String
     Dim i As Integer
     Dim j As Integer
@@ -124,9 +125,10 @@ Public Function DecodeVL64(ByRef EncodedString As String) As Variant
     DecodeVL64 = lResult
 End Function
 
-' EncodeVL64 - Encodes an integer to VL64 format
+' EncodeVL64Simple - Encodes an integer to VL64 format (simple version)
 ' VL64 is Habbo's variable-length 64-bit encoding
-Public Function EncodeVL64(ByVal Value As Integer) As Variant
+' Note: Use modEncoding.EncodeVL64 for the full implementation
+Public Function EncodeVL64Simple(ByVal Value As Integer) As Variant
     Dim lValue As Integer
     Dim lBase As Integer
     Dim lSecond As Integer

@@ -11060,7 +11060,7 @@ End Function
 '   sPacketData - Format: "AZ [itemId] [newX] [newY] [rotation]"
 '   SocketIndex - Socket index of the user making the request
 ' ============================================================================
-Private Function HandleFurnitureMove(ByRef sPacketData As String, ByVal SocketIndex As Integer)
+Private Function HandleFurnitureMovePacket(ByRef sPacketData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object

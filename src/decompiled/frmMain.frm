@@ -15,6 +15,460 @@ Begin VB.Form frmMain
   ClientWidth = 10050
   ClientHeight = 7425
   ShowInTaskbar = 0   'False
+  Begin MSWinsockLib.Winsock Sock
+    Index = 0
+    Left = 0
+    Top = 0
+    _ExtentX = 741
+    _ExtentY = 741
+    _Version = 393216
+  End
+  Begin VB.Timer TimerDrink
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 0
+    Top = 0
+  End
+  Begin VB.Timer Timer2
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 120
+    Top = 0
+  End
+  Begin VB.Timer Timer4
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 240
+    Top = 0
+  End
+  Begin VB.Timer TimerVanish
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 360
+    Top = 0
+  End
+  Begin VB.Timer tmrLido1
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 480
+    Top = 0
+  End
+  Begin VB.Timer tmrLido2
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 600
+    Top = 0
+  End
+  Begin VB.Timer tmrRumble1
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 720
+    Top = 0
+  End
+  Begin VB.Timer tmrRumble2
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 840
+    Top = 0
+  End
+  Begin VB.Timer TimerVote
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 960
+    Top = 0
+  End
+  Begin VB.Timer TimerDiveGuard
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1080
+    Top = 0
+  End
+  Begin VB.Timer tmrLidoCam
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1200
+    Top = 0
+  End
+  Begin VB.Timer TimerTeleport1
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1320
+    Top = 0
+  End
+  Begin VB.Timer tmrLidoZoom
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1440
+    Top = 0
+  End
+  Begin VB.Timer tmrRumbleCam
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1560
+    Top = 0
+  End
+  Begin VB.Timer tmrRumbleZoom
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1680
+    Top = 0
+  End
+  Begin VB.Timer TimerWave
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1800
+    Top = 0
+  End
+  Begin VB.Timer TimerGesture
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1920
+    Top = 0
+  End
+  Begin VB.Timer TimerTalk
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2040
+    Top = 0
+  End
+  Begin VB.Timer TimerDC
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2160
+    Top = 0
+  End
+  Begin VB.Timer TimerDice
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2280
+    Top = 0
+  End
+  Begin VB.Timer UseTimer
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2400
+    Top = 0
+  End
+  Begin VB.Timer tmrCloseServer
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2520
+    Top = 0
+  End
+  Begin VB.Timer timer_automessage
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2640
+    Top = 0
+  End
+  Begin VB.Timer tmrRumbleCamUpdate
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2760
+    Top = 0
+  End
+  Begin VB.Timer tmrLidoCamUpdate
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 2880
+    Top = 0
+  End
+  Begin VB.Timer RollerTimer
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3000
+    Top = 0
+  End
+  Begin VB.Timer timer_poweroff
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3120
+    Top = 0
+  End
+  Begin VB.Timer Online_Limit
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3240
+    Top = 0
+  End
+  Begin VB.Timer useronline
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3360
+    Top = 0
+  End
+  Begin VB.Timer ConnectionTimer
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3480
+    Top = 0
+  End
+  Begin VB.TextBox txtBroadcast
+    Left = 0
+    Top = 600
+    Width = 2000
+    Height = 300
+    TabIndex = 200
+  End
+  Begin VB.TextBox txtCreditsAmount
+    Left = 0
+    Top = 1000
+    Width = 1000
+    Height = 300
+    TabIndex = 201
+  End
+  Begin VB.TextBox txtLog
+    Left = 0
+    Top = 1400
+    Width = 5000
+    Height = 2000
+    MultiLine = -1  'True
+    ScrollBars = 2
+    TabIndex = 202
+  End
+  Begin VB.TextBox txtDiveGuard
+    Left = 0
+    Top = 3500
+    Width = 1000
+    Height = 300
+    TabIndex = 203
+  End
+  Begin VB.TextBox txtLidoCam
+    Left = 0
+    Top = 3900
+    Width = 1000
+    Height = 300
+    TabIndex = 204
+  End
+  Begin VB.TextBox txtLidoCamTarget
+    Left = 0
+    Top = 4300
+    Width = 1000
+    Height = 300
+    TabIndex = 205
+  End
+  Begin VB.TextBox txtRumbleCam
+    Left = 0
+    Top = 4700
+    Width = 1000
+    Height = 300
+    TabIndex = 206
+  End
+  Begin VB.OptionButton optAll
+    Caption = "All"
+    Left = 0
+    Top = 5100
+    Width = 1000
+    Height = 300
+    TabIndex = 207
+  End
+  Begin VB.OptionButton optAdmins
+    Caption = "Admins"
+    Left = 0
+    Top = 5400
+    Width = 1000
+    Height = 300
+    TabIndex = 208
+  End
+  Begin VB.OptionButton optModerators
+    Caption = "Moderators"
+    Left = 0
+    Top = 5700
+    Width = 1000
+    Height = 300
+    TabIndex = 209
+  End
+  Begin VB.OptionButton optHabbox
+    Caption = "Habbox"
+    Left = 0
+    Top = 6000
+    Width = 1000
+    Height = 300
+    TabIndex = 210
+  End
+  Begin VB.OptionButton optManagers
+    Caption = "Managers"
+    Left = 0
+    Top = 6300
+    Width = 1000
+    Height = 300
+    TabIndex = 211
+  End
+  Begin VB.OptionButton optStaff
+    Caption = "Staff"
+    Left = 0
+    Top = 6600
+    Width = 1000
+    Height = 300
+    TabIndex = 212
+  End
+  Begin VB.OptionButton optSingle
+    Caption = "Single"
+    Left = 1200
+    Top = 5100
+    Width = 1000
+    Height = 300
+    TabIndex = 213
+  End
+  Begin VB.OptionButton optDatabase
+    Caption = "Database"
+    Left = 1200
+    Top = 5400
+    Width = 1000
+    Height = 300
+    TabIndex = 214
+  End
+  Begin VB.CheckBox chkAutoClose
+    Caption = "Auto Close"
+    Left = 2400
+    Top = 5100
+    Width = 1500
+    Height = 300
+    TabIndex = 215
+  End
+  Begin VB.CheckBox chkChatlog
+    Caption = "Chatlog"
+    Left = 2400
+    Top = 5400
+    Width = 1500
+    Height = 300
+    TabIndex = 216
+  End
+  Begin VB.CheckBox chkDebug
+    Caption = "Debug"
+    Left = 2400
+    Top = 5700
+    Width = 1500
+    Height = 300
+    TabIndex = 217
+  End
+  Begin VB.CheckBox chkDenyLogin
+    Caption = "Deny Login"
+    Left = 2400
+    Top = 6000
+    Width = 1500
+    Height = 300
+    TabIndex = 218
+  End
+  Begin VB.CheckBox chkDiving
+    Caption = "Diving"
+    Left = 2400
+    Top = 6300
+    Width = 1500
+    Height = 300
+    TabIndex = 219
+  End
+  Begin VB.CheckBox chkSaveChatLog
+    Caption = "Save Chatlog"
+    Left = 2400
+    Top = 6600
+    Width = 1500
+    Height = 300
+    TabIndex = 220
+  End
+  Begin VB.CheckBox chkUpdateAll
+    Caption = "Update All"
+    Left = 2400
+    Top = 6900
+    Width = 1500
+    Height = 300
+    TabIndex = 221
+  End
+  Begin VB.CommandButton cmdParts
+    Caption = "Parts"
+    Left = 4000
+    Top = 5100
+    Width = 1000
+    Height = 400
+    TabIndex = 222
+  End
+  Begin VB.CommandButton cmdText
+    Caption = "Text"
+    Left = 4000
+    Top = 5600
+    Width = 1000
+    Height = 400
+    TabIndex = 223
+  End
+  Begin VB.CheckBox chckLog
+    Caption = "Packet Log"
+    Left = 4000
+    Top = 6100
+    Width = 1500
+    Height = 300
+    TabIndex = 224
+  End
+  Begin VB.CheckBox Check1
+    Caption = "Foreground"
+    Left = 4000
+    Top = 6400
+    Width = 1500
+    Height = 300
+    TabIndex = 225
+  End
+  Begin VB.ListBox Listuseronline
+    Left = 5600
+    Top = 5100
+    Width = 2000
+    Height = 1500
+    TabIndex = 226
+  End
+  Begin VB.PictureBox Picture1
+    Left = 0
+    Top = 0
+    Width = 500
+    Height = 500
+    TabIndex = 227
+  End
+  Begin VB.TextBox Text2
+    Left = 5600
+    Top = 6700
+    Width = 2000
+    Height = 300
+    TabIndex = 228
+  End
+  Begin VB.TextBox Text3
+    Left = 5600
+    Top = 7100
+    Width = 2000
+    Height = 300
+    TabIndex = 229
+  End
+  Begin VB.TextBox chatLog
+    Left = 7700
+    Top = 5100
+    Width = 2000
+    Height = 2000
+    MultiLine = -1  'True
+    ScrollBars = 2
+    TabIndex = 230
+  End
+  Begin VB.PictureBox cas
+    Left = 7700
+    Top = 7200
+    Width = 500
+    Height = 500
+    TabIndex = 231
+  End
+  Begin VB.CommandButton cmdAutoClose
+    Caption = "Auto Close"
+    Left = 5600
+    Top = 7500
+    Width = 1000
+    Height = 400
+    TabIndex = 232
+  End
   Begin VB.TextBox furni_2
     Left = 2040
     Top = 8040
@@ -437,6 +891,39 @@ Begin VB.Form frmMain
       Width = 375
       Height = 255
       TabIndex = 78
+    End
+  End
+  Begin VB.Menu mnuMain
+    Caption = "Menu"
+    Begin VB.Menu mnuLanguage
+      Caption = "Language"
+      Begin VB.Menu mnuLangDE
+        Caption = "German"
+      End
+      Begin VB.Menu mnuLangUS
+        Caption = "English"
+      End
+      Begin VB.Menu mnuLangSE
+        Caption = "Swedish"
+      End
+      Begin VB.Menu mnuLangNL
+        Caption = "Dutch"
+      End
+      Begin VB.Menu mnuLangFR
+        Caption = "French"
+      End
+      Begin VB.Menu mnuLangES
+        Caption = "Spanish"
+      End
+      Begin VB.Menu mnuLangIT
+        Caption = "Italian"
+      End
+      Begin VB.Menu mnuLangPT
+        Caption = "Portuguese"
+      End
+      Begin VB.Menu mnuLangExtra
+        Caption = "Extra"
+      End
     End
   End
 End
@@ -1128,6 +1615,13 @@ Private Sub Form_Load()
     Dim folder As Object
     Dim dataIniPath As String
     Dim botEnabled As String
+    Dim tsFile As Object
+    Dim heightmapData As String
+    Dim heightmapRows() As String
+    Dim portValue As Long
+    Dim walkSpace() As String
+    Dim coordParts() As String
+    Dim errorMsg As String
 
     On Error Resume Next
 
@@ -1247,9 +1741,6 @@ Private Sub Form_Load()
             mnuLangExtra.Checked = True
     End Select
 
-    ' Load locale strings
-    Call LoadLocale
-
     ' Initialize room data array
     ReDim gRoomData(0 To 0)
 
@@ -1281,8 +1772,6 @@ Private Sub Form_Load()
                 gBotData(BotI).Sex = gBotData(BotI).Look
 
                 ' Parse walkspace coordinates
-                Dim walkSpace() As String
-                Dim coordParts() As String
                 walkSpace = Split(ReadIniSetting(dataIniPath, "bot", "walkspace"), ",")
                 coordParts = Split(CStr(walkSpace(0)), " ")
                 gBotData(BotI).StartX = CSng(coordParts(0))
@@ -1294,10 +1783,6 @@ Private Sub Form_Load()
                 gBotData(BotI).CurrentY = gBotData(BotI).StartY
 
                 ' Load heightmap
-                Dim tsFile As Object
-                Dim heightmapData As String
-                Dim heightmapRows() As String
-
                 Set tsFile = gFSO.OpenTextFile(folder.Path & "\heightmap.map", 1, False, 0)
                 heightmapData = tsFile.ReadAll
                 tsFile.Close
@@ -1326,7 +1811,6 @@ Private Sub Form_Load()
 
     If settingValue = "yes" Then
         ' Start listening socket
-        Dim portValue As Long
         portValue = Val(ReadIniSetting(gSettingsFile, "server", "port"))
         Sock(0).LocalPort = portValue
         Sock(0).Listen
@@ -1342,7 +1826,6 @@ Private Sub Form_Load()
     Exit Sub
 
 SocketError:
-    Dim errorMsg As String
     errorMsg = GetLocaleString("socket_error")
     MsgBox errorMsg & vbCrLf & vbCrLf & "--------" & vbCrLf & vbCrLf & Err.Description, vbCritical, "HabLog Project"
     End
@@ -1648,10 +2131,10 @@ Public Function Hab_Color(info As Variant, Index As Long) As String
 End Function
 
 ' ============================================================================
-' Image4_Click - Send broadcast message to users based on option selection
+' cmdSendBroadcast_Click - Send broadcast message to users based on option selection
 ' ============================================================================
 
-Private Sub Image4_Click()
+Private Sub cmdSendBroadcast_Click()
     Dim i As Variant
     Dim checkValue As Integer
     Dim startTime As Variant
@@ -1786,7 +2269,7 @@ End Sub
 ' Image3_Click - Add credits to users
 ' ============================================================================
 
-Private Sub Image3_Click()
+Private Sub cmdAddCredits_Click()
     Dim i As Variant
     Dim creditsToAdd As String
     Dim currentCredits As Variant
@@ -1795,6 +2278,9 @@ Private Sub Image3_Click()
     Dim usernameLower As String
     Dim transactionLog As String
     Dim dateStr As String
+    Dim habboFolder As Object
+    Dim subFolders As Object
+    Dim folder As Object
 
     On Error Resume Next
 
@@ -1843,10 +2329,6 @@ Private Sub Image3_Click()
 
     ' Check if optDatabase is selected (add to all users in database)
     If optSingle.Value = False And optDatabase.Value = True Then
-        Dim habboFolder As Object
-        Dim subFolders As Object
-        Dim folder As Object
-
         Set habboFolder = gFSO.GetFolder(gAppPath & "habbos")
         Set subFolders = habboFolder.SubFolders
 
@@ -1871,7 +2353,7 @@ End Sub
 ' TimerBotAction_Timer - Handle bot actions (talking, walking)
 ' ============================================================================
 
-Private Sub TimerBotAction_Timer(Index As Integer)
+Private Sub TimerBotAction_Timer_Alt(Index As Integer)
     Dim i As Variant
     Dim randomAction As Variant
     Dim retryCount As Variant
@@ -2013,6 +2495,9 @@ Private Sub Timer3_Timer()
     Dim userFigure As String
     Dim roomPacket As String
     Dim j As Long
+    Dim figurePacket As String
+    Dim startTime As Variant
+    Dim elapsed As Variant
 
     On Error Resume Next
 
@@ -2075,10 +2560,6 @@ Private Sub Timer3_Timer()
 
     ' Check chkUpdateAll for sending figure updates to all users
     If chkUpdateAll.Value = 1 Then
-        Dim figurePacket As String
-        Dim startTime As Variant
-        Dim elapsed As Variant
-
         For i = 1 To frmMain.SockI
             If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
                 figurePacket = "Dj" & EncodeVL64(Val(lblFigureId.Caption)) & Chr$(1)
@@ -2098,7 +2579,7 @@ End Sub
 ' timer_automessage_Timer - Send automatic scheduled messages
 ' ============================================================================
 
-Private Sub timer_automessage_Timer()
+Private Sub timer_automessage_Timer_Alt()
     Dim i As Variant
     Dim currentTime As Variant
     Dim scheduledTime As String
@@ -2132,7 +2613,7 @@ End Sub
 ' tmrCloseServer_Timer - Server shutdown handler
 ' ============================================================================
 
-Private Sub tmrCloseServer_Timer()
+Private Sub tmrCloseServer_Timer_Alt()
     Dim i As Variant
     Dim shutdownMsg As String
 
@@ -2161,7 +2642,7 @@ Private Declare Function ReleaseCapture Lib "user32" () As Long
 Private Const WM_NCLBUTTONDOWN As Long = &HA1
 Private Const HTCAPTION As Long = 2
 
-Private Sub cas_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub cas_MouseDown_Alt(Button As Integer, Shift As Integer, X As Single, Y As Single)
     On Error Resume Next
 
     If Button = 1 Then
@@ -2178,7 +2659,7 @@ End Sub
 ' Listuseronline_MouseDown - Show context menu for online users
 ' ============================================================================
 
-Private Sub Listuseronline_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub Listuseronline_MouseDown_Alt(Button As Integer, Shift As Integer, X As Single, Y As Single)
     On Error Resume Next
 
     If frmMain.Listuseronline.Text <> "" Then
@@ -2193,7 +2674,7 @@ End Sub
 ' RollerTimer_Timer - Process room rollers
 ' ============================================================================
 
-Private Sub RollerTimer_Timer()
+Private Sub RollerTimer_Timer_Alt()
     Dim i As Variant
     Dim j As Variant
     Dim rollerList() As String
@@ -2371,7 +2852,7 @@ End Function
 ' timer_poweroff_Timer - Handle automatic server shutdown/poweroff
 ' ============================================================================
 
-Private Sub timer_poweroff_Timer()
+Private Sub timer_poweroff_Timer_Alt()
     Dim currentTime As Variant
     Dim scheduledTime As String
     Dim poweroffPC As Integer
@@ -2411,7 +2892,7 @@ End Sub
 ' tmrLidoCamUpdate_Timer - Update Lido pool camera positions
 ' ============================================================================
 
-Private Sub tmrLidoCamUpdate_Timer()
+Private Sub tmrLidoCamUpdate_Timer_Alt()
     Dim i As Variant
 
     On Error Resume Next
@@ -2452,7 +2933,7 @@ End Sub
 ' chkautoclose_Click - Enable/disable auto close feature
 ' ============================================================================
 
-Private Sub chkautoclose_Click()
+Private Sub chkautoclose_Click_Alt()
     Dim autoCloseHour As String
     Dim autoCloseMinute As String
     Dim poweroffValue As Integer
@@ -2491,7 +2972,7 @@ End Sub
 ' TimerGesture_Timer - Handle user gesture timing
 ' ============================================================================
 
-Private Sub TimerGesture_Timer(Index As Integer)
+Private Sub TimerGesture_Timer_Alt(Index As Integer)
     On Error GoTo ErrorHandler
 
     TimerGesture(Index).Enabled = False
@@ -2505,7 +2986,7 @@ End Sub
 ' TimerTalk_Timer - Handle user talk bubble timing
 ' ============================================================================
 
-Private Sub TimerTalk_Timer(Index As Integer)
+Private Sub TimerTalk_Timer_Alt(Index As Integer)
     On Error GoTo ErrorHandler
 
     TimerTalk(Index).Enabled = False
@@ -2519,7 +3000,7 @@ End Sub
 ' TimerBotTalk_Timer - Handle bot talk timing
 ' ============================================================================
 
-Private Sub TimerBotTalk_Timer(Index As Integer)
+Private Sub TimerBotTalk_Timer_Alt(Index As Integer)
     On Error GoTo ErrorHandler
 
     TimerBotTalk(Index).Enabled = False
@@ -2533,7 +3014,7 @@ End Sub
 ' useronline_Timer - Update online users display
 ' ============================================================================
 
-Private Sub useronline_Timer()
+Private Sub useronline_Timer_Alt()
     Dim i As Variant
     Dim j As Variant
     Dim userCount As Variant
@@ -2596,7 +3077,7 @@ End Sub
 ' ConnectionTimer_Timer - Check connection status and send keep-alive
 ' ============================================================================
 
-Private Sub ConnectionTimer_Timer()
+Private Sub ConnectionTimer_Timer_Alt()
     Dim i As Variant
     Dim keepAlivePacket As String
 
@@ -2629,7 +3110,7 @@ End Sub
 ' Online_Limit_Timer - Check for users exceeding online time limits
 ' ============================================================================
 
-Private Sub Online_Limit_Timer()
+Private Sub Online_Limit_Timer_Alt()
     Dim i As Variant
     Dim lastUser As String
     Dim kickMessage As String
@@ -2656,11 +3137,12 @@ End Sub
 ' TimerBotUpdate_Timer - Update bot positions and states
 ' ============================================================================
 
-Private Sub TimerBotUpdate_Timer(Index As Integer)
+Private Sub TimerBotUpdate_Timer_Alt(Index As Integer)
     Dim statusText As String
     Dim heightmapData As String
     Dim tsFile As Object
     Dim pathResult As Variant
+    Dim pathParts() As String
 
     On Error Resume Next
 
@@ -2688,7 +3170,6 @@ Private Sub TimerBotUpdate_Timer(Index As Integer)
 
         If CStr(pathResult) <> "" Then
             ' Update bot position based on path
-            Dim pathParts() As String
             pathParts = Split(CStr(pathResult), ",")
 
             If UBound(pathParts) >= 1 Then
@@ -2723,7 +3204,7 @@ End Sub
 ' chkChatlog_Click - Toggle chatlog checkbox
 ' ============================================================================
 
-Private Sub chkChatlog_Click()
+Private Sub chkChatlog_Click_Alt()
     On Error Resume Next
 
     If frmMain.chkChatlog.Value = 1 Then
@@ -2737,7 +3218,7 @@ End Sub
 ' chkSaveChatLog_Click - Toggle save chatlog checkbox
 ' ============================================================================
 
-Private Sub chkSaveChatLog_Click()
+Private Sub chkSaveChatLog_Click_Alt()
     On Error Resume Next
 
     If frmMain.chkSaveChatLog.Value = 1 Then
@@ -2751,7 +3232,7 @@ End Sub
 ' chckLog_Click - Toggle packet log checkbox
 ' ============================================================================
 
-Private Sub chckLog_Click()
+Private Sub chckLog_Click_Alt()
     On Error Resume Next
 
     If frmMain.chckLog.Value = 1 Then
@@ -2765,7 +3246,7 @@ End Sub
 ' TimerWave_Timer - Handle user wave gesture timing
 ' ============================================================================
 
-Private Sub TimerWave_Timer(Index As Integer)
+Private Sub TimerWave_Timer_Alt(Index As Integer)
     On Error GoTo ErrorHandler
 
     TimerWave(Index).Enabled = False
@@ -2779,7 +3260,7 @@ End Sub
 ' tmrRumbleZoom_Timer - Handle Rumble pool camera zoom
 ' ============================================================================
 
-Private Sub tmrRumbleZoom_Timer()
+Private Sub tmrRumbleZoom_Timer_Alt()
     Dim randomZoom As Variant
     Dim randomInterval As Variant
     Dim zoomPacket As String
@@ -2805,7 +3286,7 @@ End Sub
 ' tmrLidoZoom_Timer - Handle Lido pool camera zoom
 ' ============================================================================
 
-Private Sub tmrLidoZoom_Timer()
+Private Sub tmrLidoZoom_Timer_Alt()
     Dim randomZoom As Variant
     Dim randomInterval As Variant
     Dim zoomPacket As String
@@ -2831,7 +3312,7 @@ End Sub
 ' tmrRumbleCam_Timer - Update Rumble pool camera position
 ' ============================================================================
 
-Private Sub tmrRumbleCam_Timer()
+Private Sub tmrRumbleCam_Timer_Alt()
     Dim randomTarget As Variant
     Dim randomInterval As Variant
     Dim camPacket As String
@@ -2857,7 +3338,7 @@ End Sub
 ' tmrLidoCam_Timer - Update Lido pool camera position
 ' ============================================================================
 
-Private Sub tmrLidoCam_Timer()
+Private Sub tmrLidoCam_Timer_Alt()
     Dim randomTarget As Variant
     Dim randomInterval As Variant
     Dim camPacket As String
@@ -2883,7 +3364,7 @@ End Sub
 ' Check1_Click - Toggle check box handler
 ' ============================================================================
 
-Private Sub Check1_Click()
+Private Sub Check1_Click_Alt()
     On Error Resume Next
     ' Toggle state for Check1 control
 End Sub
@@ -2892,7 +3373,7 @@ End Sub
 ' cmdAutoClose_Click - Open auto close form
 ' ============================================================================
 
-Private Sub cmdAutoClose_Click()
+Private Sub cmdAutoClose_Click_Alt()
     On Error Resume Next
     frmAutoClose.Show
 End Sub
@@ -2901,7 +3382,7 @@ End Sub
 ' chatLog_Change - Chat log text changed
 ' ============================================================================
 
-Private Sub chatLog_Change()
+Private Sub chatLog_Change_Alt()
     Dim logLength As Long
 
     On Error Resume Next
@@ -2915,7 +3396,7 @@ End Sub
 ' txtLog_Change - Log text changed handler
 ' ============================================================================
 
-Private Sub txtLog_Change()
+Private Sub txtLog_Change_Alt()
     On Error Resume Next
     ' Auto-scroll log to bottom
     txtLog.SelStart = Len(txtLog.Text)
@@ -2925,7 +3406,7 @@ End Sub
 ' Picture1_KeyDown - Handle key presses on Picture1
 ' ============================================================================
 
-Private Sub Picture1_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Picture1_KeyDown_Alt(KeyCode As Integer, Shift As Integer)
     On Error Resume Next
 
     ' Handle special key combinations
@@ -2943,7 +3424,7 @@ End Sub
 ' Text2_KeyDown - Handle key presses on Text2 (command input)
 ' ============================================================================
 
-Private Sub Text2_KeyDown(KeyCode As Integer, Shift As Integer)
+Private Sub Text2_KeyDown_Alt(KeyCode As Integer, Shift As Integer)
     Dim cmdText As String
     Dim cmdParts() As String
 
@@ -2991,7 +3472,7 @@ End Sub
 ' Text3_Change - Text3 change handler
 ' ============================================================================
 
-Private Sub Text3_Change()
+Private Sub Text3_Change_Alt()
     On Error Resume Next
 End Sub
 
@@ -3363,6 +3844,8 @@ End Sub
 Private Sub chatLog_ChangeSaveToDisk()
     Dim logDate As String
     Dim logPath As String
+    Dim tsFile As Object
+    Dim tsAppend As Object
 
     On Error Resume Next
 
@@ -3380,7 +3863,6 @@ Private Sub chatLog_ChangeSaveToDisk()
             logPath = App.Path & "\chatlogs\" & logDate & ".log"
             If gFSO.FileExists(logPath) = False Then
                 ' Create new log file
-                Dim tsFile As Object
                 Set tsFile = gFSO.CreateTextFile(logPath, False, False)
                 tsFile.Close
 
@@ -3391,7 +3873,6 @@ Private Sub chatLog_ChangeSaveToDisk()
             End If
 
             ' Append chat log
-            Dim tsAppend As Object
             Set tsAppend = gFSO.OpenTextFile(logPath, 8, False, 0)
             tsAppend.Write chatLog.Text & vbCrLf
             tsAppend.Close
