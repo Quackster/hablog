@@ -523,7 +523,7 @@ Begin VB.Form frmSettings
       AutoRedraw = False
       FontTransparent = True
       BorderStyle = 0 'None
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 9
         Left = 720
         Top = 2400
@@ -531,7 +531,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 107
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 8
         Left = 720
         Top = 2160
@@ -539,7 +539,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 108
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 7
         Left = 720
         Top = 1920
@@ -547,7 +547,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 109
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 6
         Left = 720
         Top = 1680
@@ -555,7 +555,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 110
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 5
         Left = 720
         Top = 1440
@@ -563,7 +563,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 111
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 4
         Left = 720
         Top = 1200
@@ -571,7 +571,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 112
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 3
         Left = 720
         Top = 960
@@ -579,7 +579,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 113
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 2
         Left = 720
         Top = 720
@@ -587,7 +587,7 @@ Begin VB.Form frmSettings
         Height = 255
         TabIndex = 114
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 1
         Left = 720
         Top = 480
@@ -676,7 +676,7 @@ Begin VB.Form frmSettings
         Text = "ERROR"
         TabIndex = 105
       End
-      Begin VB.ListBox catprop
+      Begin VB.TextBox catprop
         Index = 0
         Left = 720
         Top = 240
@@ -841,6 +841,21 @@ Begin VB.Form frmSettings
         TabIndex = 117
         WordWrap = -1  'True
         BackStyle = 0 'Transparent
+      End
+      Begin VB.CheckBox guestcategoriesCheck1
+        Caption = "guestcategoriesCheck1"
+        Left = 240
+        Top = 3000
+        Width = 3015
+        Height = 255
+        TabIndex = 200
+      End
+      Begin VB.ListBox guestcategoriesList1
+        Left = 240
+        Top = 3360
+        Width = 6855
+        Height = 615
+        TabIndex = 201
       End
     End
     Begin VB.PictureBox Pictab_guestroom
@@ -1896,6 +1911,21 @@ Begin VB.Form frmSettings
     Top = -120
     Width = 1275
     Height = 2100
+  End
+  Begin VB.PictureBox Pictab_console
+    BackColor = &H80000000&
+    ForeColor = &H80000008&
+    Left = 17880
+    Top = 10200
+    Width = 7575
+    Height = 5055
+    TabIndex = 160
+    ScaleMode = 1
+    AutoRedraw = False
+    FontTransparent = True
+    BorderStyle = 0 'None
+    Appearance = 0 'Flat
+    Visible = 0   'False
   End
 End
 
