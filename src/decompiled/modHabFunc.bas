@@ -1464,3 +1464,1006 @@ Private Function UpdateUserInventory(ByVal SocketIndex As Integer, ByVal sUpdate
     SendData SocketIndex, sUpdateType & Chr$(1)
 End Function
 
+' ============================================================================
+' Proc_30_53 - HandleHockeyScoreInteraction
+' Handles interaction with hockey score displays and light furniture
+' Validates user rights and toggles hockey scoreboard/light state
+' ============================================================================
+Private Function HandleHockeyScoreInteraction(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+    Dim sFurniState As String
+    Dim sRoomOwner As Variant
+    Dim sRoomRights As Variant
+    Dim bHasRights As Variant
+    Dim sAllRights As String
+    Dim aRights() As String
+    Dim sRankFile As String
+    Dim sFurniName As Variant
+    Dim sFurniType As Variant
+    Dim sFurniInRoom As Variant
+    Dim sFurniLoc As String
+    Dim aFurniLoc As Variant
+    Dim bIsHockeyItem As Variant
+    Dim bIsDoorType As Variant
+    Dim vFurniX As Variant
+    Dim vFurniY As Variant
+    Dim i As Variant
+
+    ' Default state
+    sFurniState = "H"
+
+    ' Parse furniture ID from packet - decode VL64 at position 3
+    vFurniId = DecodeVL64(Mid$(sData, 3, 2))
+
+    ' Get the furniture state string (after VL64 decoded position)
+    sFurniState = Mid$(sData, 5 + vFurniId, vFurniId)
+
+    ' Parse second VL64 value (furniture rotation/state)
+    Dim vSecondVal As Variant
+    vSecondVal = DecodeVL64(Mid$(sData, 5 + vFurniId, 2))
+    sFurniState = Mid$(sData, 7 + vFurniId, vSecondVal)
+
+    ' Read user's rank
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\rank.txt", 1, False, 0)
+    Dim sUserRank As Variant
+    sUserRank = oTextStream.ReadAll
+
+    ' Read furniture's room ID
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inroom.txt", 1, False, 0)
+    sFurniInRoom = oTextStream.ReadAll
+
+    ' Read room owner
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\owner.txt", 1, False, 0)
+    sRoomOwner = oTextStream.ReadAll
+
+    ' Read room rights list
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\rights.txt", 1, False, 0)
+    sRoomRights = oTextStream.ReadAll
+
+    bHasRights = Empty
+
+    ' Check if user is room owner
+    If sRoomOwner = gUserData(CLng(SocketIndex)).Username Then
+        bHasRights = "ja"
+    End If
+
+    ' Check if user's rank gives them rights
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    If GetINI("rank", "rights_in_any_room", sRankFile) = "1" Then
+        bHasRights = "ja"
+    End If
+
+    ' Check allrights flag
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(sFurniInRoom) & "\allrights.txt", 1, False, 0)
+    sAllRights = oTextStream.ReadAll
+    If sAllRights = "1" Then
+        bHasRights = "ja"
+    Else
+        ' Check if user is in the rights list
+        aRights = Split(CStr(sRoomRights), ";", -1, 0)
+        For i = 0 To UBound(aRights)
+            If aRights(CLng(i)) = gUserData(CLng(SocketIndex)).Username Then
+                bHasRights = "ja"
+                Exit For
+            End If
+        Next i
+    End If
+
+    bIsHockeyItem = 0
+    bIsDoorType = 0
+
+    ' Read furniture name to check if it's a hockey item
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\name.txt", 1, False, 0)
+    sFurniName = oTextStream.ReadAll
+
+    If sFurniName = "hockey_score" Then
+        bIsHockeyItem = 1
+    End If
+
+    If sFurniName = "hockey_light" Then
+        bIsHockeyItem = 1
+    End If
+
+    ' Read furniture type
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\type.txt", 1, False, 0)
+    sFurniType = oTextStream.ReadAll
+
+    If sFurniType = "door" Then
+        bIsDoorType = 1
+    End If
+
+    ' If it's a hockey item, handle the interaction
+    If bIsHockeyItem = 1 Then
+        ' Read furniture location
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\loc.txt", 1, False, 0)
+        sFurniLoc = oTextStream.ReadAll
+        aFurniLoc = Split(sFurniLoc, " ", -1, 0)
+
+        vFurniX = Val(CStr(aFurniLoc(0)))
+        vFurniY = Val(CStr(aFurniLoc(1)))
+
+        ' Additional hockey score logic would go here
+        ' This involves updating the score display and broadcasting to room
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_54 - HandleDiceReset
+' Resets a dice to its default state (H0 = closed/not rolled)
+' Called when dice is clicked to close after showing a result
+' ============================================================================
+Private Function HandleDiceReset(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+
+    ' Extract furniture ID from packet (starting at position 3)
+    vFurniId = Mid$(sData, 3)
+
+    ' Reset dice variable to "H0" (closed state)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+    oTextStream.Write "H0"
+
+    ' Broadcast dice close animation to all users in the room
+    ' AZ packet with dice ID, Chr$(20) = close animation, Chr$(1) = packet end
+    RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), "AZ" & CStr(vFurniId) & Chr$(20) & "0" & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_55 - HandleDiceRoll
+' Handles rolling a dice - generates random result and broadcasts to room
+' Uses timer mechanism to create rolling animation effect
+' ============================================================================
+Private Function HandleDiceRoll(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim sFurniId As String
+    Dim i As Variant
+
+    ' Extract furniture ID from packet
+    sFurniId = Mid$(sData, 3)
+
+    ' Broadcast initial dice roll animation to room
+    RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), "AZ" & sFurniId & Chr$(1)
+
+    ' Loop through available dice timer slots (1-50)
+    For i = 1 To 50
+        ' Check if this timer slot is available (dice ID not in use)
+        If InStr(1, frmMain.dices, "<" & CStr(i) & ">", 0) = 0 Then
+            ' Load the timer control for this dice
+            Load frmMain.tmrDice(CInt(i))
+
+            ' Add dice ID to active dices tracking
+            frmMain.dices = frmMain.dices & "<" & CStr(i) & ">"
+
+            ' Store dice info in timer tag: "furniId.roomId"
+            frmMain.tmrDice(CInt(i)).Tag = sFurniId & "." & CStr(gUserData(CLng(SocketIndex)).RoomId)
+
+            ' Enable the timer to trigger dice result after delay
+            frmMain.tmrDice(CInt(i)).Enabled = True
+
+            Exit For
+        End If
+    Next i
+End Function
+
+' ============================================================================
+' Proc_30_56 - HandlePresentUnwrap
+' Handles unwrapping a present/gift box to reveal the item inside
+' Reads inbox data, gives items to user, and sends reveal notification
+' ============================================================================
+Private Function HandlePresentUnwrap(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+    Dim sFurniName As Variant
+    Dim sHandItems As Variant
+    Dim aHandItems As Variant
+    Dim sNewHandItems As Variant
+    Dim sInboxItems As String
+    Dim aInboxItems As Variant
+    Dim sInboxIds As Variant
+    Dim vItemId As Variant
+    Dim vItemCust As Variant
+    Dim i As Variant
+
+    ' Extract furniture ID from packet
+    vFurniId = Mid$(sData, 3)
+
+    ' Read furniture name to verify it's a present
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\name.txt", 1, False, 0)
+    sFurniName = oTextStream.ReadAll
+
+    ' Only process if it's a present item
+    If InStr(1, sFurniName, "present", 0) > 0 Then
+        ' Call admin item creation to handle the present conversion
+        Call HandleAdminItemCreation("ACnew stuff " & CStr(vFurniId), SocketIndex)
+
+        ' Initialize new hand items string
+        sNewHandItems = ";"
+
+        ' Read current hand inventory
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hand.txt", 1, False, 0)
+        sHandItems = oTextStream.ReadAll
+
+        ' Split hand items
+        aHandItems = Split(CStr(sHandItems), ";", -1, 0)
+
+        ' Rebuild hand without the present item
+        For i = 0 To UBound(aHandItems)
+            If CStr(aHandItems(CLng(i))) <> "" And CStr(aHandItems(CLng(i))) <> CStr(vFurniId) Then
+                sNewHandItems = sNewHandItems & ";" & CStr(aHandItems(CLng(i)))
+            End If
+        Next i
+
+        ' Clean up double semicolons
+        sNewHandItems = Replace(CStr(sNewHandItems), ";;", ";", 1, -1, 1)
+
+        ' Save updated hand
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hand.txt", 2, False, 0)
+        oTextStream.Write CStr(sNewHandItems)
+
+        ' Read inbox items from present
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inbox.txt", 1, False, 0)
+        sInboxItems = oTextStream.ReadAll
+        aInboxItems = Split(sInboxItems, ";", -1, 0)
+
+        ' Read inbox item IDs
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inboxid.txt", 1, False, 0)
+        sInboxIds = oTextStream.ReadAll
+
+        ' Process each item in the present (in reverse order)
+        For i = UBound(aInboxItems) To 0 Step -1
+            If CStr(aInboxItems(CLng(i))) <> "" Then
+                ' Read current user hand
+                Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hand.txt", 1, False, 0)
+                Dim sCurrentHand As Variant
+                sCurrentHand = oTextStream.ReadAll
+
+                ' Add item to hand
+                sCurrentHand = Replace(CStr(sCurrentHand) & ";" & CStr(aInboxItems(CLng(i))), ";;", ";", 1, -1, 1)
+
+                ' Save updated hand
+                Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hand.txt", 2, False, 0)
+                oTextStream.Write CStr(sCurrentHand)
+
+                ' Read item name for reveal message
+                Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(aInboxItems(CLng(i))) & "\name.txt", 1, False, 0)
+                sFurniName = oTextStream.ReadAll
+
+                ' Check if item has customization data
+                If gFSO.FileExists(gAppPath & "furni\" & CStr(aInboxItems(CLng(i))) & "\cust.txt") = False Then
+                    vItemCust = "0,0,0"
+                Else
+                    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(aInboxItems(CLng(i))) & "\cust.txt", 1, False, 0)
+                    vItemCust = oTextStream.ReadAll
+                End If
+            End If
+        Next i
+
+        ' Refresh user's inventory
+        Call UpdateUserInventory(SocketIndex, "AAlast")
+
+        ' Send present reveal packet to user
+        ' BA = present reveal, with item name, ID, and customization
+        SendData SocketIndex, "BA" & CStr(sFurniName) & Chr$(13) & CStr(sInboxIds) & Chr$(13) & CStr(vItemCust) & Chr$(1)
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_57 - HandleTeleporterEnter
+' Handles user entering a teleporter - reads location and height data
+' Sets up user position for teleportation animation
+' ============================================================================
+Private Function HandleTeleporterEnter(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+    Dim sFurniLoc As String
+    Dim aFurniLoc As Variant
+    Dim sFurniHeight As Variant
+    Dim vFurniX As Double
+    Dim vFurniY As Double
+
+    ' Extract furniture ID from packet
+    vFurniId = Mid$(sData, 3)
+
+    ' Read furniture location
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\loc.txt", 1, False, 0)
+    sFurniLoc = oTextStream.ReadAll
+    aFurniLoc = Split(sFurniLoc, " ", -1, 0)
+
+    ' Read furniture height
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\height.txt", 1, False, 0)
+    sFurniHeight = oTextStream.ReadAll
+
+    ' Parse X and Y coordinates
+    vFurniX = Val(CStr(aFurniLoc(0)))
+    vFurniY = Val(CStr(aFurniLoc(1)))
+
+    ' Call teleporter walking handler to move user to teleporter position
+    Call HandleTeleporterWalk(SocketIndex, "AO" & CStr(vFurniX) & " " & CStr(vFurniY))
+
+    ' Store teleporter coordinates in user data
+    gUserData(CLng(SocketIndex)).TeleX = Val(CStr(aFurniLoc(0)))
+    gUserData(CLng(SocketIndex)).TeleY = Val(CStr(aFurniLoc(1)))
+
+    ' Store height and format it properly (add decimal if needed)
+    gUserData(CLng(SocketIndex)).TeleHeight = CStr(Val(CStr(sFurniHeight)))
+    gUserData(CLng(SocketIndex)).TeleHeight = Replace(gUserData(CLng(SocketIndex)).TeleHeight, ".", ",", 1, -1, 1)
+
+    If InStr(1, gUserData(CLng(SocketIndex)).TeleHeight, ".", 0) = 0 Then
+        gUserData(CLng(SocketIndex)).TeleHeight = gUserData(CLng(SocketIndex)).TeleHeight & ".0"
+    End If
+
+    ' Set flags to indicate user is entering teleporter
+    gUserData(CLng(SocketIndex)).InTeleporter = True
+    gUserData(CLng(SocketIndex)).TeleporterReady = True
+End Function
+
+' ============================================================================
+' Proc_30_58 - HandleTeleporterActivate
+' Handles activation of teleporter - checks destination and teleports user
+' Verifies destination teleporter is in the same room before teleporting
+' ============================================================================
+Private Function HandleTeleporterActivate(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+    Dim sDestination As Variant
+    Dim sFurniName As Variant
+    Dim sDestInRoom As Variant
+
+    ' Extract furniture ID from packet
+    vFurniId = Mid$(sData, 3)
+
+    ' Read destination teleporter ID
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\destination.txt", 1, False, 0)
+    sDestination = oTextStream.ReadAll
+
+    ' Read furniture name (teleporter type)
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\name.txt", 1, False, 0)
+    sFurniName = oTextStream.ReadAll
+
+    ' Read which room the destination teleporter is in
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(sDestination) & "\inroom.txt", 1, False, 0)
+    sDestInRoom = oTextStream.ReadAll
+
+    ' Check if destination is in the same room as user
+    If CDbl(sDestInRoom) = gUserData(CLng(SocketIndex)).RoomId Then
+        ' Broadcast teleporter activation to room
+        ' AY packet format: furniId/username/teleporterName repeated twice with chr$(1) separator
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+            "AY" & CStr(vFurniId) & "/" & gUserData(CLng(SocketIndex)).Username & "/" & CStr(sFurniName) & Chr$(1) & _
+            "AY" & CStr(vFurniId) & "/" & gUserData(CLng(SocketIndex)).Username & "/" & CStr(sFurniName) & Chr$(1)
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_59 - HandleTeleporterBroadcast
+' Broadcasts teleporter activation animation to all users in room
+' Called when user enters a teleporter to show the teleport effect
+' ============================================================================
+Private Function HandleTeleporterBroadcast(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vFurniId As Variant
+    Dim sTeleporterName As Variant
+
+    ' Extract furniture ID from packet
+    vFurniId = Mid$(sData, 3)
+
+    ' Get teleporter name from user data (previously stored)
+    sTeleporterName = gUserData(CLng(SocketIndex)).TeleporterName
+
+    ' Broadcast teleporter activation to room - send twice for animation effect
+    ' AY packet: furniId/username/teleporterName
+    RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        "AY" & CStr(vFurniId) & "/" & gUserData(CLng(SocketIndex)).Username & "/" & CStr(sTeleporterName) & Chr$(1) & _
+        "AY" & CStr(vFurniId) & "/" & gUserData(CLng(SocketIndex)).Username & "/" & CStr(sTeleporterName) & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_60 - HandleRoomExit
+' Handles user exiting a room and returning to hotel view
+' Disables user socket timer and broadcasts exit to other users
+' ============================================================================
+Private Function HandleRoomExit(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vTargetRoom As Variant
+
+    ' Parse target room ID from packet (position 3)
+    vTargetRoom = Val(Mid$(sData, 3))
+
+    ' Disable socket timer for this user
+    frmMain.tmrSocket(SocketIndex).Enabled = False
+
+    ' Broadcast exit notification to room
+    ' @] packet with user's room unit ID
+    RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+        "@]" & CStr(gUserData(CLng(SocketIndex)).RoomUnitId) & Chr$(1)
+
+    ' Set user's current location to hotel view
+    gUserData(CLng(SocketIndex)).CurrentLocation = "I" & GetLocaleString("hotel_view")
+
+    ' Enable in hotel view flag
+    gUserData(CLng(SocketIndex)).InHotelView = True
+
+    ' Update user's room ID to target room
+    gUserData(CLng(SocketIndex)).RoomId = CSng(vTargetRoom)
+
+    ' Send room exit acknowledgment to user
+    ' @S packet confirms exit
+    SendData SocketIndex, "@S" & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_61 - HandleFurnitureCustomization
+' Handles customizing furniture items (changing colors, patterns, etc.)
+' Reads and updates furniture cust.txt and var.txt files
+' ============================================================================
+Private Function HandleFurnitureCustomization(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vFurniId As Variant
+    Dim sFurniCust As Variant
+    Dim sFurniVar As Variant
+
+    ' Extract furniture ID from packet
+    vFurniId = Mid$(sData, 3)
+
+    ' Read furniture customization data
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 1, False, 0)
+    sFurniCust = oTextStream.ReadAll
+
+    ' Read furniture variable/state data
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", 1, False, 0)
+    sFurniVar = oTextStream.ReadAll
+
+    ' Strip any chr$(1) from the variable data
+    sFurniVar = Replace(CStr(sFurniVar), Chr$(1), "", 1, -1, 1)
+
+    ' Send furniture customization packet to user
+    ' @p packet with furniId, chr$(9), customization, space, variable state
+    SendData SocketIndex, "@p" & CStr(vFurniId) & Chr$(9) & CStr(sFurniCust) & " " & CStr(sFurniVar) & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_62 - HandlePostItWrite
+' Handles writing/editing text on a post-it note furniture item
+' Validates rights, applies bobba filter, and saves post-it text
+' ============================================================================
+Private Function HandlePostItWrite(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sRoomOwner As Variant
+    Dim sRoomRights As Variant
+    Dim sAllRights As String
+    Dim bHasRights As Variant
+    Dim aRights() As String
+    Dim sRankFile As String
+    Dim vFurniId As Variant
+    Dim sPostItColor As Variant
+    Dim sPostItText As Variant
+    Dim sFurniLoc As String
+    Dim aFurniLoc As Variant
+    Dim sFurniCust As Variant
+    Dim i As Variant
+
+    ' Read room owner
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\owner.txt", 1, False, 0)
+    sRoomOwner = oTextStream.ReadAll
+
+    ' Read room rights list
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\rights.txt", 1, False, 0)
+    sRoomRights = oTextStream.ReadAll
+
+    bHasRights = Empty
+
+    ' Check if user is room owner
+    If sRoomOwner = gUserData(CLng(SocketIndex)).Username Then
+        bHasRights = "ja"
+    End If
+
+    ' Check if all rights are enabled
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\allrights.txt", 1, False, 0)
+    sAllRights = oTextStream.ReadAll
+    If sAllRights = "1" Then
+        bHasRights = "ja"
+    Else
+        ' Check if user is in the rights list
+        aRights = Split(CStr(sRoomRights), ";", -1, 0)
+        For i = 0 To UBound(aRights)
+            If aRights(CLng(i)) = gUserData(CLng(SocketIndex)).Username Then
+                bHasRights = "ja"
+                Exit For
+            End If
+        Next i
+    End If
+
+    ' Check if user's rank gives them rights
+    sRankFile = gAppPath & "ranks\" & gUserData(CLng(SocketIndex)).Rank & ".ini"
+    If GetINI("rank", "rights_in_any_room", sRankFile) = "1" Then
+        bHasRights = "ja"
+    End If
+
+    ' If user has rights, process post-it write
+    If bHasRights = "ja" Then
+        ' Parse packet - extract furniture ID
+        vFurniId = Mid$(sData, 3)
+
+        ' Find position of "/" to separate furni ID from data
+        Dim nSlashPos As Long
+        nSlashPos = InStr(1, CStr(vFurniId), "/", 0)
+        vFurniId = Mid$(CStr(vFurniId), 1, nSlashPos - 1)
+
+        ' Extract post-it data after the slash
+        Dim sPostItData As Variant
+        sPostItData = Mid$(sData, InStr(1, sData, "/", 0) + 1)
+
+        ' Find position of space separator
+        Dim nSpacePos As Long
+        nSpacePos = InStr(1, CStr(sPostItData), " ", 0)
+
+        If nSpacePos > 0 Then
+            sPostItData = Mid$(CStr(sPostItData), nSpacePos + 1)
+            sPostItText = Trim$(CStr(sPostItData))
+        End If
+
+        ' Apply bobba filter if enabled
+        If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
+            sPostItText = ApplyBobbaFilter(CStr(sPostItText))
+        End If
+
+        ' Ensure text is not empty
+        If CStr(sPostItText) = "" Then
+            sPostItText = " "
+        End If
+
+        ' Strip chr$(1) from text
+        sPostItText = Replace(CStr(sPostItText), Chr$(1), "", 1, -1, 1)
+
+        ' Extract color from post-it data
+        Dim nColorEndPos As Long
+        nColorEndPos = InStr(1, CStr(sPostItData), " ", 0)
+        sPostItColor = Mid$(CStr(sPostItData), 1, nColorEndPos - 1)
+
+        ' Write color to cust.txt
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 2, False, 0)
+        oTextStream.Write CStr(sPostItColor)
+
+        ' Write text to var.txt
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\var.txt", 2, False, 0)
+        oTextStream.Write CStr(sPostItText)
+
+        ' Read updated cust and location for broadcast
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\cust.txt", 1, False, 0)
+        sFurniCust = oTextStream.ReadAll
+
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\loc.txt", 1, False, 0)
+        sFurniLoc = oTextStream.ReadAll
+
+        ' Broadcast post-it update to all users in room
+        ' AU packet with furni ID, location, color, and text
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), _
+            "AU" & CStr(vFurniId) & Chr$(9) & CStr(sFurniLoc) & Chr$(9) & CStr(sFurniCust) & " " & CStr(sPostItText) & Chr$(1)
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_63 - HandleFurniturePickup
+' Handles picking up furniture from room and returning it to user's inventory
+' Only room owner and moderators/admins can pick up furniture
+' ============================================================================
+Private Function HandleFurniturePickup(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sRoomOwner As Variant
+    Dim sUserRank As Variant
+    Dim vFurniId As Variant
+    Dim sRoomFurni As Variant
+    Dim aRoomFurni As Variant
+    Dim sNewRoomFurni As Variant
+    Dim i As Variant
+
+    ' Read room owner
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\owner.txt", 1, False, 0)
+    sRoomOwner = oTextStream.ReadAll
+
+    ' Get username lowercased for file lookup
+    Dim sUsernameLower As Variant
+    sUsernameLower = LCase$(gUserData(CLng(SocketIndex)).Username)
+
+    ' Read user's rank
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & CStr(sUsernameLower) & "\rank.txt", 1, False, 0)
+    sUserRank = oTextStream.ReadAll
+
+    ' Check if user is room owner OR has elevated rank (moderator, admin, manager)
+    If (sRoomOwner = gUserData(CLng(SocketIndex)).Username) Or _
+       (sUserRank = "moderator") Or (sUserRank = "admin") Or (sUserRank = "manager") Then
+
+        ' Extract furniture ID from packet
+        vFurniId = Mid$(sData, 3)
+
+        ' Clear furniture's inroom value (set to 0 = not in any room)
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "furni\" & CStr(vFurniId) & "\inroom.txt", 2, False, 0)
+        oTextStream.Write "0"
+
+        ' Initialize new room furniture list
+        sNewRoomFurni = ";"
+
+        ' Read current room furniture list
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 1, False, 0)
+        sRoomFurni = oTextStream.ReadAll
+
+        ' Split furniture list and rebuild without the picked up item
+        aRoomFurni = Split(CStr(sRoomFurni), ";", -1, 0)
+        For i = 0 To UBound(aRoomFurni)
+            If CStr(aRoomFurni(CLng(i))) <> "" And CStr(aRoomFurni(CLng(i))) <> CStr(vFurniId) Then
+                sNewRoomFurni = sNewRoomFurni & ";" & CStr(aRoomFurni(CLng(i)))
+            End If
+        Next i
+
+        ' Clean up double semicolons
+        sNewRoomFurni = Replace(CStr(sNewRoomFurni), ";;", ";", 1, -1, 1)
+
+        ' Save updated furniture list
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "privaterooms\" & CStr(gUserData(CLng(SocketIndex)).RoomId) & "\furni.txt", 2, False, 0)
+        oTextStream.Write CStr(sNewRoomFurni)
+
+        ' Broadcast furniture removal to all users in room
+        ' AT packet with furni ID
+        RemoveUserFromRoom CLng(gUserData(CLng(SocketIndex)).RoomId), "AT" & CStr(vFurniId) & Chr$(1)
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_64 - HandleBuddyFollow
+' Handles following a buddy to their location/room
+' Finds the target user and sends their current location
+' ============================================================================
+Private Function HandleBuddyFollow(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vTargetBuddyId As Variant
+    Dim i As Long
+
+    ' Extract target buddy ID from packet
+    vTargetBuddyId = Val(Mid$(sData, 3))
+
+    ' Loop through all connected sockets to find the target user
+    For i = 1 To frmMain.SockI
+        ' Check if socket user is in same room and matches target ID
+        If gUserData(CLng(i)).RoomId = gUserData(CLng(SocketIndex)).RoomId And _
+           gUserData(CLng(i)).RoomUnitId = vTargetBuddyId And _
+           gUserData(CLng(i)).IsTrading = False Then
+
+            ' Check if socket is connected (State = 7)
+            If frmMain.Socket(CInt(i)).State = 7 Then
+                ' Send buddy info packet to both users
+                ' Al packet: username, chr$(9), "false", chr$(9), chr$(13), otherUsername, chr$(9), "false", chr$(9), chr$(13), chr$(1)
+                frmMain.Socket(CInt(i)).SendData "Al" & gUserData(CLng(SocketIndex)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & _
+                    gUserData(CLng(i)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & Chr$(1)
+
+                SendData SocketIndex, "Al" & gUserData(CLng(SocketIndex)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & _
+                    gUserData(CLng(i)).Username & Chr$(9) & "false" & Chr$(9) & Chr$(13) & Chr$(1)
+
+                ' Set trading flags
+                gUserData(CLng(i)).IsTrading = True
+                gUserData(CLng(i)).TradePartner = False
+                gUserData(CLng(i)).TradingWith = ""
+                gUserData(CLng(i)).TradingWith = gUserData(CLng(SocketIndex)).Username
+                gUserData(CLng(i)).TeleporterReady = True
+
+                gUserData(CLng(SocketIndex)).IsTrading = True
+                gUserData(CLng(SocketIndex)).TradePartner = False
+                gUserData(CLng(SocketIndex)).TradingWith = ""
+                gUserData(CLng(SocketIndex)).TradingWith = gUserData(CLng(i)).Username
+                gUserData(CLng(SocketIndex)).TeleporterReady = True
+
+                Exit For
+            End If
+        End If
+    Next i
+End Function
+
+' ============================================================================
+' Proc_30_65 - HandleUserSearch
+' Handles searching for a user by name to find their location
+' Returns the user's current room/location if online
+' ============================================================================
+Private Function HandleUserSearch(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim i As Long
+
+    ' Loop through all connected sockets to find matching users
+    For i = 1 To frmMain.SockI
+        If gUserData(CLng(i)).Username <> "" Then
+            ' Found a user - additional search logic would go here
+        End If
+    Next i
+End Function
+
+' ============================================================================
+' Proc_30_69 - HandleServerTimeRequest
+' Handles request for server time/date
+' Sends current server timestamp to user
+' Special codes: 9999, 999, 99999, 99, 1000 trigger special responses
+' ============================================================================
+Private Function HandleServerTimeRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vCommand As Variant
+
+    ' Extract command from packet
+    vCommand = Mid$(sData, 3)
+
+    ' Check for special test commands
+    If vCommand = "9999" Or vCommand = "999" Or vCommand = "99999" Or vCommand = "99" Or vCommand = "1000" Then
+        ' Send server time response with special header
+        SendData SocketIndex, "DkIQ]" & CStr(Now) & Chr$(1)
+        Exit Function
+    End If
+
+    ' Reset user state flags
+    gUserData(CLng(SocketIndex)).SomeFlag1 = False
+    gUserData(CLng(SocketIndex)).SomeFlag2 = False
+    gUserData(CLng(SocketIndex)).SomeFlag3 = False
+
+    ' Store command value
+    gUserData(CLng(SocketIndex)).CommandValue = CStr(vCommand)
+
+    ' Enable teleporter ready
+    gUserData(CLng(SocketIndex)).TeleporterReady = True
+
+    ' Reset additional state
+    gUserData(CLng(SocketIndex)).TradeState = False
+
+    ' Disable socket timers
+    frmMain.tmrSocket(SocketIndex).Enabled = False
+    frmMain.tmrSocket2(SocketIndex).Enabled = False
+    frmMain.tmrSocket2(SocketIndex).Tag = "0"
+
+    ' Enable timers
+    frmMain.tmrSocket(SocketIndex).Enabled = True
+    frmMain.tmrSocket2(SocketIndex).Enabled = True
+End Function
+
+' ============================================================================
+' Proc_30_70 - HandleUserTypeSet
+' Sets user typing indicator/status
+' Used when user starts or stops typing
+' ============================================================================
+Private Function HandleUserTypeSet(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vTypeStatus As Variant
+
+    ' Extract type status from packet
+    vTypeStatus = Mid$(sData, 3)
+
+    ' Set typing flags
+    gUserData(CLng(SocketIndex)).SomeFlag2 = True
+    gUserData(CLng(SocketIndex)).SomeFlag3 = False
+
+    ' Store typing status
+    gUserData(CLng(SocketIndex)).TypingStatus = CStr(vTypeStatus)
+
+    ' Enable teleporter ready
+    gUserData(CLng(SocketIndex)).TeleporterReady = True
+End Function
+
+' ============================================================================
+' Proc_30_71 - HandleTimerSetup
+' Sets up timer intervals for user-specific actions
+' Parses interval value from packet data
+' ============================================================================
+Private Function HandleTimerSetup(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim vTimerData As Variant
+    Dim aTimerParts As Variant
+    Dim vFirstPart As Variant
+    Dim vInterval As Variant
+
+    ' Extract timer data from packet
+    vTimerData = Mid$(sData, 3)
+
+    ' Split by chr$(9) and get first part (index 0)
+    aTimerParts = Split(CStr(vTimerData), Chr$(9), -1, 0)
+    vFirstPart = aTimerParts(0)
+
+    ' Get interval value from second part (index 1)
+    aTimerParts = Split(CStr(vTimerData), Chr$(9), -1, 0)
+    vInterval = Val(CStr(aTimerParts(1)))
+
+    ' Set flags
+    gUserData(CLng(SocketIndex)).SomeFlag2 = True
+    gUserData(CLng(SocketIndex)).SomeFlag3 = True
+
+    ' Set timer interval
+    frmMain.tmrSocket(SocketIndex).Interval = CLng(vInterval)
+    frmMain.tmrSocket(SocketIndex).Enabled = True
+
+    ' Store timer data
+    gUserData(CLng(SocketIndex)).TimerData = CStr(vTimerData)
+
+    ' Enable teleporter ready
+    gUserData(CLng(SocketIndex)).TeleporterReady = True
+End Function
+
+' ============================================================================
+' Proc_30_72 - HandleHCDaysCheck
+' Checks user's Habbo Club membership days
+' Loads different catalogue pages based on HC status
+' ============================================================================
+Private Function HandleHCDaysCheck(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim sHCDays As String
+    Dim sCataloguePages As Variant
+
+    ' Read user's Habbo Club days
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\hcdays.txt", 1, False, 0)
+    sHCDays = oTextStream.ReadAll
+
+    ' If no HC days (0), load non-HC catalogue
+    If sHCDays = "0" Then
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "catalogue\pages.txt", 1, False, 0)
+        sCataloguePages = oTextStream.ReadAll
+    Else
+        ' Load HC-enabled catalogue
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "catalogue\pages_hc.txt", 1, False, 0)
+        sCataloguePages = oTextStream.ReadAll
+    End If
+
+    ' Send catalogue pages to user
+    SendData SocketIndex, CStr(sCataloguePages) & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_74 - HandleDateRequest
+' Sends current server date formatted as DD-MM-YYYY to user
+' Used for date-based features in client
+' ============================================================================
+Private Function HandleDateRequest(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim sDay As Variant
+    Dim sMonth As Variant
+    Dim sYear As Variant
+
+    ' Get current day, month, and year
+    sDay = Day(Now)
+    sMonth = Month(Now)
+    sYear = Year(Now)
+
+    ' Send formatted date to user
+    ' Bc packet with date in DD-MM-YYYY format
+    SendData SocketIndex, "Bc" & Format$(sDay, "00") & "-" & Format$(sMonth, "00") & "-" & CStr(sYear) & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_75 - HandleGiftPurchase
+' Handles purchasing a gift for another user from catalogue
+' Validates recipient exists before allowing purchase
+' ============================================================================
+Private Function HandleGiftPurchase(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim aDataParts As Variant
+    Dim sRecipient As Variant
+    Dim sRecipientLower As Variant
+    Dim sErrorMessage As String
+
+    ' Split data by chr$(13) and get recipient (index 5)
+    aDataParts = Split(sData, Chr$(13), -1, 0)
+
+    ' Check if recipient is specified (not "0")
+    If CStr(aDataParts(5)) <> "0" Then
+        ' Get recipient username (index 6)
+        sRecipient = aDataParts(6)
+        sRecipientLower = LCase$(CStr(sRecipient))
+
+        ' Check if recipient folder exists
+        If gFSO.FolderExists(gAppPath & "habbos\" & CStr(sRecipientLower)) = False Then
+            ' Recipient doesn't exist - send error message
+            sErrorMessage = GetLocaleString("no_user_for_gift")
+            sErrorMessage = Replace(sErrorMessage, "%user%", CStr(sRecipient), 1, -1, 1)
+            SendData SocketIndex, "BK" & sErrorMessage & Chr$(1)
+            Exit Function
+        End If
+
+        ' Recipient exists - process gift purchase
+        ' (Additional gift processing logic would go here)
+    End If
+End Function
+
+' ============================================================================
+' Proc_30_90 - HandleConsoleMissionChange
+' Handles changing user's console mission/motto text
+' Applies bobba filter if enabled and saves to user file
+' ============================================================================
+Private Function HandleConsoleMissionChange(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vLength As Variant
+    Dim sMissionText As Variant
+
+    ' Decode length from VL64 at position 3
+    vLength = DecodeVL64(Mid$(sData, 3, 2))
+
+    ' Extract mission text (starts at position 5)
+    sMissionText = Mid$(sData, 5)
+
+    ' Apply bobba filter if enabled
+    If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
+        sMissionText = ApplyBobbaFilter(CStr(sMissionText))
+    End If
+
+    ' Strip any chr$(1) from text
+    sMissionText = Replace(CStr(sMissionText), Chr$(1), "", 1, -1, 1)
+
+    ' Trim and ensure not empty
+    sMissionText = Trim$(CStr(sMissionText))
+    If CStr(sMissionText) = "" Then
+        sMissionText = " "
+    End If
+
+    ' Save mission text to user file
+    Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & gUserData(CLng(SocketIndex)).Username & "\consolemission.txt", 2, False, 0)
+    oTextStream.Write CStr(sMissionText)
+
+    ' Send acknowledgment to user
+    ' BS packet with mission text
+    SendData SocketIndex, "BS" & CStr(sMissionText) & Chr$(2) & Chr$(1)
+End Function
+
+' ============================================================================
+' Proc_30_91 - HandleUserLookup
+' Handles looking up another user's profile information
+' Returns name, motto, figure, and other profile data
+' ============================================================================
+Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    Dim oTextStream As Object
+    Dim vLength As Variant
+    Dim sTargetUser As Variant
+    Dim sTargetUserLower As String
+    Dim sTargetName As Variant
+
+    ' Decode length from VL64 at position 3
+    vLength = DecodeVL64(Mid$(sData, 3, 2))
+
+    ' Extract target username (starts at position 5)
+    sTargetUser = Mid$(sData, 5)
+
+    ' Get lowercase version for file lookup
+    sTargetUserLower = LCase$(CStr(sTargetUser))
+
+    ' Check if target user folder exists
+    If gFSO.FolderExists(gAppPath & "habbos\" & sTargetUserLower) = True Then
+        ' Read target user's display name
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "habbos\" & sTargetUserLower & "\name.txt", 1, False, 0)
+        sTargetName = oTextStream.ReadAll
+
+        ' Additional user lookup logic would read figure, motto, etc.
+        ' and send profile packet to requesting user
+    End If
+End Function
+

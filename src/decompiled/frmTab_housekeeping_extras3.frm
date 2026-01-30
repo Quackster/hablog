@@ -29,6 +29,295 @@ Begin VB.Form frmTab_housekeeping_extras3
     AutoSize = -1  'True
     BorderStyle = 0 'None
     Appearance = 0 'Flat
+    Begin VB.TextBox Text28
+      Left = 1920
+      Top = 4395
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 189
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text27
+      Left = 1920
+      Top = 4035
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 188
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text26
+      Left = 1920
+      Top = 3675
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 187
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text25
+      Left = 1920
+      Top = 3315
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 186
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text11
+      Left = 1920
+      Top = 2955
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 185
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text10
+      Left = 1920
+      Top = 2595
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 184
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text9
+      Left = 1920
+      Top = 2235
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 183
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.TextBox Text8
+      Left = 1920
+      Top = 1875
+      Width = 1815
+      Height = 195
+      Enabled = 0   'False
+      TabIndex = 172
+      BorderStyle = 0 'None
+      Alignment = 2 'Center
+    End
+    Begin VB.ComboBox Combo2
+      Left = 1800
+      Top = 1320
+      Width = 2055
+      Height = 315
+      Enabled = 0   'False
+      Text = "-- Choose --"
+      TabIndex = 171
+    End
+    Begin VB.ComboBox Combo1
+      Left = 1800
+      Top = 960
+      Width = 2055
+      Height = 315
+      Text = "-- Choose  --"
+      TabIndex = 170
+    End
+    Begin VB.Label Label33
+      Caption = "Poolfigure:"
+      Left = -360
+      Top = 4320
+      Width = 2055
+      Height = 255
+      TabIndex = 190
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Image Image9
+      Picture = "frmTab_housekeeping_extras3.frx":00047622
+      Left = 1800
+      Top = 4320
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image8
+      Picture = "frmTab_housekeeping_extras3.frx":00049974
+      Left = 1800
+      Top = 3960
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image7
+      Picture = "frmTab_housekeeping_extras3.frx":0004BCC6
+      Left = 1800
+      Top = 3600
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image6
+      Picture = "frmTab_housekeeping_extras3.frx":0004E018
+      Left = 1800
+      Top = 3240
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image4
+      Picture = "frmTab_housekeeping_extras3.frx":0005036A
+      Left = 1800
+      Top = 2880
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image3
+      Picture = "frmTab_housekeeping_extras3.frx":000526BC
+      Left = 1800
+      Top = 2520
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image2
+      Picture = "frmTab_housekeeping_extras3.frx":00054A0E
+      Left = 1800
+      Top = 2160
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Image Image5
+      Picture = "frmTab_housekeeping_extras3.frx":00056D60
+      Left = 1800
+      Top = 1800
+      Width = 2025
+      Height = 330
+    End
+    Begin VB.Label headWelcome
+      Caption = "Hebbos"
+      Index = 0
+      ForeColor = &HFFFFFF&
+      Left = 360
+      Top = 240
+      Width = 3255
+      Height = 255
+      TabIndex = 182
+      Alignment = 2 'Center
+      BackStyle = 0 'Transparent
+      BeginProperty Font
+        Name = "Verdana"
+        Size = 8.25
+        Charset = 0
+        Weight = 700
+        Underline = 0 'False
+        Italic = 0 'False
+        Strikethrough = 0 'False
+      EndProperty
+    End
+    Begin VB.Image Image1
+      Index = 3
+      Picture = "frmTab_housekeeping_extras3.frx":000590B2
+      Left = 3600
+      Top = 180
+      Width = 360
+      Height = 330
+    End
+    Begin VB.Label Label32
+      Caption = "Choose Hebbo:"
+      Left = -240
+      Top = 980
+      Width = 1935
+      Height = 255
+      TabIndex = 181
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Image Command9
+      Picture = "frmTab_housekeeping_extras3.frx":00059724
+      Left = 240
+      Top = 4720
+      Width = 3705
+      Height = 300
+    End
+    Begin VB.Label Label9
+      Caption = "Username:"
+      Left = -240
+      Top = 1800
+      Width = 1935
+      Height = 255
+      TabIndex = 180
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label10
+      Caption = "Password:"
+      Left = -240
+      Top = 2160
+      Width = 1935
+      Height = 255
+      TabIndex = 179
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label11
+      Caption = "Mission:"
+      Left = -240
+      Top = 2520
+      Width = 1935
+      Height = 255
+      TabIndex = 178
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label12
+      Caption = "Choose Rank:"
+      Left = -240
+      Top = 1320
+      Width = 1935
+      Height = 255
+      TabIndex = 177
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label13
+      Caption = "Credits:"
+      Left = -360
+      Top = 2880
+      Width = 2055
+      Height = 255
+      TabIndex = 176
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label29
+      Caption = "E-Mail:"
+      Left = -360
+      Top = 3240
+      Width = 2055
+      Height = 255
+      TabIndex = 175
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label30
+      Caption = "Birthdate:"
+      Left = -360
+      Top = 3600
+      Width = 2055
+      Height = 255
+      TabIndex = 174
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
+    Begin VB.Label Label31
+      Caption = "Badges:"
+      Left = -360
+      Top = 3960
+      Width = 2055
+      Height = 255
+      TabIndex = 173
+      Alignment = 1 'Right Justify
+      BackStyle = 0 'Transparent
+    End
   End
   Begin TabDlg.SSTab SSTab1
     Left = 7080
@@ -37,6 +326,1448 @@ Begin VB.Form frmTab_housekeeping_extras3
     Height = 7815
     TabIndex = 0
     OleObjectBlob = "frmTab_housekeeping_extras3.frx":0005D186
+    Begin VB.Frame Frame14
+      Caption = "Console"
+      Left = -74760
+      Top = 4200
+      Width = 4575
+      Height = 855
+      TabIndex = 162
+      Begin VB.TextBox Text24
+        Left = 3480
+        Top = 360
+        Width = 975
+        Height = 285
+        TabIndex = 164
+        Appearance = 0 'Flat
+      End
+      Begin VB.Label Label23
+        Caption = "Max Friends in List:"
+        Left = 120
+        Top = 360
+        Width = 3255
+        Height = 255
+        TabIndex = 163
+        Alignment = 1 'Right Justify
+      End
+    End
+    Begin VB.Frame Frame13
+      Caption = "Restore Rooms"
+      Left = -74760
+      Top = 4920
+      Width = 4575
+      Height = 1455
+      TabIndex = 150
+      Begin VB.CommandButton Command20
+        Caption = "Restore"
+        Left = 240
+        Top = 840
+        Width = 4095
+        Height = 375
+        TabIndex = 152
+      End
+      Begin VB.ComboBox Combo5
+        Left = 240
+        Top = 360
+        Width = 4095
+        Height = 315
+        Text = " -- Deleted Rooms -- "
+        TabIndex = 151
+      End
+    End
+    Begin VB.Frame Frame12
+      Caption = "HC Presents"
+      Left = -74760
+      Top = 840
+      Width = 4575
+      Height = 6015
+      TabIndex = 110
+      Begin VB.CommandButton Command19
+        Caption = "Save changes"
+        Left = 2400
+        Top = 5400
+        Width = 1935
+        Height = 375
+        TabIndex = 139
+      End
+      Begin VB.CommandButton Command18
+        Caption = "Chancel"
+        Left = 240
+        Top = 5400
+        Width = 1935
+        Height = 375
+        TabIndex = 138
+      End
+      Begin VB.TextBox Text20
+        Left = 3000
+        Top = 4920
+        Width = 1455
+        Height = 285
+        TabIndex = 135
+      End
+      Begin VB.TextBox Text19
+        Left = 3000
+        Top = 4560
+        Width = 1455
+        Height = 285
+        TabIndex = 134
+      End
+      Begin VB.TextBox hcpresent
+        Index = 10
+        Left = 600
+        Top = 3960
+        Width = 3615
+        Height = 285
+        TabIndex = 122
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 9
+        Left = 600
+        Top = 3720
+        Width = 3615
+        Height = 285
+        TabIndex = 121
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 8
+        Left = 600
+        Top = 3480
+        Width = 3615
+        Height = 285
+        TabIndex = 120
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 7
+        Left = 600
+        Top = 3240
+        Width = 3615
+        Height = 285
+        TabIndex = 119
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 6
+        Left = 600
+        Top = 3000
+        Width = 3615
+        Height = 285
+        TabIndex = 118
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 5
+        Left = 600
+        Top = 2760
+        Width = 3615
+        Height = 285
+        TabIndex = 117
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 4
+        Left = 600
+        Top = 2520
+        Width = 3615
+        Height = 285
+        TabIndex = 116
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 3
+        Left = 600
+        Top = 2280
+        Width = 3615
+        Height = 285
+        TabIndex = 115
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 2
+        Left = 600
+        Top = 2040
+        Width = 3615
+        Height = 285
+        TabIndex = 114
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 1
+        Left = 600
+        Top = 1800
+        Width = 3615
+        Height = 285
+        TabIndex = 113
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox hcpresent
+        Index = 0
+        Left = 600
+        Top = 1560
+        Width = 3615
+        Height = 285
+        TabIndex = 112
+        Appearance = 0 'Flat
+      End
+      Begin VB.Label Label25
+        Caption = "Extrabadge(s) => 12 month"
+        Left = 120
+        Top = 4920
+        Width = 2895
+        Height = 255
+        TabIndex = 137
+      End
+      Begin VB.Label Label24
+        Caption = "Extrabadge(s) 1 - 11 Month:"
+        Left = 120
+        Top = 4560
+        Width = 2895
+        Height = 255
+        TabIndex = 136
+      End
+      Begin VB.Label m
+        Caption = "11"
+        Index = 10
+        Left = 120
+        Top = 3960
+        Width = 495
+        Height = 255
+        TabIndex = 133
+      End
+      Begin VB.Label m
+        Caption = "10"
+        Index = 9
+        Left = 120
+        Top = 3720
+        Width = 495
+        Height = 255
+        TabIndex = 132
+      End
+      Begin VB.Label m
+        Caption = "9"
+        Index = 8
+        Left = 120
+        Top = 3480
+        Width = 495
+        Height = 255
+        TabIndex = 131
+      End
+      Begin VB.Label m
+        Caption = "8"
+        Index = 7
+        Left = 120
+        Top = 3240
+        Width = 495
+        Height = 255
+        TabIndex = 130
+      End
+      Begin VB.Label m
+        Caption = "7"
+        Index = 6
+        Left = 120
+        Top = 3000
+        Width = 495
+        Height = 255
+        TabIndex = 129
+      End
+      Begin VB.Label m
+        Caption = "6"
+        Index = 5
+        Left = 120
+        Top = 2760
+        Width = 495
+        Height = 255
+        TabIndex = 128
+      End
+      Begin VB.Label m
+        Caption = "5"
+        Index = 4
+        Left = 120
+        Top = 2520
+        Width = 495
+        Height = 255
+        TabIndex = 127
+      End
+      Begin VB.Label m
+        Caption = "4"
+        Index = 3
+        Left = 120
+        Top = 2280
+        Width = 495
+        Height = 255
+        TabIndex = 126
+      End
+      Begin VB.Label m
+        Caption = "3"
+        Index = 2
+        Left = 120
+        Top = 2040
+        Width = 495
+        Height = 255
+        TabIndex = 125
+      End
+      Begin VB.Label m
+        Caption = "2"
+        Index = 1
+        Left = 120
+        Top = 1800
+        Width = 495
+        Height = 255
+        TabIndex = 124
+      End
+      Begin VB.Label m
+        Caption = "1"
+        Index = 0
+        Left = 120
+        Top = 1560
+        Width = 495
+        Height = 255
+        TabIndex = 123
+      End
+      Begin VB.Label Label22
+        Left = 240
+        Top = 240
+        Width = 4095
+        Height = 1335
+        TabIndex = 111
+      End
+    End
+    Begin VB.Frame Frame11
+      Caption = "Other rights"
+      Left = -74760
+      Top = 5640
+      Width = 4575
+      Height = 1455
+      TabIndex = 103
+      Begin VB.TextBox Text18
+        Left = 120
+        Top = 1080
+        Width = 4335
+        Height = 285
+        TabIndex = 109
+      End
+      Begin VB.CheckBox Check8
+        Caption = "Rights in any Room"
+        Left = 2280
+        Top = 240
+        Width = 2175
+        Height = 255
+        TabIndex = 108
+      End
+      Begin VB.CheckBox Check7
+        Caption = "Recrieve Calls for Help"
+        Left = 2280
+        Top = 480
+        Width = 2055
+        Height = 255
+        TabIndex = 107
+      End
+      Begin VB.CheckBox Check6
+        Caption = "Enter any room"
+        Left = 120
+        Top = 720
+        Width = 2055
+        Height = 255
+        TabIndex = 106
+      End
+      Begin VB.CheckBox Check5
+        Caption = "Always see room owner"
+        Left = 120
+        Top = 480
+        Width = 2055
+        Height = 255
+        TabIndex = 105
+      End
+      Begin VB.CheckBox Check4
+        Caption = "Admin Catalogue"
+        Left = 120
+        Top = 240
+        Width = 2055
+        Height = 255
+        TabIndex = 104
+      End
+    End
+    Begin VB.CommandButton Command17
+      Caption = "Save Changes"
+      Left = -72360
+      Top = 7200
+      Width = 2175
+      Height = 375
+      TabIndex = 102
+    End
+    Begin VB.CommandButton Command16
+      Caption = "Chancel"
+      Left = -74760
+      Top = 7200
+      Width = 2175
+      Height = 375
+      TabIndex = 101
+    End
+    Begin VB.CommandButton Command8
+      Caption = "Chancel"
+      Left = 360
+      Top = 5040
+      Width = 1935
+      Height = 375
+      Enabled = 0   'False
+      TabIndex = 100
+    End
+    Begin VB.Frame Frame10
+      Caption = "Mod-Tool"
+      Left = -72360
+      Top = 4080
+      Width = 2175
+      Height = 1575
+      TabIndex = 93
+      Begin VB.CheckBox mtool
+        Caption = "Roomkick"
+        Index = 4
+        Left = 120
+        Top = 1200
+        Width = 1935
+        Height = 255
+        TabIndex = 99
+      End
+      Begin VB.CheckBox mtool
+        Caption = "Roomalert"
+        Index = 3
+        Left = 120
+        Top = 960
+        Width = 1935
+        Height = 255
+        TabIndex = 98
+      End
+      Begin VB.CheckBox mtool
+        Caption = "Ban User"
+        Index = 2
+        Left = 120
+        Top = 720
+        Width = 1935
+        Height = 255
+        TabIndex = 97
+      End
+      Begin VB.CheckBox mtool
+        Caption = "Alert User"
+        Index = 1
+        Left = 120
+        Top = 480
+        Width = 1935
+        Height = 255
+        TabIndex = 96
+      End
+      Begin VB.CheckBox mtool
+        Caption = "Kick User"
+        Index = 0
+        Left = 120
+        Top = 240
+        Width = 1935
+        Height = 255
+        TabIndex = 95
+      End
+    End
+    Begin VB.Frame Frame9
+      Caption = "Badges"
+      Left = -74760
+      Top = 4080
+      Width = 2175
+      Height = 1575
+      TabIndex = 92
+      Begin VB.TextBox Text17
+        Left = 120
+        Top = 240
+        Width = 1935
+        Height = 1095
+        TabIndex = 94
+        MultiLine = -1  'True
+        ScrollBars = 2
+      End
+    End
+    Begin VB.Frame Frame5
+      Caption = "Speech Commands"
+      Left = -74760
+      Top = 1080
+      Width = 4575
+      Height = 3015
+      TabIndex = 78
+      Begin VB.CheckBox rights
+        Caption = ":infobus"
+        Index = 20
+        Left = 120
+        Top = 2640
+        Width = 1575
+        Height = 255
+        TabIndex = 165
+      End
+      Begin VB.CheckBox rights
+        Caption = ":openroom"
+        Index = 19
+        Left = 2280
+        Top = 2400
+        Width = 1575
+        Height = 255
+        TabIndex = 155
+      End
+      Begin VB.CheckBox rights
+        Caption = ":closeroom"
+        Index = 18
+        Left = 120
+        Top = 2400
+        Width = 1575
+        Height = 255
+        TabIndex = 154
+      End
+      Begin VB.CheckBox rights
+        Caption = ":unban"
+        Index = 17
+        Left = 2280
+        Top = 2160
+        Width = 1575
+        Height = 255
+        TabIndex = 153
+      End
+      Begin VB.CheckBox rights
+        Caption = ":deleteroom"
+        Index = 16
+        Left = 120
+        Top = 2160
+        Width = 1575
+        Height = 255
+        TabIndex = 143
+      End
+      Begin VB.CheckBox rights
+        Caption = ":takebadge"
+        Index = 15
+        Left = 2280
+        Top = 1920
+        Width = 1575
+        Height = 255
+        TabIndex = 142
+      End
+      Begin VB.CheckBox rights
+        Caption = ":givebadge"
+        Index = 14
+        Left = 120
+        Top = 1920
+        Width = 1575
+        Height = 255
+        TabIndex = 141
+      End
+      Begin VB.CheckBox rights
+        Caption = ":takecredits"
+        Index = 13
+        Left = 2280
+        Top = 1680
+        Width = 1575
+        Height = 255
+        TabIndex = 140
+      End
+      Begin VB.CheckBox rights
+        Caption = ":userdata"
+        Index = 12
+        Left = 2280
+        Top = 1440
+        Width = 1575
+        Height = 255
+        TabIndex = 91
+      End
+      Begin VB.CheckBox rights
+        Caption = ":hotelalert"
+        Index = 11
+        Left = 2280
+        Top = 1200
+        Width = 1575
+        Height = 255
+        TabIndex = 90
+      End
+      Begin VB.CheckBox rights
+        Caption = ":credits"
+        Index = 10
+        Left = 2280
+        Top = 960
+        Width = 1575
+        Height = 255
+        TabIndex = 89
+      End
+      Begin VB.CheckBox rights
+        Caption = ":whosonline"
+        Index = 9
+        Left = 2280
+        Top = 720
+        Width = 1575
+        Height = 255
+        TabIndex = 88
+      End
+      Begin VB.CheckBox rights
+        Caption = ":voucher"
+        Index = 8
+        Left = 2280
+        Top = 480
+        Width = 1575
+        Height = 255
+        TabIndex = 87
+      End
+      Begin VB.CheckBox rights
+        Caption = ":superban"
+        Index = 7
+        Left = 2280
+        Top = 240
+        Width = 1575
+        Height = 255
+        TabIndex = 86
+      End
+      Begin VB.CheckBox rights
+        Caption = ":roomunmute"
+        Index = 6
+        Left = 120
+        Top = 1680
+        Width = 1575
+        Height = 255
+        TabIndex = 85
+      End
+      Begin VB.CheckBox rights
+        Caption = ":roomshutup"
+        Index = 5
+        Left = 120
+        Top = 1440
+        Width = 1575
+        Height = 255
+        TabIndex = 84
+      End
+      Begin VB.CheckBox rights
+        Caption = ":unmute"
+        Index = 4
+        Left = 120
+        Top = 1200
+        Width = 1575
+        Height = 255
+        TabIndex = 83
+      End
+      Begin VB.CheckBox rights
+        Caption = ":shutup"
+        Index = 3
+        Left = 120
+        Top = 960
+        Width = 1575
+        Height = 255
+        TabIndex = 82
+      End
+      Begin VB.CheckBox rights
+        Caption = ":ban"
+        Index = 2
+        Left = 120
+        Top = 720
+        Width = 1575
+        Height = 255
+        TabIndex = 81
+      End
+      Begin VB.CheckBox rights
+        Caption = ":alert"
+        Index = 1
+        Left = 120
+        Top = 480
+        Width = 1575
+        Height = 255
+        TabIndex = 80
+      End
+      Begin VB.CheckBox rights
+        Caption = ":kick"
+        Index = 0
+        Left = 120
+        Top = 240
+        Width = 1575
+        Height = 255
+        TabIndex = 79
+      End
+    End
+    Begin VB.ComboBox Combo4
+      Left = -74760
+      Top = 720
+      Width = 4575
+      Height = 315
+      Text = " Ranks"
+      TabIndex = 77
+    End
+    Begin VB.CommandButton Command15
+      Caption = "Save Replacement"
+      Left = -72360
+      Top = 2880
+      Width = 2175
+      Height = 375
+      Enabled = 0   'False
+      TabIndex = 67
+    End
+    Begin VB.TextBox Text16
+      Left = -72360
+      Top = 2520
+      Width = 2175
+      Height = 285
+      Text = "bobba"
+      TabIndex = 65
+    End
+    Begin VB.CommandButton Command14
+      Caption = "Save changes"
+      Left = -72360
+      Top = 6960
+      Width = 2055
+      Height = 375
+      TabIndex = 48
+    End
+    Begin VB.CommandButton Command13
+      Caption = "Chancel"
+      Left = -74760
+      Top = 6960
+      Width = 2055
+      Height = 375
+      TabIndex = 47
+    End
+    Begin VB.Frame Frame7
+      Caption = "Edit rooms"
+      Left = -74760
+      Top = 840
+      Width = 4575
+      Height = 3975
+      TabIndex = 29
+      Begin VB.TextBox Text15
+        Left = 2280
+        Top = 840
+        Width = 2055
+        Height = 285
+        Enabled = 0   'False
+        TabIndex = 41
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text14
+        Left = 2280
+        Top = 1920
+        Width = 2055
+        Height = 285
+        Enabled = 0   'False
+        TabIndex = 39
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text13
+        Left = 2280
+        Top = 1560
+        Width = 2055
+        Height = 285
+        Enabled = 0   'False
+        TabIndex = 38
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text12
+        Left = 2280
+        Top = 1200
+        Width = 2055
+        Height = 285
+        Enabled = 0   'False
+        TabIndex = 37
+        Appearance = 0 'Flat
+      End
+      Begin VB.CommandButton Command12
+        Caption = "Chancel"
+        Left = 240
+        Top = 2400
+        Width = 4095
+        Height = 375
+        Enabled = 0   'False
+        TabIndex = 33
+      End
+      Begin VB.CommandButton Command11
+        Caption = "Save changes"
+        Left = 240
+        Top = 2880
+        Width = 4095
+        Height = 375
+        Enabled = 0   'False
+        TabIndex = 32
+      End
+      Begin VB.CommandButton Command10
+        Caption = "Delete Room"
+        Left = 240
+        Top = 3360
+        Width = 4095
+        Height = 375
+        Enabled = 0   'False
+        TabIndex = 31
+      End
+      Begin VB.ComboBox Combo3
+        Left = 240
+        Top = 360
+        Width = 4095
+        Height = 315
+        Text = " -- Roomlist -- "
+        TabIndex = 30
+      End
+      Begin VB.Label room_id
+        Caption = "0"
+        Left = 240
+        Top = 840
+        Width = 615
+        Height = 255
+        Visible = 0   'False
+        TabIndex = 42
+      End
+      Begin VB.Label Label17
+        Caption = "Owner:"
+        Left = 360
+        Top = 840
+        Width = 1815
+        Height = 255
+        TabIndex = 40
+        Alignment = 1 'Right Justify
+      End
+      Begin VB.Label Label16
+        Caption = "Password:"
+        Left = 360
+        Top = 1920
+        Width = 1815
+        Height = 255
+        TabIndex = 36
+        Alignment = 1 'Right Justify
+      End
+      Begin VB.Label Label15
+        Caption = "Description:"
+        Left = 360
+        Top = 1560
+        Width = 1815
+        Height = 255
+        TabIndex = 35
+        Alignment = 1 'Right Justify
+      End
+      Begin VB.Label Label14
+        Caption = "Name:"
+        Left = 360
+        Top = 1200
+        Width = 1815
+        Height = 255
+        TabIndex = 34
+        Alignment = 1 'Right Justify
+      End
+    End
+    Begin VB.CommandButton Command7
+      Caption = "Load into editor"
+      Left = 2400
+      Top = 840
+      Width = 2415
+      Height = 300
+      TabIndex = 28
+    End
+    Begin VB.Frame Frame6
+      Caption = "Habbo editor"
+      Left = 240
+      Top = 1440
+      Width = 4575
+      Height = 3375
+      TabIndex = 27
+    End
+    Begin VB.CommandButton Command6
+      Caption = "Save changes"
+      Left = -72480
+      Top = 6240
+      Width = 2175
+      Height = 375
+      TabIndex = 26
+    End
+    Begin VB.CommandButton Command5
+      Caption = "Chancel"
+      Left = -74760
+      Top = 6240
+      Width = 2175
+      Height = 375
+      TabIndex = 25
+    End
+    Begin VB.Frame Frame4
+      Caption = "Settings"
+      Left = -74760
+      Top = 2640
+      Width = 4575
+      Height = 3495
+      TabIndex = 22
+      Begin VB.TextBox Text7
+        Left = 2640
+        Top = 720
+        Width = 1575
+        Height = 285
+        Enabled = 0   'False
+        TabIndex = 161
+        Appearance = 0 'Flat
+      End
+      Begin VB.CheckBox Check2
+        Caption = "Welcome Alert"
+        Left = 240
+        Top = 720
+        Width = 4215
+        Height = 255
+        TabIndex = 160
+      End
+      Begin VB.TextBox Text23
+        Left = 2160
+        Top = 1680
+        Width = 2175
+        Height = 1455
+        TabIndex = 159
+        MultiLine = -1  'True
+        ScrollBars = 2
+      End
+      Begin VB.TextBox Text22
+        Left = 240
+        Top = 2040
+        Width = 1815
+        Height = 285
+        Text = "More infos"
+        TabIndex = 158
+      End
+      Begin VB.TextBox Text21
+        Left = 240
+        Top = 1680
+        Width = 1815
+        Height = 285
+        Text = "http://url.de"
+        TabIndex = 157
+      End
+      Begin VB.CheckBox Check10
+        Caption = "Register console Message:"
+        Left = 240
+        Top = 1320
+        Width = 3975
+        Height = 255
+        TabIndex = 156
+      End
+      Begin VB.CheckBox Check3
+        Caption = "Console enabled"
+        Left = 240
+        Top = 480
+        Width = 3975
+        Height = 255
+        TabIndex = 24
+      End
+      Begin VB.CheckBox Check1
+        Caption = "Bobbafilter enabled"
+        Left = 240
+        Top = 240
+        Width = 3975
+        Height = 255
+        TabIndex = 23
+      End
+      Begin VB.Shape Shape1
+        BorderColor = &H80000000&
+        Left = 120
+        Top = 1200
+        Width = 4335
+        Height = 1995
+      End
+    End
+    Begin VB.CommandButton Command4
+      Caption = "- Remove"
+      Left = -72360
+      Top = 1560
+      Width = 2175
+      Height = 375
+      TabIndex = 20
+    End
+    Begin VB.CommandButton Command3
+      Caption = "+ Add"
+      Left = -72360
+      Top = 1080
+      Width = 2175
+      Height = 375
+      TabIndex = 19
+    End
+    Begin VB.ListBox List1
+      Left = -74760
+      Top = 1080
+      Width = 2175
+      Height = 4515
+      TabIndex = 18
+      Sorted = -1  'True
+      Appearance = 0 'Flat
+    End
+    Begin VB.Frame Frame3
+      Caption = "Connection"
+      Left = -74760
+      Top = 1560
+      Width = 4575
+      Height = 975
+      TabIndex = 15
+      Begin VB.TextBox Text6
+        Left = 1920
+        Top = 360
+        Width = 2295
+        Height = 285
+        TabIndex = 17
+        Appearance = 0 'Flat
+      End
+      Begin VB.Label Label6
+        Caption = "Server port:"
+        Left = 120
+        Top = 360
+        Width = 1695
+        Height = 255
+        TabIndex = 16
+        Alignment = 1 'Right Justify
+      End
+    End
+    Begin VB.CommandButton Command2
+      Caption = "Save changes"
+      Left = -72360
+      Top = 5160
+      Width = 2175
+      Height = 375
+      TabIndex = 14
+    End
+    Begin VB.CommandButton Command1
+      Caption = "Chancel"
+      Left = -74760
+      Top = 5160
+      Width = 2175
+      Height = 375
+      TabIndex = 13
+    End
+    Begin VB.Frame Frame2
+      Caption = "Furni"
+      Left = -74760
+      Top = 2760
+      Width = 4575
+      Height = 1335
+      TabIndex = 8
+      Begin VB.TextBox Text5
+        Left = 3480
+        Top = 720
+        Width = 975
+        Height = 285
+        TabIndex = 12
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text4
+        Left = 3480
+        Top = 360
+        Width = 975
+        Height = 285
+        TabIndex = 10
+        Appearance = 0 'Flat
+      End
+      Begin VB.Label Label5
+        Caption = "Max pets per Room:"
+        Left = 240
+        Top = 720
+        Width = 3135
+        Height = 255
+        TabIndex = 11
+        Alignment = 1 'Right Justify
+      End
+      Begin VB.Label Label4
+        Caption = "Max rollers per Room:"
+        Left = 240
+        Top = 360
+        Width = 3135
+        Height = 255
+        TabIndex = 9
+        Alignment = 1 'Right Justify
+      End
+    End
+    Begin VB.Frame Frame1
+      Caption = "Rooms"
+      Left = -74760
+      Top = 960
+      Width = 4575
+      Height = 1695
+      TabIndex = 1
+      Begin VB.TextBox Text3
+        Left = 3480
+        Top = 1200
+        Width = 975
+        Height = 285
+        TabIndex = 4
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text2
+        Left = 3480
+        Top = 720
+        Width = 975
+        Height = 285
+        TabIndex = 3
+        Appearance = 0 'Flat
+      End
+      Begin VB.TextBox Text1
+        Left = 3480
+        Top = 360
+        Width = 975
+        Height = 285
+        TabIndex = 2
+        Appearance = 0 'Flat
+      End
+      Begin VB.Label Label3
+        Caption = "Max Favouriterooms:"
+        Left = 120
+        Top = 1080
+        Width = 3255
+        Height = 255
+        TabIndex = 7
+        Alignment = 1 'Right Justify
+      End
+      Begin VB.Label Label2
+        Caption = "Max Rooms in List:"
+        Left = 120
+        Top = 720
+        Width = 3255
+        Height = 255
+        TabIndex = 6
+        Alignment = 1 'Right Justify
+        BackStyle = 0 'Transparent
+      End
+      Begin VB.Label Label1
+        Caption = "Max Rooms per User:"
+        Left = 120
+        Top = 360
+        Width = 3255
+        Height = 255
+        TabIndex = 5
+        Alignment = 1 'Right Justify
+      End
+    End
+    Begin VB.Frame Frame8
+      Caption = "Enable/Disable and rename"
+      Left = -74760
+      Top = 960
+      Width = 4455
+      Height = 5895
+      TabIndex = 43
+      Begin VB.TextBox catname
+        Index = 9
+        Left = 840
+        Top = 3840
+        Width = 2775
+        Height = 285
+        TabIndex = 149
+      End
+      Begin VB.ListBox catprop
+        Index = 9
+        Left = 240
+        Top = 3840
+        Width = 495
+        Height = 255
+        TabIndex = 148
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 9
+        Left = 3960
+        Top = 3840
+        Width = 255
+        Height = 255
+        TabIndex = 147
+      End
+      Begin VB.TextBox catname
+        Index = 8
+        Left = 840
+        Top = 3480
+        Width = 2775
+        Height = 285
+        TabIndex = 146
+      End
+      Begin VB.ListBox catprop
+        Index = 8
+        Left = 240
+        Top = 3480
+        Width = 495
+        Height = 255
+        TabIndex = 145
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 8
+        Left = 3960
+        Top = 3480
+        Width = 255
+        Height = 255
+        TabIndex = 144
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 7
+        Left = 3960
+        Top = 3120
+        Width = 255
+        Height = 255
+        TabIndex = 75
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 6
+        Left = 3960
+        Top = 2760
+        Width = 255
+        Height = 255
+        TabIndex = 74
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 5
+        Left = 3960
+        Top = 2400
+        Width = 255
+        Height = 255
+        TabIndex = 73
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 4
+        Left = 3960
+        Top = 2040
+        Width = 255
+        Height = 255
+        TabIndex = 72
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 3
+        Left = 3960
+        Top = 1680
+        Width = 255
+        Height = 255
+        TabIndex = 71
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 2
+        Left = 3960
+        Top = 1320
+        Width = 255
+        Height = 255
+        TabIndex = 70
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 1
+        Left = 3960
+        Top = 960
+        Width = 255
+        Height = 255
+        TabIndex = 69
+      End
+      Begin VB.CheckBox allowtraden
+        Index = 0
+        Left = 3960
+        Top = 600
+        Width = 255
+        Height = 255
+        TabIndex = 68
+      End
+      Begin VB.ListBox catprop
+        Index = 1
+        Left = 240
+        Top = 960
+        Width = 495
+        Height = 255
+        TabIndex = 64
+      End
+      Begin VB.ListBox catprop
+        Index = 2
+        Left = 240
+        Top = 1320
+        Width = 495
+        Height = 255
+        TabIndex = 63
+      End
+      Begin VB.ListBox catprop
+        Index = 3
+        Left = 240
+        Top = 1680
+        Width = 495
+        Height = 255
+        TabIndex = 62
+      End
+      Begin VB.ListBox catprop
+        Index = 4
+        Left = 240
+        Top = 2040
+        Width = 495
+        Height = 255
+        TabIndex = 61
+      End
+      Begin VB.ListBox catprop
+        Index = 5
+        Left = 240
+        Top = 2400
+        Width = 495
+        Height = 255
+        TabIndex = 60
+      End
+      Begin VB.ListBox catprop
+        Index = 6
+        Left = 240
+        Top = 2760
+        Width = 495
+        Height = 255
+        TabIndex = 59
+      End
+      Begin VB.ListBox catprop
+        Index = 7
+        Left = 240
+        Top = 3120
+        Width = 495
+        Height = 255
+        TabIndex = 58
+      End
+      Begin VB.TextBox catname
+        Index = 1
+        Left = 840
+        Top = 960
+        Width = 2775
+        Height = 285
+        TabIndex = 57
+      End
+      Begin VB.TextBox catname
+        Index = 2
+        Left = 840
+        Top = 1320
+        Width = 2775
+        Height = 285
+        TabIndex = 56
+      End
+      Begin VB.TextBox catname
+        Index = 3
+        Left = 840
+        Top = 1680
+        Width = 2775
+        Height = 285
+        TabIndex = 55
+      End
+      Begin VB.TextBox catname
+        Index = 4
+        Left = 840
+        Top = 2040
+        Width = 2775
+        Height = 285
+        TabIndex = 54
+      End
+      Begin VB.TextBox catname
+        Index = 5
+        Left = 840
+        Top = 2400
+        Width = 2775
+        Height = 285
+        TabIndex = 53
+      End
+      Begin VB.TextBox catname
+        Index = 6
+        Left = 840
+        Top = 2760
+        Width = 2775
+        Height = 285
+        TabIndex = 52
+      End
+      Begin VB.TextBox catname
+        Index = 7
+        Left = 840
+        Top = 3120
+        Width = 2775
+        Height = 285
+        TabIndex = 51
+      End
+      Begin VB.ListBox catprop
+        Index = 0
+        Left = 240
+        Top = 600
+        Width = 495
+        Height = 255
+        TabIndex = 49
+      End
+      Begin VB.TextBox catname
+        Index = 0
+        Left = 840
+        Top = 600
+        Width = 2775
+        Height = 285
+        TabIndex = 44
+      End
+      Begin VB.Label Label21
+        Caption = "Trading:"
+        Left = 3600
+        Top = 360
+        Width = 735
+        Height = 255
+        TabIndex = 76
+      End
+      Begin VB.Label Label20
+        Caption = "Enable: 0 = Disabled 1 = Enabled 2 = Enabled and admins only can post rooms there"
+        Left = 0
+        Top = 4440
+        Width = 4455
+        Height = 1335
+        TabIndex = 50
+        Alignment = 2 'Center
+        BackStyle = 0 'Transparent
+        BeginProperty Font
+          Name = "Microsoft Sans Serif"
+          Size = 9
+          Charset = 0
+          Weight = 400
+          Underline = 0 'False
+          Italic = 0 'False
+          Strikethrough = 0 'False
+        EndProperty
+      End
+      Begin VB.Label Label19
+        Caption = "Change name:"
+        Left = 840
+        Top = 360
+        Width = 3495
+        Height = 255
+        TabIndex = 46
+      End
+      Begin VB.Label Label18
+        Caption = "Enable"
+        Left = 240
+        Top = 360
+        Width = 495
+        Height = 255
+        TabIndex = 45
+      End
+    End
+    Begin VB.Label Label28
+      Caption = "Credits:"
+      Left = 480
+      Top = 3600
+      Width = 2055
+      Height = 255
+      TabIndex = 168
+      Alignment = 1 'Right Justify
+    End
+    Begin VB.Label Label27
+      Caption = "Credits:"
+      Left = 360
+      Top = 3600
+      Width = 2055
+      Height = 255
+      TabIndex = 167
+      Alignment = 1 'Right Justify
+    End
+    Begin VB.Label Label26
+      Caption = "E-Mail:"
+      Left = 480
+      Top = 3480
+      Width = 2055
+      Height = 255
+      TabIndex = 166
+      Alignment = 1 'Right Justify
+    End
+    Begin VB.Image Image1
+      Index = 0
+      Left = -74760
+      Top = 6600
+      Width = 4440
+      Height = 915
+    End
+    Begin VB.Label Label8
+      Caption = "Replacement:"
+      Left = -72360
+      Top = 2280
+      Width = 2175
+      Height = 255
+      TabIndex = 66
+    End
+    Begin VB.Label Label7
+      Caption = "Here you can edit some Settings for the Server."
+      Left = -74760
+      Top = 840
+      Width = 4455
+      Height = 495
+      TabIndex = 21
+    End
   End
 End
 
@@ -73,26 +1804,6 @@ Private Sub Form_Load()
     End If
 
     ' Load localized captions
-    LoadLocaleCaptions
-
-    ' Populate user list combo
-    PopulateUserList
-
-    ' Populate rank combo
-    PopulateRankList
-
-    ' Load deleted rooms for restore
-    PopulateDeletedRooms
-
-    ' Load server settings
-    LoadServerSettings
-
-    ' Load HC presents settings
-    LoadHCPresents
-End Sub
-
-Private Sub LoadLocaleCaptions()
-    ' Load locale strings for UI elements
     Me.Label7.Caption = GetLocaleString("settings_welcometext")
     Me.Frame3.Caption = GetLocaleString("settings_connectionframe")
     Me.Frame4.Caption = GetLocaleString("settings_mainsettingsframe")
@@ -123,254 +1834,63 @@ Private Sub LoadLocaleCaptions()
     Me.Label13.Caption = GetLocaleString("credits")
     Me.Command3.Caption = GetLocaleString("addbutton")
     Me.Command4.Caption = GetLocaleString("removebutton")
-
-    ' Set combo placeholder
     Me.Combo1.Text = " -- " & GetLocaleString("choose_a_user") & " -- "
+    Me.Combo3.Text = " -- " & GetLocaleString("roomlist_combo") & " -- "
+    Me.Frame5.Caption = GetLocaleString("speach_commands")
+    Me.Frame9.Caption = GetLocaleString("badges")
+    Me.Frame10.Caption = GetLocaleString("modtool")
+    Me.Frame7.Caption = GetLocaleString("edit_room")
+    Me.Frame8.Caption = GetLocaleString("categorie_editor_frame")
+    Me.Command18.Caption = GetLocaleString("chancelbutton")
+    Me.Command19.Caption = GetLocaleString("savebutton")
+    Me.Label18.Caption = GetLocaleString("enable")
+    Me.Label19.Caption = GetLocaleString("change_name")
+    Me.Command13.Caption = GetLocaleString("chancelbutton")
+    Me.Command14.Caption = GetLocaleString("savebutton")
+    Me.Command10.Caption = GetLocaleString("deletebutton")
+    Me.Command11.Caption = GetLocaleString("savebutton")
+    Me.Command12.Caption = GetLocaleString("chancelbutton")
+    Me.Command16.Caption = GetLocaleString("chancelbutton")
+    Me.Command17.Caption = GetLocaleString("savebutton")
+    Me.Command8.Caption = GetLocaleString("chancelbutton")
+    Me.Command20.Caption = GetLocaleString("restore_room")
+
+    ' Populate user list combo
+    PopulateUserList
+
+    ' Populate rank combo
+    PopulateRankList
+
+    ' Populate room list
+    PopulateRoomList
+
+    ' Populate deleted rooms for restore
+    PopulateDeletedRooms
+
+    ' Load server settings
+    LoadServerSettings
+
+    ' Load HC presents settings
+    LoadHCPresents
+
+    ' Load category settings
+    LoadCategorySettings
+
+    ' Load bobba replacement
+    Me.Text16.Text = GetINI("bobba", "replacement", gSettingsFile)
 End Sub
 
-Private Sub PopulateUserList()
-    Dim oFolder As Object
-    Dim oSubFolder As Object
-    Dim sHabbosPath As String
-
-    sHabbosPath = gAppPath & "habbos\"
-
-    If gFSO.FolderExists(sHabbosPath) Then
-        Set oFolder = gFSO.GetFolder(sHabbosPath)
-        For Each oSubFolder In oFolder.SubFolders
-            Me.Combo1.AddItem oSubFolder.Name
-        Next oSubFolder
-    End If
-End Sub
-
-Private Sub PopulateRankList()
-    Dim oFolder As Object
-    Dim oSubFolder As Object
-    Dim sRanksPath As String
-
-    sRanksPath = gAppPath & "ranks\"
-
-    Me.Combo2.Clear
-    Me.Combo4.Clear
-
-    If gFSO.FolderExists(sRanksPath) Then
-        Set oFolder = gFSO.GetFolder(sRanksPath)
-        For Each oSubFolder In oFolder.SubFolders
-            Me.Combo2.AddItem oSubFolder.Name
-            Me.Combo4.AddItem oSubFolder.Name
-        Next oSubFolder
-    End If
-End Sub
-
-Private Sub PopulateDeletedRooms()
-    Dim oFolder As Object
-    Dim oSubFolder As Object
-    Dim sDeletedPath As String
-
-    sDeletedPath = gAppPath & "privaterooms_deleted\"
-
-    Me.Combo5.Clear
-
-    If gFSO.FolderExists(sDeletedPath) Then
-        Set oFolder = gFSO.GetFolder(sDeletedPath)
-        For Each oSubFolder In oFolder.SubFolders
-            Me.Combo5.AddItem oSubFolder.Name
-        Next oSubFolder
-    End If
-End Sub
-
-Private Sub LoadServerSettings()
-    ' Load server port
-    Me.Text6.Text = GetINI("server", "port", gSettingsFile)
-
-    ' Load bobba filter setting
-    If GetINI("config", "bobba_filter", gSettingsFile) = "1" Then
-        Me.Check1.Value = 1
+Private Sub Check10_Click()
+    ' Toggle register console message fields
+    If Me.Check10.Value = 0 Then
+        Me.Text21.Enabled = False
+        Me.Text22.Enabled = False
+        Me.Text23.Enabled = False
     Else
-        Me.Check1.Value = 0
+        Me.Text21.Enabled = True
+        Me.Text22.Enabled = True
+        Me.Text23.Enabled = True
     End If
-
-    ' Load console setting
-    If GetINI("config", "console", gSettingsFile) = "1" Then
-        Me.Check3.Value = 1
-    Else
-        Me.Check3.Value = 0
-    End If
-
-    ' Load welcome message setting
-    Dim vParts As Variant
-    Dim sWelcome As String
-    sWelcome = GetINI("config", "welcome_message", gSettingsFile)
-    If InStr(sWelcome, ",") > 0 Then
-        vParts = Split(sWelcome, ",")
-        Me.Check2.Value = CInt(vParts(0))
-        Me.Text7.Text = CStr(vParts(1))
-    End If
-
-    ' Load room limits
-    Me.Text1.Text = GetINI("limits", "max_rooms_per_user", gSettingsFile)
-    Me.Text2.Text = GetINI("limits", "max_rooms_in_list", gSettingsFile)
-    Me.Text3.Text = GetINI("limits", "max_favourited_rooms", gSettingsFile)
-    Me.Text4.Text = GetINI("limits", "max_rollers_in_room", gSettingsFile)
-    Me.Text5.Text = GetINI("limits", "max_pets_in_room", gSettingsFile)
-    Me.Text24.Text = GetINI("limits", "max_friends_in_list", gSettingsFile)
-End Sub
-
-Private Sub LoadHCPresents()
-    Dim i As Integer
-
-    ' Load HC present settings
-    For i = 0 To 10
-        Me.hcpresent(i).Text = GetINI("HC", "present" & CStr(i + 1), gSettingsFile)
-    Next i
-
-    ' Load extra badges settings
-    Me.Text19.Text = GetINI("HC", "extrabadge_1_11", gSettingsFile)
-    Me.Text20.Text = GetINI("HC", "extrabadge_12", gSettingsFile)
-End Sub
-
-Private Sub Image1_Click(Index As Integer)
-    ' Close button - hide form
-    Me.Hide
-End Sub
-
-Private Sub Picture2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    ' Allow dragging the form, or hide on right-click
-    If Button = 1 Then
-        ReleaseCapture
-        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
-    Else
-        Me.Hide
-    End If
-End Sub
-
-Private Sub Combo1_Click()
-    ' User selected from combo - load user data
-    Dim sUsername As String
-    Dim sUserPath As String
-
-    sUsername = Me.Combo1.Text
-
-    If sUsername = vbNullString Or Left(sUsername, 3) = " --" Then
-        Exit Sub
-    End If
-
-    sUserPath = gAppPath & "habbos\" & LCase(sUsername) & "\"
-
-    If Not gFSO.FolderExists(sUserPath) Then
-        Exit Sub
-    End If
-
-    ' Load user data into form
-    Me.Text8.Text = sUsername
-    Me.Text9.Text = ReadFile(sUserPath & "password.txt")
-    Me.Text10.Text = ReadFile(sUserPath & "mission.txt")
-    Me.Text11.Text = ReadFile(sUserPath & "credits.txt")
-    Me.Text25.Text = ReadFile(sUserPath & "email.txt")
-    Me.Text26.Text = ReadFile(sUserPath & "birthdate.txt")
-    Me.Text27.Text = ReadFile(sUserPath & "badges.txt")
-    Me.Text28.Text = ReadFile(sUserPath & "poolfigure.txt")
-
-    ' Load rank into combo
-    Dim sRank As String
-    sRank = ReadFile(sUserPath & "rank.txt")
-    Me.Combo2.Text = sRank
-
-    ' Enable fields
-    EnableUserFields True
-End Sub
-
-Private Sub Combo3_Click()
-    ' Room selected from combo - load room data
-    Dim sRoomId As String
-    Dim sRoomPath As String
-
-    sRoomId = Me.Combo3.Text
-
-    If sRoomId = vbNullString Or Left(sRoomId, 3) = " --" Then
-        Exit Sub
-    End If
-
-    sRoomPath = gAppPath & "privaterooms\" & sRoomId & "\"
-
-    If Not gFSO.FolderExists(sRoomPath) Then
-        Exit Sub
-    End If
-
-    ' Store room ID
-    Me.room_id.Caption = sRoomId
-
-    ' Load room data
-    Me.Text15.Text = ReadFile(sRoomPath & "owner.txt")
-    Me.Text12.Text = ReadFile(sRoomPath & "name.txt")
-    Me.Text13.Text = ReadFile(sRoomPath & "description.txt")
-    Me.Text14.Text = ReadFile(sRoomPath & "password.txt")
-
-    ' Enable room fields
-    Me.Text12.Enabled = True
-    Me.Text13.Enabled = True
-    Me.Text14.Enabled = True
-    Me.Command10.Enabled = True
-    Me.Command11.Enabled = True
-    Me.Command12.Enabled = True
-End Sub
-
-Private Sub Combo4_Click()
-    ' Rank selected - load rank settings
-    LoadRankSettings Me.Combo4.Text
-End Sub
-
-Private Sub LoadRankSettings(ByVal sRankName As String)
-    Dim sRankPath As String
-    Dim i As Integer
-
-    sRankPath = gAppPath & "ranks\" & sRankName & "\"
-
-    If Not gFSO.FolderExists(sRankPath) Then
-        Exit Sub
-    End If
-
-    ' Load speech command rights
-    For i = 0 To 20
-        If gFSO.FileExists(sRankPath & "right" & CStr(i) & ".txt") Then
-            Me.rights(i).Value = CInt(ReadFile(sRankPath & "right" & CStr(i) & ".txt"))
-        Else
-            Me.rights(i).Value = 0
-        End If
-    Next i
-
-    ' Load mod-tool rights
-    For i = 0 To 4
-        If gFSO.FileExists(sRankPath & "mtool" & CStr(i) & ".txt") Then
-            Me.mtool(i).Value = CInt(ReadFile(sRankPath & "mtool" & CStr(i) & ".txt"))
-        Else
-            Me.mtool(i).Value = 0
-        End If
-    Next i
-
-    ' Load badges
-    Me.Text17.Text = ReadFile(sRankPath & "badges.txt")
-
-    ' Load other rights
-    Me.Check4.Value = CInt(GetINI("rights", "admin_catalogue", sRankPath & "settings.ini"))
-    Me.Check5.Value = CInt(GetINI("rights", "see_room_owner", sRankPath & "settings.ini"))
-    Me.Check6.Value = CInt(GetINI("rights", "enter_any_room", sRankPath & "settings.ini"))
-    Me.Check7.Value = CInt(GetINI("rights", "receive_cfh", sRankPath & "settings.ini"))
-    Me.Check8.Value = CInt(GetINI("rights", "rights_any_room", sRankPath & "settings.ini"))
-    Me.Text18.Text = GetINI("rights", "other_rights", sRankPath & "settings.ini")
-End Sub
-
-Private Sub EnableUserFields(ByVal bEnable As Boolean)
-    Me.Text8.Enabled = bEnable
-    Me.Text9.Enabled = bEnable
-    Me.Text10.Enabled = bEnable
-    Me.Text11.Enabled = bEnable
-    Me.Text25.Enabled = bEnable
-    Me.Text26.Enabled = bEnable
-    Me.Text27.Enabled = bEnable
-    Me.Text28.Enabled = bEnable
-    Me.Combo2.Enabled = bEnable
-    Me.Command8.Enabled = bEnable
 End Sub
 
 Private Sub Check2_Click()
@@ -378,13 +1898,160 @@ Private Sub Check2_Click()
     Me.Text7.Enabled = (Me.Check2.Value = 1)
 End Sub
 
-Private Sub Check10_Click()
-    ' Toggle register console message fields
-    Dim bEnabled As Boolean
-    bEnabled = (Me.Check10.Value = 1)
-    Me.Text21.Enabled = bEnabled
-    Me.Text22.Enabled = bEnabled
-    Me.Text23.Enabled = bEnabled
+Private Sub Combo1_Click()
+    ' User selected from combo - load user data
+    Dim sUsername As String
+    Dim sUserPath As String
+    Dim oTextStream As Object
+
+    sUsername = Me.Combo1.Text
+
+    ' Check if valid selection (not placeholder)
+    If Left(sUsername, 1) <> " " Then
+        sUserPath = gAppPath & "habbos\" & LCase(sUsername)
+
+        ' Check if user folder exists
+        If gFSO.FolderExists(sUserPath) Then
+            ' Load name.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\name.txt", 1, False, 0)
+            Me.Text8.Text = oTextStream.ReadAll
+
+            ' Load pass.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\pass.txt", 1, False, 0)
+            Me.Text9.Text = oTextStream.ReadAll
+
+            ' Load mission.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\mission.txt", 1, False, 0)
+            Me.Text10.Text = oTextStream.ReadAll
+
+            ' Load email.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\email.txt", 1, False, 0)
+            Me.Text25.Text = oTextStream.ReadAll
+
+            ' Load birth.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\birth.txt", 1, False, 0)
+            Me.Text26.Text = oTextStream.ReadAll
+
+            ' Load badges.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\badges.txt", 1, False, 0)
+            Me.Text27.Text = oTextStream.ReadAll
+
+            ' Load poolfigure.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\poolfigure.txt", 1, False, 0)
+            Me.Text28.Text = oTextStream.ReadAll
+
+            ' Populate rank combo
+            Me.Combo2.Clear
+            Me.Combo2.AddItem "habbo"
+            Me.Combo2.AddItem "habbox"
+            Me.Combo2.AddItem "silver"
+            Me.Combo2.AddItem "gold"
+            Me.Combo2.AddItem "moderator"
+            Me.Combo2.AddItem "admin"
+
+            ' Load rank.txt into combo
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rank.txt", 1, False, 0)
+            Me.Combo2.Text = oTextStream.ReadAll
+
+            ' Load credits.txt
+            Set oTextStream = gFSO.OpenTextFile(sUserPath & "\credits.txt", 1, False, 0)
+            Me.Text11.Text = oTextStream.ReadAll
+
+            ' Enable user fields
+            Me.Text9.Enabled = True
+            Me.Text10.Enabled = True
+            Me.Combo2.Enabled = True
+            Me.Text11.Enabled = True
+            Me.Text28.Enabled = True
+            Me.Text25.Enabled = True
+            Me.Text26.Enabled = True
+            Me.Text27.Enabled = True
+            Me.Command8.Enabled = True
+            Me.Command9.Enabled = True
+        Else
+            MsgBox GetLocaleString("user_doesnt_exists"), vbExclamation, "Server"
+        End If
+    Else
+        MsgBox GetLocaleString("name_invalid"), vbExclamation, "Server"
+    End If
+End Sub
+
+Private Sub Combo3_Click()
+    ' Room selected from combo - load room data
+    Dim sRoomId As String
+    Dim sRoomPath As String
+    Dim oTextStream As Object
+
+    sRoomId = Me.Combo3.Text
+
+    ' Check if valid selection
+    If Left(sRoomId, 1) <> " " Then
+        sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+        If gFSO.FolderExists(sRoomPath) Then
+            ' Store room ID
+            Me.room_id.Caption = sRoomId
+
+            ' Load owner.txt
+            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\owner.txt", 1, False, 0)
+            Me.Text15.Text = oTextStream.ReadAll
+
+            ' Load name.txt
+            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 1, False, 0)
+            Me.Text12.Text = oTextStream.ReadAll
+
+            ' Load description.txt
+            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 1, False, 0)
+            Me.Text13.Text = oTextStream.ReadAll
+
+            ' Load password.txt
+            Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\password.txt", 1, False, 0)
+            Me.Text14.Text = oTextStream.ReadAll
+
+            ' Enable room fields
+            Me.Text12.Enabled = True
+            Me.Text13.Enabled = True
+            Me.Text14.Enabled = True
+            Me.Command10.Enabled = True
+            Me.Command11.Enabled = True
+            Me.Command12.Enabled = True
+        End If
+    End If
+End Sub
+
+Private Sub Combo4_Click()
+    ' Rank selected - load rank settings
+    Dim sRankName As String
+    Dim sRankFile As String
+    Dim i As Integer
+
+    sRankName = Me.Combo4.Text
+    sRankFile = gAppPath & "ranks\" & sRankName & ".ini"
+
+    ' Load speech command rights
+    For i = 0 To 20
+        Me.rights(i).Value = CInt(GetINI("rank", "speech_cmd" & CStr(i), sRankFile))
+    Next i
+
+    ' Load mod-tool rights
+    For i = 0 To 4
+        Me.mtool(i).Value = CInt(GetINI("rank", "mod_tool" & CStr(i), sRankFile))
+    Next i
+
+    ' Load badges
+    Me.Text17.Text = GetINI("rank", "badges", sRankFile)
+
+    ' Load other rights
+    Me.Check4.Value = CInt(GetINI("rank", "admin_catalogue", sRankFile))
+    Me.Check5.Value = CInt(GetINI("rank", "see_room_owner", sRankFile))
+    Me.Check6.Value = CInt(GetINI("rank", "enter_any_room", sRankFile))
+    Me.Check7.Value = CInt(GetINI("rank", "receive_cfh", sRankFile))
+    Me.Check8.Value = CInt(GetINI("rank", "rights_any_room", sRankFile))
+    Me.Text18.Text = GetINI("rank", "other_rights", sRankFile)
+End Sub
+
+Private Sub Combo5_Click()
+    ' Deleted room selected for potential restore
 End Sub
 
 Private Sub Command1_Click()
@@ -394,12 +2061,12 @@ End Sub
 
 Private Sub Command2_Click()
     ' Save button on Limits tab - save settings
-    WriteINI "server", "port", Me.Text6.Text, gSettingsFile
     WriteINI "limits", "max_rooms_per_user", Me.Text1.Text, gSettingsFile
     WriteINI "limits", "max_rooms_in_list", Me.Text2.Text, gSettingsFile
     WriteINI "limits", "max_favourited_rooms", Me.Text3.Text, gSettingsFile
     WriteINI "limits", "max_rollers_in_room", Me.Text4.Text, gSettingsFile
     WriteINI "limits", "max_pets_in_room", Me.Text5.Text, gSettingsFile
+    WriteINI "server", "port", Me.Text6.Text, gSettingsFile
     WriteINI "limits", "max_friends_in_list", Me.Text24.Text, gSettingsFile
 End Sub
 
@@ -408,11 +2075,10 @@ Private Sub Command3_Click()
     Dim sUsername As String
     sUsername = InputBox(GetLocaleString("enter_username"), GetLocaleString("add_user"))
 
-    If sUsername = vbNullString Then Exit Sub
-
-    ' Create user folder and files
-    CreateNewUser sUsername
-    PopulateUserList
+    If sUsername <> vbNullString Then
+        CreateNewUser sUsername
+        PopulateUserList
+    End If
 End Sub
 
 Private Sub Command4_Click()
@@ -420,12 +2086,12 @@ Private Sub Command4_Click()
     Dim sUsername As String
     sUsername = Me.Combo1.Text
 
-    If sUsername = vbNullString Or Left(sUsername, 3) = " --" Then Exit Sub
-
-    If MsgBox(GetLocaleString("confirm_delete_user") & " " & sUsername & "?", vbYesNo + vbQuestion) = vbYes Then
-        DeleteUser sUsername
-        PopulateUserList
-        ClearUserFields
+    If Left(sUsername, 1) <> " " Then
+        If MsgBox(GetLocaleString("confirm_delete_user") & " " & sUsername & "?", vbYesNo + vbQuestion) = vbYes Then
+            DeleteUser sUsername
+            PopulateUserList
+            ClearUserFields
+        End If
     End If
 End Sub
 
@@ -448,10 +2114,9 @@ Private Sub Command7_Click()
     Dim sUsername As String
     sUsername = Me.Combo1.Text
 
-    If sUsername = vbNullString Or Left(sUsername, 3) = " --" Then Exit Sub
-
-    ' Load into Frame6 editor (implementation depends on editor setup)
-    LoadUserEditor sUsername
+    If Left(sUsername, 1) <> " " Then
+        LoadUserEditor sUsername
+    End If
 End Sub
 
 Private Sub Command8_Click()
@@ -467,14 +2132,30 @@ End Sub
 Private Sub Command10_Click()
     ' Delete room button
     Dim sRoomId As String
+    Dim sSrcPath As String
+    Dim sDstPath As String
+
     sRoomId = Me.room_id.Caption
 
-    If sRoomId = "0" Or sRoomId = vbNullString Then Exit Sub
+    If sRoomId <> "0" And sRoomId <> vbNullString Then
+        If MsgBox(GetLocaleString("confirm_delete_room"), vbYesNo + vbQuestion) = vbYes Then
+            sSrcPath = gAppPath & "privaterooms\" & sRoomId
+            sDstPath = gAppPath & "privaterooms_deleted\" & sRoomId
 
-    If MsgBox(GetLocaleString("confirm_delete_room"), vbYesNo + vbQuestion) = vbYes Then
-        DeleteRoom sRoomId
-        PopulateRoomList
-        ClearRoomFields
+            ' Create deleted folder if needed
+            If Not gFSO.FolderExists(gAppPath & "privaterooms_deleted") Then
+                gFSO.CreateFolder gAppPath & "privaterooms_deleted"
+            End If
+
+            ' Move room to deleted folder
+            If gFSO.FolderExists(sSrcPath) Then
+                gFSO.MoveFolder sSrcPath, sDstPath
+            End If
+
+            PopulateRoomList
+            PopulateDeletedRooms
+            ClearRoomFields
+        End If
     End If
 End Sub
 
@@ -501,11 +2182,12 @@ End Sub
 Private Sub Command15_Click()
     ' Save bobba replacement button
     WriteINI "bobba", "replacement", Me.Text16.Text, gSettingsFile
+    Me.Command15.Enabled = False
 End Sub
 
 Private Sub Command16_Click()
     ' Cancel button on Ranks tab
-    LoadRankSettings Me.Combo4.Text
+    Combo4_Click
 End Sub
 
 Private Sub Command17_Click()
@@ -526,12 +2208,38 @@ End Sub
 Private Sub Command20_Click()
     ' Restore deleted room button
     Dim sRoomId As String
+    Dim sSrcPath As String
+    Dim sDstPath As String
+
     sRoomId = Me.Combo5.Text
 
-    If sRoomId = vbNullString Or Left(sRoomId, 3) = " --" Then Exit Sub
+    If Left(sRoomId, 1) <> " " And sRoomId <> vbNullString Then
+        sSrcPath = gAppPath & "privaterooms_deleted\" & sRoomId
+        sDstPath = gAppPath & "privaterooms\" & sRoomId
 
-    RestoreDeletedRoom sRoomId
-    PopulateDeletedRooms
+        ' Move back from deleted folder
+        If gFSO.FolderExists(sSrcPath) Then
+            gFSO.MoveFolder sSrcPath, sDstPath
+        End If
+
+        PopulateDeletedRooms
+        PopulateRoomList
+    End If
+End Sub
+
+Private Sub Image1_Click(Index As Integer)
+    ' Close button - hide form
+    Me.Hide
+End Sub
+
+Private Sub Picture2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    ' Allow dragging the form, or hide on right-click
+    If Button = 1 Then
+        ReleaseCapture
+        SendMessage Me.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&
+    Else
+        Me.Hide
+    End If
 End Sub
 
 Private Sub Text16_Change()
@@ -543,103 +2251,42 @@ Private Sub hcpresent_Change(Index As Integer)
     ' HC present text changed - no immediate action needed
 End Sub
 
-Private Sub SSTab1_DblClick()
-    ' Double-click on tab - show info message
-    MsgBox "Housekeeping Extras 3 - Admin Panel", vbInformation
-End Sub
+Private Sub PopulateUserList()
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim sHabbosPath As String
 
-' Helper functions
+    Me.Combo1.Clear
 
-Private Function ReadFile(ByVal sPath As String) As String
-    Dim oTextStream As Object
+    sHabbosPath = gAppPath & "habbos"
 
-    On Error Resume Next
-
-    If Not gFSO.FileExists(sPath) Then
-        ReadFile = vbNullString
-        Exit Function
-    End If
-
-    Set oTextStream = gFSO.OpenTextFile(sPath, 1, False, 0)
-    ReadFile = oTextStream.ReadAll
-    oTextStream.Close
-End Function
-
-Private Sub WriteFile(ByVal sPath As String, ByVal sContent As String)
-    Dim oTextStream As Object
-
-    Set oTextStream = gFSO.OpenTextFile(sPath, 2, True, 0)
-    oTextStream.Write sContent
-    oTextStream.Close
-End Sub
-
-Private Sub CreateNewUser(ByVal sUsername As String)
-    Dim sUserPath As String
-    sUserPath = gAppPath & "habbos\" & LCase(sUsername) & "\"
-
-    If gFSO.FolderExists(sUserPath) Then
-        MsgBox GetLocaleString("user_already_exists"), vbExclamation
-        Exit Sub
-    End If
-
-    gFSO.CreateFolder sUserPath
-
-    WriteFile sUserPath & "password.txt", "password"
-    WriteFile sUserPath & "mission.txt", ""
-    WriteFile sUserPath & "credits.txt", "0"
-    WriteFile sUserPath & "rank.txt", "1"
-    WriteFile sUserPath & "email.txt", ""
-    WriteFile sUserPath & "birthdate.txt", ""
-    WriteFile sUserPath & "badges.txt", ""
-    WriteFile sUserPath & "rooms.txt", ""
-    WriteFile sUserPath & "hand.txt", ""
-End Sub
-
-Private Sub DeleteUser(ByVal sUsername As String)
-    Dim sUserPath As String
-    sUserPath = gAppPath & "habbos\" & LCase(sUsername)
-
-    If gFSO.FolderExists(sUserPath) Then
-        gFSO.DeleteFolder sUserPath, True
+    If gFSO.FolderExists(sHabbosPath) Then
+        Set oFolder = gFSO.GetFolder(sHabbosPath)
+        For Each oSubFolder In oFolder.SubFolders
+            Me.Combo1.AddItem oSubFolder.Name
+        Next oSubFolder
     End If
 End Sub
 
-Private Sub ClearUserFields()
-    Me.Text8.Text = vbNullString
-    Me.Text9.Text = vbNullString
-    Me.Text10.Text = vbNullString
-    Me.Text11.Text = vbNullString
-    Me.Text25.Text = vbNullString
-    Me.Text26.Text = vbNullString
-    Me.Text27.Text = vbNullString
-    Me.Text28.Text = vbNullString
-    Me.Combo2.Text = "-- Choose --"
-    EnableUserFields False
-End Sub
+Private Sub PopulateRankList()
+    Dim oFolder As Object
+    Dim oFile As Object
+    Dim sRanksPath As String
+    Dim sRankName As String
 
-Private Sub SaveUserData()
-    Dim sUsername As String
-    Dim sUserPath As String
+    Me.Combo4.Clear
 
-    sUsername = Me.Text8.Text
+    sRanksPath = gAppPath & "ranks"
 
-    If sUsername = vbNullString Then Exit Sub
-
-    sUserPath = gAppPath & "habbos\" & LCase(sUsername) & "\"
-
-    WriteFile sUserPath & "password.txt", Me.Text9.Text
-    WriteFile sUserPath & "mission.txt", Me.Text10.Text
-    WriteFile sUserPath & "credits.txt", Me.Text11.Text
-    WriteFile sUserPath & "email.txt", Me.Text25.Text
-    WriteFile sUserPath & "birthdate.txt", Me.Text26.Text
-    WriteFile sUserPath & "badges.txt", Me.Text27.Text
-    WriteFile sUserPath & "poolfigure.txt", Me.Text28.Text
-    WriteFile sUserPath & "rank.txt", Me.Combo2.Text
-End Sub
-
-Private Sub LoadUserEditor(ByVal sUsername As String)
-    ' Load user data for editing in Frame6
-    ' This is a placeholder - implementation depends on Frame6 controls
+    If gFSO.FolderExists(sRanksPath) Then
+        Set oFolder = gFSO.GetFolder(sRanksPath)
+        For Each oFile In oFolder.Files
+            If LCase(Right(oFile.Name, 4)) = ".ini" Then
+                sRankName = Left(oFile.Name, Len(oFile.Name) - 4)
+                Me.Combo4.AddItem sRankName
+            End If
+        Next oFile
+    End If
 End Sub
 
 Private Sub PopulateRoomList()
@@ -647,9 +2294,9 @@ Private Sub PopulateRoomList()
     Dim oSubFolder As Object
     Dim sRoomsPath As String
 
-    sRoomsPath = gAppPath & "privaterooms\"
-
     Me.Combo3.Clear
+
+    sRoomsPath = gAppPath & "privaterooms"
 
     If gFSO.FolderExists(sRoomsPath) Then
         Set oFolder = gFSO.GetFolder(sRoomsPath)
@@ -659,59 +2306,95 @@ Private Sub PopulateRoomList()
     End If
 End Sub
 
-Private Sub ClearRoomFields()
-    Me.room_id.Caption = "0"
-    Me.Text12.Text = vbNullString
-    Me.Text13.Text = vbNullString
-    Me.Text14.Text = vbNullString
-    Me.Text15.Text = vbNullString
-    Me.Text12.Enabled = False
-    Me.Text13.Enabled = False
-    Me.Text14.Enabled = False
-    Me.Command10.Enabled = False
-    Me.Command11.Enabled = False
-    Me.Command12.Enabled = False
-End Sub
+Private Sub PopulateDeletedRooms()
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+    Dim sDeletedPath As String
 
-Private Sub SaveRoomData()
-    Dim sRoomId As String
-    Dim sRoomPath As String
+    Me.Combo5.Clear
 
-    sRoomId = Me.room_id.Caption
+    sDeletedPath = gAppPath & "privaterooms_deleted"
 
-    If sRoomId = "0" Or sRoomId = vbNullString Then Exit Sub
-
-    sRoomPath = gAppPath & "privaterooms\" & sRoomId & "\"
-
-    WriteFile sRoomPath & "name.txt", Me.Text12.Text
-    WriteFile sRoomPath & "description.txt", Me.Text13.Text
-    WriteFile sRoomPath & "password.txt", Me.Text14.Text
-End Sub
-
-Private Sub DeleteRoom(ByVal sRoomId As String)
-    Dim sSrcPath As String
-    Dim sDstPath As String
-
-    sSrcPath = gAppPath & "privaterooms\" & sRoomId
-    sDstPath = gAppPath & "privaterooms_deleted\" & sRoomId
-
-    ' Move to deleted folder
-    If gFSO.FolderExists(sSrcPath) Then
-        gFSO.MoveFolder sSrcPath, sDstPath
+    If gFSO.FolderExists(sDeletedPath) Then
+        Set oFolder = gFSO.GetFolder(sDeletedPath)
+        For Each oSubFolder In oFolder.SubFolders
+            Me.Combo5.AddItem oSubFolder.Name
+        Next oSubFolder
     End If
 End Sub
 
-Private Sub RestoreDeletedRoom(ByVal sRoomId As String)
-    Dim sSrcPath As String
-    Dim sDstPath As String
+Private Sub LoadServerSettings()
+    ' Load server port
+    Me.Text6.Text = GetINI("server", "port", gSettingsFile)
 
-    sSrcPath = gAppPath & "privaterooms_deleted\" & sRoomId
-    sDstPath = gAppPath & "privaterooms\" & sRoomId
+    ' Load bobba filter setting
+    Me.Check1.Value = CInt(GetINI("config", "bobba_filter", gSettingsFile))
 
-    ' Move back from deleted folder
-    If gFSO.FolderExists(sSrcPath) Then
-        gFSO.MoveFolder sSrcPath, sDstPath
+    ' Load console setting
+    Me.Check3.Value = CInt(GetINI("config", "console", gSettingsFile))
+
+    ' Load welcome message setting
+    Dim vParts As Variant
+    Dim sWelcome As String
+    sWelcome = GetINI("config", "welcome_message", gSettingsFile)
+    If InStr(sWelcome, ",") > 0 Then
+        vParts = Split(sWelcome, ",")
+        Me.Check2.Value = CInt(vParts(0))
+        Me.Text7.Text = CStr(vParts(1))
+        Me.Text7.Enabled = (Me.Check2.Value = 1)
     End If
+
+    ' Load register message setting
+    Dim sRegister As String
+    sRegister = GetINI("config", "register_message", gSettingsFile)
+    If InStr(sRegister, ",") > 0 Then
+        vParts = Split(sRegister, ",")
+        Me.Check10.Value = CInt(vParts(0))
+        Me.Text21.Text = CStr(vParts(1))
+        If UBound(vParts) >= 2 Then Me.Text22.Text = CStr(vParts(2))
+        Check10_Click
+    End If
+
+    ' Load register message text
+    If gFSO.FileExists(gAppPath & "register_message.txt") Then
+        Dim oTextStream As Object
+        Set oTextStream = gFSO.OpenTextFile(gAppPath & "register_message.txt", 1, False, 0)
+        Me.Text23.Text = oTextStream.ReadAll
+    End If
+
+    ' Load room limits
+    Me.Text1.Text = GetINI("limits", "max_rooms_per_user", gSettingsFile)
+    Me.Text2.Text = GetINI("limits", "max_rooms_in_list", gSettingsFile)
+    Me.Text3.Text = GetINI("limits", "max_favourited_rooms", gSettingsFile)
+    Me.Text4.Text = GetINI("limits", "max_rollers_in_room", gSettingsFile)
+    Me.Text5.Text = GetINI("limits", "max_pets_in_room", gSettingsFile)
+    Me.Text24.Text = GetINI("limits", "max_friends_in_list", gSettingsFile)
+End Sub
+
+Private Sub LoadHCPresents()
+    Dim i As Integer
+
+    ' Load HC present settings
+    For i = 0 To 10
+        Me.hcpresent(i).Text = GetINI("HC", "present" & CStr(i + 1), gSettingsFile)
+    Next i
+
+    ' Load extra badges settings
+    Me.Text19.Text = GetINI("HC", "extrabadge_1_11", gSettingsFile)
+    Me.Text20.Text = GetINI("HC", "extrabadge_12", gSettingsFile)
+End Sub
+
+Private Sub SaveHCPresents()
+    Dim i As Integer
+
+    ' Save HC present settings
+    For i = 0 To 10
+        WriteINI "HC", "present" & CStr(i + 1), Me.hcpresent(i).Text, gSettingsFile
+    Next i
+
+    ' Save extra badges settings
+    WriteINI "HC", "extrabadge_1_11", Me.Text19.Text, gSettingsFile
+    WriteINI "HC", "extrabadge_12", Me.Text20.Text, gSettingsFile
 End Sub
 
 Private Sub LoadCategorySettings()
@@ -739,44 +2422,207 @@ Private Sub SaveCategorySettings()
 End Sub
 
 Private Sub SaveRankSettings(ByVal sRankName As String)
-    Dim sRankPath As String
+    Dim sRankFile As String
     Dim i As Integer
 
-    sRankPath = gAppPath & "ranks\" & sRankName & "\"
-
-    If Not gFSO.FolderExists(sRankPath) Then Exit Sub
+    sRankFile = gAppPath & "ranks\" & sRankName & ".ini"
 
     ' Save speech command rights
     For i = 0 To 20
-        WriteFile sRankPath & "right" & CStr(i) & ".txt", CStr(Me.rights(i).Value)
+        WriteINI "rank", "speech_cmd" & CStr(i), CStr(Me.rights(i).Value), sRankFile
     Next i
 
     ' Save mod-tool rights
     For i = 0 To 4
-        WriteFile sRankPath & "mtool" & CStr(i) & ".txt", CStr(Me.mtool(i).Value)
+        WriteINI "rank", "mod_tool" & CStr(i), CStr(Me.mtool(i).Value), sRankFile
     Next i
 
     ' Save badges
-    WriteFile sRankPath & "badges.txt", Me.Text17.Text
+    WriteINI "rank", "badges", Me.Text17.Text, sRankFile
 
     ' Save other rights
-    WriteINI "rights", "admin_catalogue", CStr(Me.Check4.Value), sRankPath & "settings.ini"
-    WriteINI "rights", "see_room_owner", CStr(Me.Check5.Value), sRankPath & "settings.ini"
-    WriteINI "rights", "enter_any_room", CStr(Me.Check6.Value), sRankPath & "settings.ini"
-    WriteINI "rights", "receive_cfh", CStr(Me.Check7.Value), sRankPath & "settings.ini"
-    WriteINI "rights", "rights_any_room", CStr(Me.Check8.Value), sRankPath & "settings.ini"
-    WriteINI "rights", "other_rights", Me.Text18.Text, sRankPath & "settings.ini"
+    WriteINI "rank", "admin_catalogue", CStr(Me.Check4.Value), sRankFile
+    WriteINI "rank", "see_room_owner", CStr(Me.Check5.Value), sRankFile
+    WriteINI "rank", "enter_any_room", CStr(Me.Check6.Value), sRankFile
+    WriteINI "rank", "receive_cfh", CStr(Me.Check7.Value), sRankFile
+    WriteINI "rank", "rights_any_room", CStr(Me.Check8.Value), sRankFile
+    WriteINI "rank", "other_rights", Me.Text18.Text, sRankFile
 End Sub
 
-Private Sub SaveHCPresents()
-    Dim i As Integer
+Private Sub ClearUserFields()
+    Me.Text8.Text = vbNullString
+    Me.Text9.Text = vbNullString
+    Me.Text10.Text = vbNullString
+    Me.Text11.Text = vbNullString
+    Me.Text25.Text = vbNullString
+    Me.Text26.Text = vbNullString
+    Me.Text27.Text = vbNullString
+    Me.Text28.Text = vbNullString
+    Me.Combo2.Text = "-- Choose --"
+    Me.Text9.Enabled = False
+    Me.Text10.Enabled = False
+    Me.Combo2.Enabled = False
+    Me.Text11.Enabled = False
+    Me.Text25.Enabled = False
+    Me.Text26.Enabled = False
+    Me.Text27.Enabled = False
+    Me.Text28.Enabled = False
+    Me.Command8.Enabled = False
+    Me.Command9.Enabled = False
+End Sub
 
-    ' Save HC present settings
-    For i = 0 To 10
-        WriteINI "HC", "present" & CStr(i + 1), Me.hcpresent(i).Text, gSettingsFile
-    Next i
+Private Sub ClearRoomFields()
+    Me.room_id.Caption = "0"
+    Me.Text12.Text = vbNullString
+    Me.Text13.Text = vbNullString
+    Me.Text14.Text = vbNullString
+    Me.Text15.Text = vbNullString
+    Me.Text12.Enabled = False
+    Me.Text13.Enabled = False
+    Me.Text14.Enabled = False
+    Me.Command10.Enabled = False
+    Me.Command11.Enabled = False
+    Me.Command12.Enabled = False
+End Sub
 
-    ' Save extra badges settings
-    WriteINI "HC", "extrabadge_1_11", Me.Text19.Text, gSettingsFile
-    WriteINI "HC", "extrabadge_12", Me.Text20.Text, gSettingsFile
+Private Sub SaveUserData()
+    Dim sUsername As String
+    Dim sUserPath As String
+    Dim oTextStream As Object
+
+    sUsername = Me.Text8.Text
+
+    If sUsername = vbNullString Then Exit Sub
+
+    sUserPath = gAppPath & "habbos\" & LCase(sUsername)
+
+    ' Save pass.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\pass.txt", 2, True, 0)
+    oTextStream.Write Me.Text9.Text
+
+    ' Save mission.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\mission.txt", 2, True, 0)
+    oTextStream.Write Me.Text10.Text
+
+    ' Save credits.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\credits.txt", 2, True, 0)
+    oTextStream.Write Me.Text11.Text
+
+    ' Save email.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\email.txt", 2, True, 0)
+    oTextStream.Write Me.Text25.Text
+
+    ' Save birth.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\birth.txt", 2, True, 0)
+    oTextStream.Write Me.Text26.Text
+
+    ' Save badges.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\badges.txt", 2, True, 0)
+    oTextStream.Write Me.Text27.Text
+
+    ' Save poolfigure.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\poolfigure.txt", 2, True, 0)
+    oTextStream.Write Me.Text28.Text
+
+    ' Save rank.txt
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rank.txt", 2, True, 0)
+    oTextStream.Write Me.Combo2.Text
+
+    MsgBox GetLocaleString("user_saved"), vbInformation, "Server"
+End Sub
+
+Private Sub SaveRoomData()
+    Dim sRoomId As String
+    Dim sRoomPath As String
+    Dim oTextStream As Object
+
+    sRoomId = Me.room_id.Caption
+
+    If sRoomId = "0" Or sRoomId = vbNullString Then Exit Sub
+
+    sRoomPath = gAppPath & "privaterooms\" & sRoomId
+
+    ' Save name.txt
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\name.txt", 2, True, 0)
+    oTextStream.Write Me.Text12.Text
+
+    ' Save description.txt
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\description.txt", 2, True, 0)
+    oTextStream.Write Me.Text13.Text
+
+    ' Save password.txt
+    Set oTextStream = gFSO.OpenTextFile(sRoomPath & "\password.txt", 2, True, 0)
+    oTextStream.Write Me.Text14.Text
+
+    MsgBox GetLocaleString("room_saved"), vbInformation, "Server"
+End Sub
+
+Private Sub CreateNewUser(ByVal sUsername As String)
+    Dim sUserPath As String
+    Dim oTextStream As Object
+
+    sUserPath = gAppPath & "habbos\" & LCase(sUsername)
+
+    If gFSO.FolderExists(sUserPath) Then
+        MsgBox GetLocaleString("user_already_exists"), vbExclamation, "Server"
+        Exit Sub
+    End If
+
+    gFSO.CreateFolder sUserPath
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\name.txt", 2, True, 0)
+    oTextStream.Write sUsername
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\pass.txt", 2, True, 0)
+    oTextStream.Write "password"
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\mission.txt", 2, True, 0)
+    oTextStream.Write ""
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\credits.txt", 2, True, 0)
+    oTextStream.Write "0"
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rank.txt", 2, True, 0)
+    oTextStream.Write "habbo"
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\email.txt", 2, True, 0)
+    oTextStream.Write ""
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\birth.txt", 2, True, 0)
+    oTextStream.Write ""
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\badges.txt", 2, True, 0)
+    oTextStream.Write ""
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\poolfigure.txt", 2, True, 0)
+    oTextStream.Write ""
+
+    Set oTextStream = gFSO.OpenTextFile(sUserPath & "\rooms.txt", 2, True, 0)
+    oTextStream.Write "0"
+
+    gFSO.CreateFolder sUserPath & "\directmail"
+
+    MsgBox GetLocaleString("user_created"), vbInformation, "Server"
+End Sub
+
+Private Sub DeleteUser(ByVal sUsername As String)
+    Dim sUserPath As String
+    sUserPath = gAppPath & "habbos\" & LCase(sUsername)
+
+    If gFSO.FolderExists(sUserPath) Then
+        gFSO.DeleteFolder sUserPath, True
+    End If
+End Sub
+
+Private Sub LoadUserEditor(ByVal sUsername As String)
+    ' Load user data for editing in Frame6
+    ' This is handled by Combo1_Click already
+End Sub
+
+Private Sub WriteFile(ByVal sPath As String, ByVal sContent As String)
+    Dim oTextStream As Object
+
+    Set oTextStream = gFSO.OpenTextFile(sPath, 2, True, 0)
+    oTextStream.Write sContent
+    oTextStream.Close
 End Sub

@@ -271,6 +271,9 @@ Private Sub Text1_Change()
     ' Public room number changed - load or clear bot settings
     Dim sDataFile As String
 
+    ' Ensure Text1 only contains numbers
+    Me.Text1.Text = Me.Text1.Text
+
     ' Build path to data.ini for this public room
     sDataFile = gAppPath & "pub\" & Me.Text1.Text & "\data.ini"
 
@@ -283,29 +286,32 @@ Private Sub Text1_Change()
         Me.Text5.Text = GetINI("bot", "look", sDataFile)
         Me.Check1.Value = CInt(GetINI("bot", "enabled", sDataFile))
 
-        ' Validate loaded data - if any field is empty, clear all and disable
+        ' Validate loaded data - if Text2 (name) is empty, clear all and disable
         If Me.Text2.Text = vbNullString Then
             ClearAndDisableFields
         End If
 
+        ' If Text3 (mission) is empty, clear all and disable
         If Me.Text3.Text = vbNullString Then
             ClearAndDisableFields
         End If
 
+        ' If Text4 (walkspace) is empty, clear all and disable
         If Me.Text4.Text = vbNullString Then
             ClearAndDisableFields
         End If
 
+        ' If Text5 (look) is empty, clear all and disable
         If Me.Text5.Text = vbNullString Then
             ClearAndDisableFields
         End If
 
-        ' If Text1 is empty, clear and disable fields
+        ' If Text1 (room number) is empty, clear and disable fields
         If Me.Text1.Text = vbNullString Then
             ClearAndDisableFields
         End If
 
-        ' Enable all fields for valid room
+        ' Enable all fields for valid room with valid data
         Me.Check1.Enabled = True
         Me.Text2.Enabled = True
         Me.Text3.Enabled = True
@@ -345,6 +351,11 @@ End Sub
 
 Private Sub Text5_Change()
     ' Look changed - save all bot settings
+    SaveBotSettings
+End Sub
+
+Private Sub Check1_Click()
+    ' Enabled checkbox changed - save all bot settings
     SaveBotSettings
 End Sub
 

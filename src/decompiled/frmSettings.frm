@@ -2715,3 +2715,335 @@ Private Sub clubCommand2_Click()
     Me.MousePointer = 0
 End Sub
 
+' ============================================
+' Tab Loading Functions
+' ============================================
+
+Private Sub LoadTabCaptions()
+    ' Load localized captions for all tab labels and controls
+    On Error Resume Next
+
+    ' Load tab labels
+    Me.Label1.Caption = GetLocaleString("settings_main")
+    Me.Label2.Caption = GetLocaleString("settings_limits")
+    Me.Label3.Caption = GetLocaleString("settings_filter")
+    Me.Label4.Caption = GetLocaleString("settings_habbos")
+    Me.Label5.Caption = GetLocaleString("settings_guest")
+    Me.Label6.Caption = GetLocaleString("settings_public")
+    Me.Label7.Caption = GetLocaleString("settings_ranks")
+    Me.Label8.Caption = GetLocaleString("settings_club")
+    Me.Label9.Caption = GetLocaleString("settings_console")
+    Me.Label10.Caption = GetLocaleString("close")
+
+    ' Load main tab labels
+    Me.mainLabel1.Caption = GetLocaleString("port")
+    Me.mainLabel2.Caption = GetLocaleString("bobba_filter")
+    Me.mainLabel3.Caption = GetLocaleString("console")
+    Me.mainLabel4.Caption = GetLocaleString("welcome_message")
+    Me.mainLabel5.Caption = GetLocaleString("free_hc_clothes")
+    Me.mainCommand1.Caption = GetLocaleString("save")
+    Me.mainCommand2.Caption = GetLocaleString("restore")
+
+    ' Load limits tab labels
+    Me.limitsLabel1.Caption = GetLocaleString("maxrooms")
+    Me.limitsLabel2.Caption = GetLocaleString("maxfurni")
+    Me.limitsLabel3.Caption = GetLocaleString("maxpets")
+    Me.limitsLabel4.Caption = GetLocaleString("maxusers")
+    Me.limitsLabel5.Caption = GetLocaleString("maxtrade")
+    Me.limitsCommand1.Caption = GetLocaleString("save")
+    Me.limitsCommand2.Caption = GetLocaleString("restore")
+
+    ' Load filter tab labels
+    Me.filterLabel1.Caption = GetLocaleString("add")
+    Me.filterLabel2.Caption = GetLocaleString("remove")
+    Me.filterCommand1.Caption = GetLocaleString("set_replacement")
+
+    ' Load habbos tab labels
+    Me.habbosCommand1.Caption = GetLocaleString("save")
+    Me.habbosCommand2.Caption = GetLocaleString("restore")
+    Me.habbosLabel1.Caption = GetLocaleString("name")
+    Me.habbosLabel2.Caption = GetLocaleString("email")
+    Me.habbosLabel3.Caption = GetLocaleString("mission")
+    Me.habbosLabel4.Caption = GetLocaleString("credits")
+    Me.habbosLabel5.Caption = GetLocaleString("tickets")
+    Me.habbosLabel6.Caption = GetLocaleString("film")
+    Me.habbosLabel7.Caption = GetLocaleString("soundmachine")
+    Me.habbosLabel8.Caption = GetLocaleString("rank")
+
+    ' Load guest tab labels
+    Me.guestLabel1.Caption = GetLocaleString("rooms")
+    Me.guestLabel2.Caption = GetLocaleString("categories")
+    Me.guestroomCommand1.Caption = GetLocaleString("save")
+    Me.guestroomCommand2.Caption = GetLocaleString("restore")
+    Me.guestcategoriesCommand1.Caption = GetLocaleString("save")
+    Me.guestcategoriesCommand2.Caption = GetLocaleString("restore")
+
+    ' Load ranks tab labels
+    Me.ranksCommand1.Caption = GetLocaleString("save")
+    Me.ranksCommand2.Caption = GetLocaleString("restore")
+
+    ' Load club tab labels
+    Me.clubCommand1.Caption = GetLocaleString("save")
+    Me.clubCommand2.Caption = GetLocaleString("restore")
+    Me.clubLabel1.Caption = GetLocaleString("hc_presents")
+    Me.clubLabel2.Caption = GetLocaleString("hc_badge")
+    Me.clubLabel3.Caption = GetLocaleString("gold_badge")
+End Sub
+
+Private Sub HideAllTabs()
+    ' Hide all tab pictureboxes
+    On Error Resume Next
+
+    Me.Pictab_main.Visible = False
+    Me.Pictab_limits.Visible = False
+    Me.Pictab_filter.Visible = False
+    Me.Pictab_habbos.Visible = False
+    Me.Pictab_guest.Visible = False
+    Me.Pictab_guestroom.Visible = False
+    Me.Pictab_guestcategories.Visible = False
+    Me.Pictab_public.Visible = False
+    Me.Pictab_ranks.Visible = False
+    Me.Pictab_club.Visible = False
+End Sub
+
+Private Sub LoadMainTab()
+    ' Load main settings tab
+    On Error Resume Next
+
+    Dim sValue As String
+    Dim vParts As Variant
+
+    HideAllTabs
+    Me.Pictab_main.Visible = True
+
+    ' Load port
+    Me.mainText1.Text = GetINI("server", "port", gSettingsFile)
+
+    ' Load bobba filter setting
+    sValue = GetINI("config", "bobba_filter", gSettingsFile)
+    If sValue = "1" Then
+        Me.mainCheck1.Value = 1
+    Else
+        Me.mainCheck1.Value = 0
+    End If
+
+    ' Load console setting
+    sValue = GetINI("config", "console", gSettingsFile)
+    If sValue = "1" Then
+        Me.mainCheck2.Value = 1
+    Else
+        Me.mainCheck2.Value = 0
+    End If
+
+    ' Load welcome message setting (format: "enabled,message")
+    sValue = GetINI("config", "welcome_message", gSettingsFile)
+    vParts = Split(sValue, ",")
+    If UBound(vParts) >= 0 Then
+        If vParts(0) = "1" Then
+            Me.mainCheck4.Value = 1
+            Me.mainText3.Enabled = True
+        Else
+            Me.mainCheck4.Value = 0
+            Me.mainText3.Enabled = False
+        End If
+        If UBound(vParts) >= 1 Then
+            Me.mainText3.Text = CStr(vParts(1))
+        End If
+    End If
+
+    ' Load free HC clothes setting
+    sValue = GetINI("config", "freehcclothes", gSettingsFile)
+    If sValue = "1" Then
+        Me.mainCheck5.Value = 1
+    Else
+        Me.mainCheck5.Value = 0
+    End If
+End Sub
+
+Private Sub LoadLimitsTab()
+    ' Load limits settings tab
+    On Error Resume Next
+
+    HideAllTabs
+    Me.Pictab_limits.Visible = True
+
+    ' Load limit values
+    Me.limitsText1.Text = GetINI("config", "maxroomsperuser", gSettingsFile)
+    Me.limitsText2.Text = GetINI("config", "maxfurniperroom", gSettingsFile)
+    Me.limitsText3.Text = GetINI("config", "maxpetsperroom", gSettingsFile)
+    Me.limitsText4.Text = GetINI("config", "maxusersperroom", gSettingsFile)
+    Me.limitsText5.Text = GetINI("config", "maxtradeperuser", gSettingsFile)
+End Sub
+
+Private Sub LoadFilterTab()
+    ' Load filter settings tab (bobba filter)
+    On Error Resume Next
+
+    HideAllTabs
+    Me.Pictab_filter.Visible = True
+
+    ' Load replacement text
+    Me.filterText1.Text = GetINI("config", "replacement", gSettingsFile)
+
+    ' Load bobba filter list
+    LoadFilterList
+End Sub
+
+Private Sub LoadHabbosTab()
+    ' Load habbos settings tab
+    On Error Resume Next
+
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+
+    HideAllTabs
+    Me.Pictab_habbos.Visible = True
+
+    ' Clear and populate user list
+    Me.habbosList1.Clear
+
+    Set oFolder = gFSO.GetFolder(gAppPath & "habbos")
+    For Each oSubFolder In oFolder.SubFolders
+        Me.habbosList1.AddItem oSubFolder.Name
+    Next oSubFolder
+
+    ' Clear fields
+    Me.habbosText1.Text = vbNullString
+    Me.habbosText2.Text = vbNullString
+    Me.habbosText3.Text = vbNullString
+    Me.habbosText4.Text = vbNullString
+    Me.habbosText5.Text = vbNullString
+    Me.habbosText6.Text = vbNullString
+    Me.habbosText7.Text = vbNullString
+
+    ' Populate rank combo
+    Me.habbosCombo1.Clear
+    PopulateRankCombo Me.habbosCombo1
+End Sub
+
+Private Sub PopulateRankCombo(oCombo As ComboBox)
+    ' Populate a combo box with available ranks
+    On Error Resume Next
+
+    Dim oFolder As Object
+    Dim oFile As Object
+    Dim sRankName As String
+
+    oCombo.Clear
+
+    Set oFolder = gFSO.GetFolder(gAppPath & "ranks")
+    For Each oFile In oFolder.Files
+        If LCase(Right(oFile.Name, 4)) = ".ini" Then
+            sRankName = GetINI("rank", "name", oFile.Path)
+            If sRankName <> vbNullString Then
+                oCombo.AddItem sRankName
+            End If
+        End If
+    Next oFile
+End Sub
+
+Private Sub LoadGuestTab()
+    ' Load guest settings tab
+    On Error Resume Next
+
+    HideAllTabs
+    Me.Pictab_guest.Visible = True
+
+    ' Show rooms subtab by default
+    Me.Pictab_guestroom.Visible = True
+    Me.Pictab_guestcategories.Visible = False
+
+    LoadGuestRoomList
+End Sub
+
+Private Sub LoadGuestRoomList()
+    ' Load guest room list
+    On Error Resume Next
+
+    Dim oFolder As Object
+    Dim oSubFolder As Object
+
+    Me.guestroomList1.Clear
+
+    Set oFolder = gFSO.GetFolder(gAppPath & "rooms")
+    For Each oSubFolder In oFolder.SubFolders
+        Me.guestroomList1.AddItem oSubFolder.Name
+    Next oSubFolder
+End Sub
+
+Private Sub LoadRanksTab()
+    ' Load ranks settings tab
+    On Error Resume Next
+
+    Dim oFolder As Object
+    Dim oFile As Object
+    Dim sRankName As String
+
+    HideAllTabs
+    Me.Pictab_ranks.Visible = True
+
+    ' Clear and populate ranks combo
+    Me.ranksCombo1.Clear
+
+    Set oFolder = gFSO.GetFolder(gAppPath & "ranks")
+    For Each oFile In oFolder.Files
+        If LCase(Right(oFile.Name, 4)) = ".ini" Then
+            sRankName = GetINI("rank", "name", oFile.Path)
+            If sRankName <> vbNullString Then
+                Me.ranksCombo1.AddItem sRankName
+            End If
+        End If
+    Next oFile
+
+    ' Clear rank fields
+    ClearRankFields
+End Sub
+
+Private Sub ClearRankFields()
+    ' Clear all rank editing fields
+    On Error Resume Next
+
+    Me.ranksText1.Text = vbNullString
+    Me.ranksText2.Text = vbNullString
+    Me.ranksCheck1.Value = 0
+    Me.ranksCheck2.Value = 0
+    Me.ranksCheck3.Value = 0
+    Me.ranksCheck4.Value = 0
+    Me.ranksCheck5.Value = 0
+
+    ' Clear speech commands list
+    Dim i As Long
+    For i = 0 To Me.ranksList1.ListCount - 1
+        Me.ranksList1.Selected(i) = False
+    Next i
+
+    ' Clear mod tools list
+    For i = 0 To Me.ranksList2.ListCount - 1
+        Me.ranksList2.Selected(i) = False
+    Next i
+End Sub
+
+Private Sub LoadClubTab()
+    ' Load club settings tab (Habbo Club)
+    On Error Resume Next
+
+    Dim i As Variant
+    Dim sSettingsFile As String
+
+    HideAllTabs
+    Me.Pictab_club.Visible = True
+
+    sSettingsFile = gAppPath & "configuration\settings.ini"
+
+    ' Load HC presents (0-10)
+    For i = 0 To 10
+        Me.hcpresent(CInt(i)).Text = GetINI("HC", "present" & CStr(i + 1), sSettingsFile)
+    Next i
+
+    ' Load HC badge
+    Me.clubText1.Text = GetINI("HC", "hcbadge", sSettingsFile)
+
+    ' Load gold badge
+    Me.clubText2.Text = GetINI("HC", "goldbadge", sSettingsFile)
+End Sub
+
