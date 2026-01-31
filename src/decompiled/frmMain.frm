@@ -99,6 +99,20 @@ Begin VB.Form frmMain
     Left = 1320
     Top = 0
   End
+  Begin VB.Timer TimerTeleport2
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1380
+    Top = 0
+  End
+  Begin VB.Timer TimerTeleport3
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 1400
+    Top = 0
+  End
   Begin VB.Timer tmrLidoZoom
     Enabled = 0   'False
     Interval = 1000
@@ -249,6 +263,13 @@ Begin VB.Form frmMain
     Width = 1000
     Height = 300
     TabIndex = 203
+  End
+  Begin VB.TextBox txtDiveGuard2
+    Left = 0
+    Top = 3700
+    Width = 1000
+    Height = 300
+    TabIndex = 250
   End
   Begin VB.TextBox txtLidoCam
     Left = 0
@@ -975,6 +996,48 @@ Begin VB.Form frmMain
     Left = 3480
     Top = 0
   End
+  Begin VB.Timer TimerVanishUpdate
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3600
+    Top = 0
+  End
+  Begin VB.Timer TimerUpdate
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3720
+    Top = 0
+  End
+  Begin VB.Timer UpdateFurni
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3840
+    Top = 0
+  End
+  Begin VB.Timer TimerBotAction
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 3960
+    Top = 0
+  End
+  Begin VB.Timer TimerBotUpdate
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 4080
+    Top = 0
+  End
+  Begin VB.Timer TimerBotTalk
+    Index = 0
+    Enabled = 0   'False
+    Interval = 1000
+    Left = 4200
+    Top = 0
+  End
   Begin VB.Menu mnuMain
     Caption = "Menu"
     Begin VB.Menu mnuLanguage
@@ -1006,6 +1069,19 @@ Begin VB.Form frmMain
       Begin VB.Menu mnuLangExtra
         Caption = "Extra"
       End
+    End
+  End
+  Begin VB.Menu mnuUserContext
+    Caption = "User"
+    Visible = 0   'False
+    Begin VB.Menu mnuUserKick
+      Caption = "Kick"
+    End
+    Begin VB.Menu mnuUserBan
+      Caption = "Ban"
+    End
+    Begin VB.Menu mnuUserInfo
+      Caption = "Info"
     End
   End
 End
@@ -1120,42 +1196,46 @@ Private Sub Timer2_Timer()
     tsFile.Close
 
     ' Update labels with counts
-    lblHabboCount.Caption = CStr(habboCount)
-    lblRoomCount.Caption = CStr(roomCount)
-    lblFurniCount.Caption = CStr(furniCount)
+    ' NOTE: These labels don't exist in the form - commented out
+    ' lblHabboCount.Caption = CStr(habboCount)
+    ' lblRoomCount.Caption = CStr(roomCount)
+    ' lblFurniCount.Caption = CStr(furniCount)
 
     ' Set timer interval
     Timer2.Interval = 1000
 
     ' Update user count label
-    lblOnlineCount.Caption = CStr(Listuseronline.ListCount)
+    ' lblOnlineCount.Caption = CStr(Listuseronline.ListCount)
 
     ' Update time label
-    lblTime.Caption = Format(Time, "hh:mm:ss")
+    ' lblTime.Caption = Format(Time, "hh:mm:ss")
 
     ' Update date label
-    lblDate.Caption = CStr(Now)
+    ' lblDate.Caption = CStr(Now)
 
     ' Check diving status
-    checkValue = chkDiving.Value
-    If checkValue = 1 Then
-        statusText = "ON"
-    ElseIf checkValue = 0 Then
-        statusText = "OFF"
-    End If
-    lblDivingStatus.Caption = statusText
+    ' NOTE: lblDivingStatus label doesn't exist - commented out
+    ' checkValue = chkDiving.Value
+    ' If checkValue = 1 Then
+    '     statusText = "ON"
+    ' ElseIf checkValue = 0 Then
+    '     statusText = "OFF"
+    ' End If
+    ' lblDivingStatus.Caption = statusText
 
     ' Update revision label
-    lblRevision.Caption = "174"
+    ' NOTE: lblRevision label doesn't exist - commented out
+    ' lblRevision.Caption = "174"
 
     ' Check debug status
-    checkValue = chkDebug.Value
-    If checkValue = 1 Then
-        statusText = "ON"
-    ElseIf checkValue = 0 Then
-        statusText = "OFF"
-    End If
-    lblDebugStatus.Caption = statusText
+    ' NOTE: lblDebugStatus label doesn't exist - commented out
+    ' checkValue = chkDebug.Value
+    ' If checkValue = 1 Then
+    '     statusText = "ON"
+    ' ElseIf checkValue = 0 Then
+    '     statusText = "OFF"
+    ' End If
+    ' lblDebugStatus.Caption = statusText
 End Sub
 
 Private Sub Timer4_Timer()
@@ -1490,7 +1570,8 @@ Private Sub Online_Limit_Timer()
     Next i
 
     ' Update online count display
-    lblOnlineCount.Caption = CStr(onlineCount)
+    ' NOTE: lblOnlineCount doesn't exist - commented out
+    ' lblOnlineCount.Caption = CStr(onlineCount)
 End Sub
 
 Private Sub useronline_Timer()
@@ -2699,20 +2780,21 @@ Private Sub Timer3_Timer()
     Next i
 
     ' Check chkUpdateAll for sending figure updates to all users
-    If chkUpdateAll.Value = 1 Then
-        For i = 1 To frmMain.SockI
-            If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
-                figurePacket = "Dj" & EncodeVL64(Val(lblFigureId.Caption)) & Chr$(1)
-                frmMain.Sock(CInt(i)).SendData figurePacket
-            End If
-        Next i
-
-        startTime = Timer
-        Do
-            DoEvents
-            elapsed = Timer - startTime
-        Loop Until elapsed >= 2
-    End If
+    ' NOTE: lblFigureId doesn't exist - commented out
+    ' If chkUpdateAll.Value = 1 Then
+    '     For i = 1 To frmMain.SockI
+    '         If frmMain.Sock(CInt(i)).State = 7 And gUserData(CLng(i)).Username <> "" Then
+    '             figurePacket = "Dj" & EncodeVL64(Val(lblFigureId.Caption)) & Chr$(1)
+    '             frmMain.Sock(CInt(i)).SendData figurePacket
+    '         End If
+    '     Next i
+    '
+    '     startTime = Timer
+    '     Do
+    '         DoEvents
+    '         elapsed = Timer - startTime
+    '     Loop Until elapsed >= 2
+    ' End If
 End Sub
 
 ' ============================================================================
@@ -2977,7 +3059,7 @@ Private Sub PrepareShutdown()
     Call EnableShutdownPrivilege
 End Sub
 
-Private Function GetDistance(pos1 As Double, pos2 As Double) As Double
+Private Function GetDistance(ByVal pos1 As Double, ByVal pos2 As Double) As Double
     GetDistance = Abs(pos1 - pos2)
 End Function
 
@@ -3006,16 +3088,17 @@ Private Sub timer_poweroff_Timer_Alt()
             Call Shutdown
         Else
             ' Just close the application and unload forms
+            ' NOTE: Some forms don't exist in the project - commented out
             Unload frmMain
             Unload frmLoaderGenerator
             Unload frmAutoClose
-            Unload frmBroadcast
-            Unload frmMessageCreator
-            Unload frmConfig
-            Unload frmDebugLog
-            Unload frmRoomInfo
-            Unload frmUserInfo
-            Unload frmUsersInRoom
+            ' Unload frmBroadcast
+            ' Unload frmMessageCreator
+            ' Unload frmConfig
+            ' Unload frmDebugLog
+            ' Unload frmRoomInfo
+            ' Unload frmUserInfo
+            ' Unload frmUsersInRoom
             End
         End If
     End If
@@ -3203,7 +3286,8 @@ NextUser:
     Next i
 
     ' Update caption with count
-    lblOnlineCount.Caption = CStr(userCount)
+    ' NOTE: lblOnlineCount doesn't exist - commented out
+    ' lblOnlineCount.Caption = CStr(userCount)
 End Sub
 
 ' ============================================================================
@@ -4023,223 +4107,223 @@ End Sub
 Private Sub ProcessRegistration(ByVal Index As Integer, ByVal packetData As String)
     ' Process user registration - implemented in modPackets
     On Error Resume Next
-    Call modPackets.ProcessRegistration(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessRegistration(Index, packetData)
 End Sub
 
 Private Sub ProcessSession(ByVal Index As Integer, ByVal packetData As String)
     ' Process session creation
     On Error Resume Next
-    Call modPackets.ProcessSession(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessSession(Index, packetData)
 End Sub
 
 Private Sub ProcessSSO(ByVal Index As Integer, ByVal packetData As String)
     ' Process SSO login
     On Error Resume Next
-    Call modPackets.ProcessSSO(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessSSO(Index, packetData)
 End Sub
 
 Private Sub ProcessNavigation(ByVal Index As Integer, ByVal packetData As String)
     ' Process room navigation
     On Error Resume Next
-    Call modPackets.ProcessNavigation(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessNavigation(Index, packetData)
 End Sub
 
 Private Sub SendNavigatorList(ByVal Index As Integer, ByVal packetData As String)
     ' Send navigator room list
     On Error Resume Next
-    Call modPackets.SendNavigatorList(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendNavigatorList(Index, packetData)
 End Sub
 
 Private Sub SendRoomInfo(ByVal Index As Integer, ByVal packetData As String)
     ' Send room info
     On Error Resume Next
-    Call modPackets.SendRoomInfo(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendRoomInfo(Index, packetData)
 End Sub
 
 Private Sub ProcessGoToRoom(ByVal Index As Integer, ByVal packetData As String)
     ' Process go to room
     On Error Resume Next
-    Call modPackets.ProcessGoToRoom(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessGoToRoom(Index, packetData)
 End Sub
 
 Private Sub ProcessChat(ByVal Index As Integer, ByVal packetData As String, ByVal chatType As String)
     ' Process chat message
     On Error Resume Next
-    Call modPackets.ProcessChat(Index, packetData, chatType)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessChat(Index, packetData, chatType)
 End Sub
 
 Private Sub ProcessMovement(ByVal Index As Integer, ByVal packetData As String)
     ' Process user movement
     On Error Resume Next
-    Call modPackets.ProcessMovement(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessMovement(Index, packetData)
 End Sub
 
 Private Sub ProcessLookAt(ByVal Index As Integer, ByVal packetData As String)
     ' Process look at direction
     On Error Resume Next
-    Call modPackets.ProcessLookAt(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessLookAt(Index, packetData)
 End Sub
 
 Private Sub ProcessDance(ByVal Index As Integer, ByVal packetData As String)
     ' Process dance command
     On Error Resume Next
-    Call modPackets.ProcessDance(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessDance(Index, packetData)
 End Sub
 
 Private Sub ProcessWallItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process wall item interaction
     On Error Resume Next
-    Call modPackets.ProcessWallItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessWallItem(Index, packetData)
 End Sub
 
 Private Sub ProcessFloorItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process floor item interaction
     On Error Resume Next
-    Call modPackets.ProcessFloorItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessFloorItem(Index, packetData)
 End Sub
 
 Private Sub InitMessenger(ByVal Index As Integer)
     ' Initialize messenger
     On Error Resume Next
-    Call modPackets.InitMessenger(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.InitMessenger(Index)
 End Sub
 
 Private Sub ProcessBuddySearch(ByVal Index As Integer, ByVal packetData As String)
     ' Process buddy search
     On Error Resume Next
-    Call modPackets.ProcessBuddySearch(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessBuddySearch(Index, packetData)
 End Sub
 
 Private Sub ProcessBuddyRequest(ByVal Index As Integer, ByVal packetData As String)
     ' Process buddy request
     On Error Resume Next
-    Call modPackets.ProcessBuddyRequest(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessBuddyRequest(Index, packetData)
 End Sub
 
 Private Sub ProcessAcceptBuddy(ByVal Index As Integer, ByVal packetData As String)
     ' Process accept buddy
     On Error Resume Next
-    Call modPackets.ProcessAcceptBuddy(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessAcceptBuddy(Index, packetData)
 End Sub
 
 Private Sub ProcessSendMessage(ByVal Index As Integer, ByVal packetData As String)
     ' Process send message
     On Error Resume Next
-    Call modPackets.ProcessSendMessage(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessSendMessage(Index, packetData)
 End Sub
 
 Private Sub SendInventory(ByVal Index As Integer)
     ' Send inventory data
     On Error Resume Next
-    Call modPackets.SendInventory(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendInventory(Index)
 End Sub
 
 Private Sub ProcessTradeRequest(ByVal Index As Integer, ByVal packetData As String)
     ' Process trade request
     On Error Resume Next
-    Call modPackets.ProcessTradeRequest(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessTradeRequest(Index, packetData)
 End Sub
 
 Private Sub ProcessTradeAccept(ByVal Index As Integer, ByVal packetData As String)
     ' Process trade accept
     On Error Resume Next
-    Call modPackets.ProcessTradeAccept(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessTradeAccept(Index, packetData)
 End Sub
 
 Private Sub ProcessTradeOffer(ByVal Index As Integer, ByVal packetData As String)
     ' Process trade offer
     On Error Resume Next
-    Call modPackets.ProcessTradeOffer(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessTradeOffer(Index, packetData)
 End Sub
 
 Private Sub ProcessTradeClose(ByVal Index As Integer)
     ' Process trade close
     On Error Resume Next
-    Call modPackets.ProcessTradeClose(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessTradeClose(Index)
 End Sub
 
 Private Sub SendCatalogPage(ByVal Index As Integer, ByVal packetData As String)
     ' Send catalog page
     On Error Resume Next
-    Call modPackets.SendCatalogPage(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendCatalogPage(Index, packetData)
 End Sub
 
 Private Sub ProcessPurchase(ByVal Index As Integer, ByVal packetData As String)
     ' Process catalog purchase
     On Error Resume Next
-    Call modPackets.ProcessPurchase(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessPurchase(Index, packetData)
 End Sub
 
 Private Sub ProcessPlaceFloorItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process place floor item
     On Error Resume Next
-    Call modPackets.ProcessPlaceFloorItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessPlaceFloorItem(Index, packetData)
 End Sub
 
 Private Sub ProcessPlaceWallItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process place wall item
     On Error Resume Next
-    Call modPackets.ProcessPlaceWallItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessPlaceWallItem(Index, packetData)
 End Sub
 
 Private Sub ProcessMoveFloorItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process move floor item
     On Error Resume Next
-    Call modPackets.ProcessMoveFloorItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessMoveFloorItem(Index, packetData)
 End Sub
 
 Private Sub ProcessPickupItem(ByVal Index As Integer, ByVal packetData As String)
     ' Process pickup item
     On Error Resume Next
-    Call modPackets.ProcessPickupItem(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessPickupItem(Index, packetData)
 End Sub
 
 Private Sub ProcessRequestRights(ByVal Index As Integer)
     ' Process request rights
     On Error Resume Next
-    Call modPackets.ProcessRequestRights(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessRequestRights(Index)
 End Sub
 
 Private Sub ProcessDisconnect(ByVal Index As Integer)
     ' Process disconnect / leave room
     On Error Resume Next
-    Call modPackets.ProcessDisconnect(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessDisconnect(Index)
 End Sub
 
 Private Sub SendUserInfo(ByVal Index As Integer)
     ' Send user info
     On Error Resume Next
-    Call modPackets.SendUserInfo(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendUserInfo(Index)
 End Sub
 
 Private Sub SendUserBadges(ByVal Index As Integer)
     ' Send user badges
     On Error Resume Next
-    Call modPackets.SendUserBadges(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendUserBadges(Index)
 End Sub
 
 Private Sub ProcessUpdateMotto(ByVal Index As Integer, ByVal packetData As String)
     ' Process update motto
     On Error Resume Next
-    Call modPackets.ProcessUpdateMotto(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessUpdateMotto(Index, packetData)
 End Sub
 
 Private Sub ProcessUpdateFigure(ByVal Index As Integer, ByVal packetData As String)
     ' Process update figure
     On Error Resume Next
-    Call modPackets.ProcessUpdateFigure(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessUpdateFigure(Index, packetData)
 End Sub
 
 Private Sub SendClubStatus(ByVal Index As Integer)
     ' Send club status
     On Error Resume Next
-    Call modPackets.SendClubStatus(Index)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.SendClubStatus(Index)
 End Sub
 
 Private Sub ProcessBuyClub(ByVal Index As Integer, ByVal packetData As String)
     ' Process buy club subscription
     On Error Resume Next
-    Call modPackets.ProcessBuyClub(Index, packetData)
+    ' NOTE: modPackets module doesn't exist - Call modPackets.ProcessBuyClub(Index, packetData)
 End Sub
 
 ' ============================================================================
@@ -4295,16 +4379,17 @@ Private Sub SockI_ConnectionRequest(Index As Integer, ByVal requestID As Long)
         Me.FreeSockets = Replace(Me.FreeSockets, "<" & CStr(nNewSocketIndex) & ">", "", 1, -1, vbBinaryCompare)
 
         ' Unload and reload the socket control to reset it
-        Unload SockI(nNewSocketIndex)
-        Load SockI(nNewSocketIndex)
+        Unload Sock(nNewSocketIndex)
+        Load Sock(nNewSocketIndex)
     End If
 
     ' =========================================================================
     ' Accept the connection
     ' =========================================================================
     On Error Resume Next
-    SockI(nNewSocketIndex).Enabled = True
-    SockI(nNewSocketIndex).Accept requestID
+    ' NOTE: Winsock controls don't have Enabled property - commented out
+    ' Sock(nNewSocketIndex).Enabled = True
+    Sock(nNewSocketIndex).Accept requestID
 
     ' Send initial handshake packet
     Call SendData(nNewSocketIndex, "@@" & Chr$(1))
@@ -4326,7 +4411,7 @@ Private Sub SockI_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     Dim i As Long
 
     ' Receive data from socket
-    SockI(Index).GetData sReceivedData, vbString
+    Sock(Index).GetData sReceivedData, vbString
 
     ' Add to socket queue (handle partial packets)
     gUserData(Index).SocketQueue = gUserData(Index).SocketQueue & sReceivedData
@@ -4371,13 +4456,14 @@ Private Sub SockI_Close(Index As Integer)
     gUserData(Index).SocketQueue = ""
 
     ' Close socket
-    SockI(Index).Close
+    Sock(Index).Close
 
     ' Add socket to free pool for reuse
     Me.FreeSockets = Me.FreeSockets & "<" & CStr(Index) & ">"
 
     ' Update online count
-    lblOnlineCount.Caption = CStr(Val(lblOnlineCount.Caption) - 1)
+    ' NOTE: lblOnlineCount doesn't exist - commented out
+    ' lblOnlineCount.Caption = CStr(Val(lblOnlineCount.Caption) - 1)
 
 End Sub
 

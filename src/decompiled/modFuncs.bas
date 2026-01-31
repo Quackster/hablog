@@ -719,3 +719,116 @@ Public Sub GiveCarryItem(ByVal SocketIndex As Integer, ByVal CarryItem As String
         Next i
     End If
 End Sub
+
+' SendToRoom - Broadcasts data to all users in public rooms (pool/lido camera updates)
+' This is a stub function for camera/diving updates in public pool rooms
+Public Sub SendToRoom(ByVal Data As String)
+    Dim i As Long
+
+    On Error Resume Next
+
+    ' Broadcast to all users in any public room (Lido, Rumble, etc.)
+    For i = 1 To frmMain.SockI
+        If gUserData(CLng(i)).PublicRoomId > 0 Then
+            If frmMain.Sock(CInt(i)).State = 7 Then
+                frmMain.Sock(CInt(i)).SendData Data
+            End If
+        End If
+    Next i
+End Sub
+
+' SendToUser - Sends data to a specific user by socket index
+' Wrapper around socket SendData for consistency
+Public Sub SendToUser(ByVal SocketIndex As Integer, ByVal Data As String)
+    On Error Resume Next
+
+    If SocketIndex > 0 And SocketIndex <= frmMain.SockI Then
+        If frmMain.Sock(SocketIndex).State = 7 Then
+            frmMain.Sock(SocketIndex).SendData Data
+        End If
+    End If
+End Sub
+
+' ProcessRoller - Processes roller movement for a user
+' Stub function - roller logic would move items/users on roller tiles
+Public Sub ProcessRoller(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    ' Roller processing logic would go here
+    ' This handles furniture/user movement on roller tiles
+    gUserData(CLng(SocketIndex)).OnRoller = False
+End Sub
+
+' SendUserUpdate - Sends status update for a user to all users in the room
+' This broadcasts the user's current state (position, dance, etc.)
+Public Sub SendUserUpdate(ByVal SocketIndex As Integer)
+    On Error Resume Next
+
+    ' User update broadcast logic would go here
+    ' This sends updated user status to all users in the same room
+End Sub
+
+' UpdateFurniStatus - Updates furniture status/state
+' Handles furniture animations, states, etc.
+Public Sub UpdateFurniStatus(ByVal FurniIndex As Integer)
+    On Error Resume Next
+
+    ' Furniture status update logic would go here
+End Sub
+
+' ExecuteBotAction - Executes a bot action
+' Handles bot movement, speech, and other behaviors
+Public Sub ExecuteBotAction(ByVal BotIndex As Integer)
+    On Error Resume Next
+
+    ' Bot action execution logic would go here
+End Sub
+
+' UpdateBot - Updates bot position and status
+' Handles bot state changes and broadcasts
+Public Sub UpdateBot(ByVal BotIndex As Integer)
+    On Error Resume Next
+
+    ' Bot update logic would go here
+End Sub
+
+' BotSpeak - Makes a bot speak
+' Handles bot chat messages
+Public Sub BotSpeak(ByVal BotIndex As Integer)
+    On Error Resume Next
+
+    ' Bot speaking logic would go here
+End Sub
+
+' UpdatePet - Updates pet status and behavior
+' Handles pet state changes and broadcasts
+Public Sub UpdatePet(ByVal PetIndex As Integer)
+    On Error Resume Next
+
+    ' Pet update logic would go here
+End Sub
+
+' SendToPublicRoom - Sends data to all users in a specific public room
+Public Sub SendToPublicRoom(ByVal RoomId As Long, ByVal Data As String)
+    Dim i As Long
+
+    On Error Resume Next
+
+    ' Broadcast to all users in the specified public room
+    For i = 1 To frmMain.SockI
+        If gUserData(CLng(i)).PublicRoomId = CInt(RoomId) Then
+            If frmMain.Sock(CInt(i)).State = 7 Then
+                frmMain.Sock(CInt(i)).SendData Chr$(1) & Data
+            End If
+        End If
+    Next i
+End Sub
+
+' EnableShutdownPrivilege - Enables shutdown privilege for the current process
+' Required for system shutdown/restart operations on Windows NT/2000/XP+
+Public Sub EnableShutdownPrivilege()
+    On Error Resume Next
+
+    ' This would use Windows API calls to enable SE_SHUTDOWN_NAME privilege
+    ' For now just a stub as this requires API declarations
+End Sub

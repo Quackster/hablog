@@ -611,3 +611,32 @@ Public Function HexToBytes(ByVal HexString As String) As Byte()
 
     HexToBytes = abResult
 End Function
+
+' Wrapper functions for EncryptionTools.cls compatibility
+Public Function EncryptDecrypt(ByVal PublicKey As String, ByVal Data As String, ByVal Encrypt As Boolean) As String
+    EncryptDecrypt = SimpleEncrypt(Data, PublicKey, Not Encrypt)
+End Function
+
+Public Function GetMD5String(ByVal Data As String) As String
+    GetMD5String = MD5DigestString(Data)
+End Function
+
+Public Function GetMD5File(ByVal Filename As String) As String
+    GetMD5File = MD5DigestFile(Filename)
+End Function
+
+Public Function EncodeURL(ByVal Data As String) As Variant
+    EncodeURL = URLEncode(Data)
+End Function
+
+Public Function DecodeURL(ByVal Data As String) As Variant
+    DecodeURL = URLDecode(Data)
+End Function
+
+Public Function EncodeBinaryURL(ByVal Data As String) As Variant
+    EncodeBinaryURL = URLEncode(Data)
+End Function
+
+Public Function DecodeBinaryURL(ByVal Data As String) As Variant
+    DecodeBinaryURL = URLDecode(Data)
+End Function

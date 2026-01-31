@@ -53,7 +53,9 @@ Public Type UserDataType
 
     ' Appearance
     Figure As String            ' User figure string
+    Appearance As String        ' User appearance data
     Sex As String               ' User sex (M/F)
+    Mission As String           ' User mission/motto
     Badge As String             ' User badge
     GroupBadge As String        ' Group badge
 
@@ -61,6 +63,7 @@ Public Type UserDataType
     State As Integer            ' User state/status
     Rank As String              ' User rank
     IsConnected As Boolean      ' Connected flag
+    IsLoggedIn As Boolean       ' Logged in flag
     IsDancing As Boolean        ' Dancing flag
     IsTalking As Boolean        ' Talking flag
     IsWaving As Boolean         ' Waving flag
@@ -94,6 +97,10 @@ Public Type UserDataType
     PoolDoorOpen As Boolean     ' Pool door open
     VoteSwim As Boolean         ' Vote swim
     VoteWalk As Boolean         ' Vote walk
+    IsSplashing As Boolean      ' Is splashing in pool
+    IsDiving As Boolean         ' Is diving
+    IsOnDiveBoard As Boolean    ' Is on diving board
+    Status As String            ' User status string
 
     ' Dice
     DiceRolling As Boolean      ' Dice rolling flag
@@ -101,6 +108,7 @@ Public Type UserDataType
 
     ' Misc
     LastPacket As String        ' Last packet received
+    LastActivity As Single      ' Last activity timestamp (Timer value)
     LocaleKey As String         ' Locale key
     PingCount As Integer        ' Ping counter
     SocketQueue As String       ' Socket queue

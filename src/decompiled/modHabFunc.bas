@@ -318,7 +318,7 @@ End Function
 '   SocketIndex - The socket index for this connection
 '
 ' Returns: Nothing (function exits early on login failure)
-Private Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As Integer)
+Public Function HandleLogin(ByRef PacketData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -897,7 +897,7 @@ End Function
 ' Handles wallpaper and floor decoration changes in private rooms
 ' Processes "ABwallpaper" and "ABfloor" commands from room owners/staff
 ' ============================================================================
-Private Function HandleRoomDecoration(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomDecoration(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1002,7 +1002,7 @@ End Function
 ' Handles placing furniture items from inventory into private rooms
 ' Validates user rights, checks item limits (rollers, pets, sound machines)
 ' ============================================================================
-Private Function HandleFurniturePlacement(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurniturePlacement(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1190,7 +1190,7 @@ End Function
 ' Admin function to create/spawn new furniture items in rooms
 ' Processes "ACnew item [furniId]" command for admins/managers
 ' ============================================================================
-Private Function HandleAdminItemCreation(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleAdminItemCreation(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1300,7 +1300,7 @@ End Function
 ' Handles moving furniture within a private room
 ' Validates user rights and updates furniture location/rotation
 ' ============================================================================
-Private Function HandleFurnitureMovement(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureMovement(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1510,7 +1510,7 @@ End Function
 ' Handles interaction with hockey score displays and light furniture
 ' Validates user rights and toggles hockey scoreboard/light state
 ' ============================================================================
-Private Function HandleHockeyScoreInteraction(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleHockeyScoreInteraction(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1636,7 +1636,7 @@ End Function
 ' Resets a dice to its default state (H0 = closed/not rolled)
 ' Called when dice is clicked to close after showing a result
 ' ============================================================================
-Private Function HandleDiceReset(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleDiceReset(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1659,7 +1659,7 @@ End Function
 ' Handles rolling a dice - generates random result and broadcasts to room
 ' Uses timer mechanism to create rolling animation effect
 ' ============================================================================
-Private Function HandleDiceRoll(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleDiceRoll(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sFurniId As String
@@ -1697,7 +1697,7 @@ End Function
 ' Handles unwrapping a present/gift box to reveal the item inside
 ' Reads inbox data, gives items to user, and sends reveal notification
 ' ============================================================================
-Private Function HandlePresentUnwrap(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePresentUnwrap(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1801,7 +1801,7 @@ End Function
 ' Handles user entering a teleporter - reads location and height data
 ' Sets up user position for teleportation animation
 ' ============================================================================
-Private Function HandleTeleporterEnter(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTeleporterEnter(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1853,7 +1853,7 @@ End Function
 ' Handles activation of teleporter - checks destination and teleports user
 ' Verifies destination teleporter is in the same room before teleporting
 ' ============================================================================
-Private Function HandleTeleporterActivate(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTeleporterActivate(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1892,7 +1892,7 @@ End Function
 ' Broadcasts teleporter activation animation to all users in room
 ' Called when user enters a teleporter to show the teleport effect
 ' ============================================================================
-Private Function HandleTeleporterBroadcast(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTeleporterBroadcast(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vFurniId As Variant
@@ -1916,7 +1916,7 @@ End Function
 ' Handles user exiting a room and returning to hotel view
 ' Disables user socket timer and broadcasts exit to other users
 ' ============================================================================
-Private Function HandleRoomExit(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomExit(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vTargetRoom As Variant
@@ -1951,7 +1951,7 @@ End Function
 ' Handles customizing furniture items (changing colors, patterns, etc.)
 ' Reads and updates furniture cust.txt and var.txt files
 ' ============================================================================
-Private Function HandleFurnitureCustomization(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureCustomization(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -1983,7 +1983,7 @@ End Function
 ' Handles writing/editing text on a post-it note furniture item
 ' Validates rights, applies bobba filter, and saves post-it text
 ' ============================================================================
-Private Function HandlePostItWrite(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePostItWrite(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2106,7 +2106,7 @@ End Function
 ' Handles picking up furniture from room and returning it to user's inventory
 ' Only room owner and moderators/admins can pick up furniture
 ' ============================================================================
-Private Function HandleFurniturePickupFromRoom(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurniturePickupFromRoom(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2174,7 +2174,7 @@ End Function
 ' Handles following a buddy to their location/room
 ' Finds the target user and sends their current location
 ' ============================================================================
-Private Function HandleBuddyFollow(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleBuddyFollow(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vTargetBuddyId As Variant
@@ -2224,7 +2224,7 @@ End Function
 ' Handles searching for a user by name to find their location
 ' Returns the user's current room/location if online
 ' ============================================================================
-Private Function HandleUserSearchSimple(ByVal SocketIndex As Integer)
+Public Function HandleUserSearchSimple(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim i As Long
@@ -2243,7 +2243,7 @@ End Function
 ' Sends current server timestamp to user
 ' Special codes: 9999, 999, 99999, 99, 1000 trigger special responses
 ' ============================================================================
-Private Function HandleServerTimeRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleServerTimeRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vCommand As Variant
@@ -2287,7 +2287,7 @@ End Function
 ' Sets user typing indicator/status
 ' Used when user starts or stops typing
 ' ============================================================================
-Private Function HandleUserTypeSet(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserTypeSet(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vTypeStatus As Variant
@@ -2311,7 +2311,7 @@ End Function
 ' Sets up timer intervals for user-specific actions
 ' Parses interval value from packet data
 ' ============================================================================
-Private Function HandleTimerSetup(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTimerSetup(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vTimerData As Variant
@@ -2350,7 +2350,7 @@ End Function
 ' Checks user's Habbo Club membership days
 ' Loads different catalogue pages based on HC status
 ' ============================================================================
-Private Function HandleHCDaysCheck(ByVal SocketIndex As Integer)
+Public Function HandleHCDaysCheck(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2380,7 +2380,7 @@ End Function
 ' Sends current server date formatted as DD-MM-YYYY to user
 ' Used for date-based features in client
 ' ============================================================================
-Private Function HandleDateRequest(ByVal SocketIndex As Integer)
+Public Function HandleDateRequest(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sDay As Variant
@@ -2402,7 +2402,7 @@ End Function
 ' Handles purchasing a gift for another user from catalogue
 ' Validates recipient exists before allowing purchase
 ' ============================================================================
-Private Function HandleGiftPurchase(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleGiftPurchase(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim aDataParts As Variant
@@ -2438,7 +2438,7 @@ End Function
 ' Handles changing user's console mission/motto text
 ' Applies bobba filter if enabled and saves to user file
 ' ============================================================================
-Private Function HandleConsoleMissionChange(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleConsoleMissionChange(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2479,7 +2479,7 @@ End Function
 ' Handles looking up another user's profile information
 ' Returns name, motto, figure, and other profile data
 ' ============================================================================
-Private Function HandleUserLookupBasic(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserLookupBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2513,7 +2513,7 @@ End Function
 ' Handles giving an infraction/warning to a user
 ' Tracks infraction count and bans at certain thresholds (5, 10, 15, 20, 25)
 ' ============================================================================
-Private Function HandleUserInfraction(ByVal SocketIndex As Integer)
+Public Function HandleUserInfraction(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2588,7 +2588,7 @@ End Function
 ' Handles validation of login tickets
 ' Reads ticket file and sets up user session data
 ' ============================================================================
-Private Function HandleTicketValidation(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTicketValidation(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2634,7 +2634,7 @@ End Function
 ' Handles changing a private room's category
 ' Validates room ownership and updates category file
 ' ============================================================================
-Private Function HandleRoomCategoryChange(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomCategoryChange(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2681,7 +2681,7 @@ End Function
 ' Used during registration and friend search
 ' Returns @dK (taken) or @dH (available) based on search type
 ' ============================================================================
-Private Function HandleUsernameSearch(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUsernameSearch(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vLength As Variant
@@ -2762,7 +2762,7 @@ End Function
 ' Handles validation of room access codes/passwords
 ' Validates that code only contains digits 0-9 and is proper length
 ' ============================================================================
-Private Function HandleRoomCodeValidation(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomCodeValidation(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim nLength1 As Integer
@@ -2810,7 +2810,7 @@ End Function
 ' Handles getting pet information for display
 ' Reads pet nature, birth date, and calculates age/stats
 ' ============================================================================
-Private Function HandlePetInfo(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePetInfo(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -2912,7 +2912,7 @@ End Function
 ' Handles requesting room rights (doorbell/password entry)
 ' Validates rights and sends appropriate response
 ' ============================================================================
-Private Function HandleRoomRightsRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomRightsRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3000,7 +3000,7 @@ End Function
 ' Handles confirming a trade between two users
 ' Validates items, transfers ownership, and broadcasts result
 ' ============================================================================
-Private Function HandleTradeConfirmation(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTradeConfirmation(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3054,7 +3054,7 @@ End Function
 ' Handles adding/removing items from a trade window
 ' Validates item ownership and updates trade state
 ' ============================================================================
-Private Function HandleTradeItems(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTradeItems(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3119,7 +3119,7 @@ End Function
 ' Handles accepting the current trade offer
 ' Sets accept flag and checks if both parties accepted
 ' ============================================================================
-Private Function HandleTradeAccept(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTradeAccept(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim i As Variant
@@ -3154,7 +3154,7 @@ End Function
 ' Handles cancelling an active trade
 ' Resets trade state for both parties
 ' ============================================================================
-Private Function HandleTradeCancel(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTradeCancel(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim i As Variant
@@ -3195,7 +3195,7 @@ End Function
 ' Handles voting on a private room (rating 1-5 stars)
 ' Updates room vote count and average rating
 ' ============================================================================
-Private Function HandleRoomVote(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomVote(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3255,7 +3255,7 @@ End Function
 ' Handles updating room settings (name, description, password, etc.)
 ' Validates room ownership and updates setting files
 ' ============================================================================
-Private Function HandleRoomSettings(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomSettings(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3327,7 +3327,7 @@ End Function
 ' Handles deleting a private room
 ' Marks room as deleted and removes all users from it
 ' ============================================================================
-Private Function HandleRoomDelete(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomDelete(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3376,7 +3376,7 @@ End Function
 ' Handles requesting a catalogue page for display
 ' Reads page content and items, sends to user
 ' ============================================================================
-Private Function HandleCataloguePageRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCataloguePageRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3414,7 +3414,7 @@ End Function
 ' Basic item purchasing - see HandleCataloguePurchase (Proc_30_75) for full implementation
 ' Handles simple items without deals, gifts, posters, pets, or trophies
 ' ============================================================================
-Private Function HandleCataloguePurchaseSimple(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCataloguePurchaseSimple(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3583,7 +3583,7 @@ End Function
 ' HandleTeleporterWalk - Helper function to handle user walking to teleporter
 ' Sets up pathfinding to teleporter location
 ' ============================================================================
-Private Function HandleTeleporterWalk(ByVal SocketIndex As Integer, ByVal sData As String)
+Public Function HandleTeleporterWalk(ByVal SocketIndex As Integer, ByVal sData As String)
     On Error Resume Next
 
     Dim aCoords() As String
@@ -3643,7 +3643,7 @@ End Function
 ' HandleRoomLeave - Helper function to handle user leaving a room
 ' Broadcasts user departure and resets room state
 ' ============================================================================
-Private Function HandleRoomLeave(ByVal SocketIndex As Integer)
+Public Function HandleRoomLeave(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     ' Broadcast user leaving to room
@@ -3668,7 +3668,7 @@ End Function
 ' Handles call for help requests from staff members
 ' Forwards help requests to appropriate staff with recrieve_cfh permission
 ' ============================================================================
-Private Function HandleCFHRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCFHRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3724,7 +3724,7 @@ End Function
 ' Handles user registration/account creation
 ' Validates input, checks for duplicate names, creates user folder and files
 ' ============================================================================
-Private Function HandleRegistrationBasic(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRegistrationBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3891,7 +3891,7 @@ End Function
 ' Handles updating user account information (password, email)
 ' Validates current password and birthday before allowing changes
 ' ============================================================================
-Private Function HandleAccountUpdate(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleAccountUpdate(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -3965,7 +3965,7 @@ End Function
 ' Handles updating user's console mission/motto
 ' Applies bobba filter if enabled, saves to file
 ' ============================================================================
-Private Function HandleConsoleMissionUpdateBasic(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleConsoleMissionUpdateBasic(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4007,7 +4007,7 @@ End Function
 ' Handles searching for users in the console/messenger
 ' Returns user info if found including name, figure, online status
 ' ============================================================================
-Private Function HandleUserSearch(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserSearch(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4096,7 +4096,7 @@ End Function
 ' Handles timestamp/heartbeat packets
 ' Returns current server time
 ' ============================================================================
-Private Function HandleTimestamp(ByVal SocketIndex As Integer)
+Public Function HandleTimestamp(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     ' Send current timestamp
@@ -4108,7 +4108,7 @@ End Function
 ' Handles picking up furniture from a room
 ' Validates ownership and adds item back to inventory
 ' ============================================================================
-Private Function HandleFurniturePickup(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurniturePickup(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4164,7 +4164,7 @@ End Function
 ' Handles placing furniture in a room from inventory
 ' Validates ownership and room rights
 ' ============================================================================
-Private Function HandleFurniturePlace(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurniturePlace(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4249,7 +4249,7 @@ End Function
 ' Handles moving already-placed furniture within a room
 ' Validates room rights before allowing move
 ' ============================================================================
-Private Function HandleFurnitureMove(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureMove(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4302,7 +4302,7 @@ End Function
 ' Handles placing wall items (posters, sticky notes, etc.)
 ' Validates ownership and room rights
 ' ============================================================================
-Private Function HandleWallItemPlace(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleWallItemPlace(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4363,7 +4363,7 @@ End Function
 ' Handles navigator room list requests
 ' Returns list of rooms in requested category
 ' ============================================================================
-Private Function HandleRoomNavigatorSimple(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomNavigatorSimple(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4428,7 +4428,7 @@ End Function
 ' Handles request for user's own rooms list
 ' Returns all rooms owned by the user
 ' ============================================================================
-Private Function HandleOwnRooms(ByVal SocketIndex As Integer)
+Public Function HandleOwnRooms(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4477,7 +4477,7 @@ End Function
 ' Handles request for detailed room information
 ' Returns room name, description, owner, settings
 ' ============================================================================
-Private Function HandleRoomInfo(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomInfo(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4542,7 +4542,7 @@ End Function
 ' Handles creating a new private room
 ' Creates room folder and initial settings files
 ' ============================================================================
-Private Function HandleRoomCreate(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomCreate(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4738,7 +4738,7 @@ End Function
 ' Handles room password entry validation
 ' Checks if entered password matches room password
 ' ============================================================================
-Private Function HandleRoomPassword(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomPassword(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4773,7 +4773,7 @@ End Function
 ' Handles doorbell ringing for closed rooms
 ' Notifies room owner/users with rights
 ' ============================================================================
-Private Function HandleRoomDoorbell(ByVal SocketIndex As Integer)
+Public Function HandleRoomDoorbell(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -4818,7 +4818,7 @@ End Function
 '
 ' Original P-Code: Proc_30_50_BBB150 (line 96511)
 ' ============================================================================
-Private Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurniturePlaceFromHand(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5212,7 +5212,7 @@ End Function
 '
 ' Original P-Code: Proc_30_51_B88DF4 (line 102854)
 ' ============================================================================
-Private Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleAdminFurnitureManagement(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5405,7 +5405,7 @@ End Function
 '
 ' Original P-Code: Proc_30_52_BC0FD8 (line 105264)
 ' ============================================================================
-Private Function HandleFurnitureInteraction(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureInteraction(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5653,7 +5653,7 @@ End Function
 '
 ' Original P-Code: Proc_30_54_B2301C (line 112708)
 ' ============================================================================
-Private Function HandleDiceClose(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleDiceClose(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5684,7 +5684,7 @@ End Function
 '
 ' Original P-Code: Proc_30_55_B2A790 (line 112771)
 ' ============================================================================
-Private Function HandleDiceRollStart(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleDiceRollStart(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vFurniId As Variant
@@ -5733,7 +5733,7 @@ End Function
 '
 ' Original P-Code: Proc_30_56_B471EC (line 112906)
 ' ============================================================================
-Private Function HandlePresentOpen(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePresentOpen(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5789,7 +5789,7 @@ End Function
 '
 ' Original P-Code: Proc_30_57_B2FB0C (line 113361)
 ' ============================================================================
-Private Function HandleRightsGrant(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRightsGrant(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5840,7 +5840,7 @@ End Function
 '
 ' Original P-Code: Proc_30_58_B34800 (line 113559)
 ' ============================================================================
-Private Function HandleRightsRevoke(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRightsRevoke(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5898,7 +5898,7 @@ End Function
 '
 ' Original P-Code: Proc_30_59_B24A40 (line 113800)
 ' ============================================================================
-Private Function HandleKickUser(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleKickUser(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sTargetUser As String
@@ -5937,7 +5937,7 @@ End Function
 '
 ' Original P-Code: Proc_30_60_B25A9C (line 113870)
 ' ============================================================================
-Private Function HandleBanUser(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleBanUser(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -5992,7 +5992,7 @@ End Function
 '
 ' Original P-Code: Proc_30_61_B2816C (line 113966)
 ' ============================================================================
-Private Function HandleFurnitureInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -6025,7 +6025,7 @@ End Function
 '
 ' Original P-Code: Proc_30_62_B60DF4 (line 114073)
 ' ============================================================================
-Private Function HandleRoomRightsList(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomRightsList(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -6072,7 +6072,7 @@ End Function
 '
 ' Original P-Code: Proc_30_63_B36A90 (line 114902)
 ' ============================================================================
-Private Function HandleUserWave(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserWave(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sAction As String
@@ -6099,7 +6099,7 @@ End Function
 '
 ' Original P-Code: Proc_30_64_B398A0 (line 115176)
 ' ============================================================================
-Private Function HandleUserDance(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserDance(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sDanceStyle As String
@@ -6126,7 +6126,7 @@ End Function
 '
 ' Original P-Code: Proc_30_65_B3DCE4 (line 115461)
 ' ============================================================================
-Private Function HandleStopMovement(ByVal SocketIndex As Integer)
+Public Function HandleStopMovement(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     ' Set target to current position (stop walking)
@@ -6142,7 +6142,7 @@ End Function
 '
 ' Original P-Code: Proc_30_66_B5BA50 (line 115823)
 ' ============================================================================
-Private Function HandleUserSit(ByVal SocketIndex As Integer)
+Public Function HandleUserSit(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vRoomId As Double
@@ -6172,7 +6172,7 @@ End Function
 '
 ' Original P-Code: Proc_30_67_B59988 (line 116482)
 ' ============================================================================
-Private Function HandleUserLay(ByVal SocketIndex As Integer)
+Public Function HandleUserLay(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vRoomId As Double
@@ -6203,7 +6203,7 @@ End Function
 '
 ' Original P-Code: Proc_30_68_B75BFC (line 117092)
 ' ============================================================================
-Private Function HandleUserMove(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserMove(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vTargetX As Variant
@@ -6240,7 +6240,7 @@ End Function
 '
 ' Original P-Code: Proc_30_69_B30F48 (line 118528)
 ' ============================================================================
-Private Function HandleUserLook(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserLook(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sDirection As String
@@ -6268,7 +6268,7 @@ End Function
 '
 ' Original P-Code: Proc_30_70_B1EB38 (line 118746)
 ' ============================================================================
-Private Function HandleTypingStatus(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTypingStatus(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim bIsTyping As Boolean
@@ -6296,7 +6296,7 @@ End Function
 '
 ' Original P-Code: Proc_30_71_B26FA4 (line 118788)
 ' ============================================================================
-Private Function HandleTimerConfig(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTimerConfig(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sTimerData As String
@@ -6337,7 +6337,7 @@ End Function
 '
 ' Original P-Code: Proc_30_72_B312B0 (line 118892)
 ' ============================================================================
-Private Function HandleCataloguePages(ByVal SocketIndex As Integer)
+Public Function HandleCataloguePages(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sHcDays As String
@@ -6400,7 +6400,7 @@ End Function
 '
 ' Original P-Code: Proc_30_73_B35D40 (line 119104)
 ' ============================================================================
-Private Function HandleCataloguePageDisplay(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCataloguePageDisplay(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sPageName As String
@@ -6470,7 +6470,7 @@ End Function
 '
 ' Original P-Code: Proc_30_74_B240E8 (line 119353)
 ' ============================================================================
-Private Function HandleDateRequest2(ByVal SocketIndex As Integer)
+Public Function HandleDateRequest2(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sDateResponse As String
@@ -6489,7 +6489,7 @@ End Function
 '
 ' Original P-Code: Proc_30_76_B2E198 (line 121940)
 ' ============================================================================
-Private Function HandleRoomCategoryChange2(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomCategoryChange2(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim nCategoryLen As Integer
@@ -6538,7 +6538,7 @@ End Function
 '
 ' Original P-Code: Proc_30_77_B45C04 (line 122126)
 ' ============================================================================
-Private Function HandleNameCheck(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleNameCheck(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -6616,7 +6616,7 @@ End Function
 '
 ' Original P-Code: Proc_30_78_B31D5C (line 122568)
 ' ============================================================================
-Private Function HandlePhoneValidation(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePhoneValidation(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim nLen1 As Integer
@@ -6658,7 +6658,7 @@ End Function
 '
 ' Original P-Code: Proc_30_79_B3E278 (line 122750)
 ' ============================================================================
-Private Function HandlePetInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePetInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vPetId As Variant
@@ -6726,7 +6726,7 @@ End Function
 '
 ' Original P-Code: Proc_30_80_B3BBD8 (line 123137)
 ' ============================================================================
-Private Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFollowUser(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sOwner As String
@@ -6823,7 +6823,7 @@ End Function
 '
 ' Original P-Code: Proc_30_84_B23164 (line 127969)
 ' ============================================================================
-Private Function HandleBroadcastAnswer(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleBroadcastAnswer(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vLen As Variant
@@ -6850,7 +6850,7 @@ End Function
 '
 ' Original P-Code: Proc_30_90_B29500 (line 131553)
 ' ============================================================================
-Private Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleConsoleMissionUpdate(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vLen As Variant
@@ -6899,7 +6899,7 @@ End Function
 '
 ' Original P-Code: Proc_30_92_B23F70 (line 132052)
 ' ============================================================================
-Private Function HandleUserDisconnect(ByVal SocketIndex As Integer)
+Public Function HandleUserDisconnect(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -6927,7 +6927,7 @@ End Function
 '
 ' Original P-Code: Proc_30_87_B333E0 (line 128746)
 ' ============================================================================
-Private Function HandleRoomSettingsSave(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomSettingsSave(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vRoomId As Variant
@@ -7010,7 +7010,7 @@ End Function
 '
 ' Original P-Code: Proc_30_89_B3B178 (line 131259)
 ' ============================================================================
-Private Function HandleRoomInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomInfoRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim lRoomId As Long
@@ -7079,7 +7079,7 @@ End Function
 '
 ' Original P-Code: Proc_30_101_B30828 (line 137088)
 ' ============================================================================
-Private Function HandlePetFeed(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandlePetFeed(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vPetId As Variant
@@ -7121,7 +7121,7 @@ End Function
 '
 ' Original P-Code: Proc_30_98_B385A4 (line 134861)
 ' ============================================================================
-Private Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureToggle(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vFurniId As Variant
@@ -7183,7 +7183,7 @@ End Function
 '
 ' Original P-Code: Proc_30_83_B3F900 (line 127655)
 ' ============================================================================
-Private Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCFHSubmit(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vMsgLength As Variant
@@ -7251,7 +7251,7 @@ End Function
 '
 ' Original P-Code: Proc_30_85_B41DA4 (line 128035)
 ' ============================================================================
-Private Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCFHPickup(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sRankFile As String
@@ -7327,7 +7327,7 @@ End Function
 '
 ' Original P-Code: Proc_30_86_B4116C (line 128389)
 ' ============================================================================
-Private Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCFHReply(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sRankFile As String
@@ -7404,7 +7404,7 @@ End Function
 '
 ' Original P-Code: Proc_30_91_B437D0 (line 131674)
 ' ============================================================================
-Private Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleUserLookup(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim vNameLength As Variant
@@ -7503,7 +7503,7 @@ End Function
 '
 ' Original P-Code: Proc_30_95_B3AC88 (line 133546)
 ' ============================================================================
-Private Function HandleFriendAcceptOrDecline(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendAcceptOrDecline(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sAction As String
@@ -7570,7 +7570,7 @@ End Function
 '
 ' Original P-Code: Proc_30_96_B53F30 (line 133853)
 ' ============================================================================
-Private Function HandleFriendRemoveById(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendRemoveById(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sTargetUser As String
@@ -7686,7 +7686,7 @@ End Function
 '
 ' Original P-Code: Proc_30_97_B46294 (line 134454)
 ' ============================================================================
-Private Function HandleReportPlayer(ByVal SocketIndex As Integer)
+Public Function HandleReportPlayer(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sReportedUser As String
@@ -7764,7 +7764,7 @@ End Function
 '
 ' Original P-Code: Proc_30_102_B4B634 (line 137285)
 ' ============================================================================
-Private Function HandleInfraction(ByVal SocketIndex As Integer)
+Public Function HandleInfraction(ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sReason As String
@@ -7875,7 +7875,7 @@ End Function
 '
 ' Original P-Code: Proc_30_81_B825E4 (line 123470)
 ' ============================================================================
-Private Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRoomNavigator(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sCommand As String
@@ -8226,7 +8226,7 @@ End Function
 '
 ' Original P-Code: Proc_30_82_B7C6B4 (line 125593)
 ' ============================================================================
-Private Function HandleModeration(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleModeration(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sCommand As String
@@ -8509,7 +8509,7 @@ End Sub
 '
 ' Original P-Code: Proc_30_88_B8B100 (line 128961)
 ' ============================================================================
-Private Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleRegistration(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sPacket As String
@@ -8709,7 +8709,7 @@ End Function
 
 ' HandleFriendRequest - Processes sending a friend request (Proc_30_93)
 ' Sends a friend request notification to another user
-Private Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendRequest(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -8812,7 +8812,7 @@ End Function
 
 ' HandleFriendAccept - Processes accepting a friend request (Proc_30_94)
 ' Accepts a pending friend request and adds both users to each other's friend list
-Private Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendAccept(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -8972,7 +8972,7 @@ End Function
 
 ' HandleFriendDecline - Processes declining a friend request (Proc_30_95)
 ' Removes pending friend request from both users' inquiry lists
-Private Function HandleFriendDecline(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendDecline(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -9039,7 +9039,7 @@ End Function
 
 ' HandleFriendRemove - Processes removing a friend (Proc_30_96)
 ' Removes both users from each other's friend lists
-Private Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleFriendRemove(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim sUsername As String
@@ -9166,7 +9166,7 @@ End Function
 
 ' HandleHabboWheel - Processes spinning the HabboWheel game (Proc_30_99)
 ' Generates random prize and updates the wheel state
-Private Function HandleHabboWheel(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleHabboWheel(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oFile As Object
@@ -9270,7 +9270,7 @@ End Function
 
 ' HandleKonsoleAdmin - Processes admin console commands (Proc_30_100)
 ' Handles: Konsole (staff broadcast), Hotelalert (hotel-wide alert), Packets (raw packets)
-Private Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleKonsoleAdmin(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oFile As Object
@@ -9452,7 +9452,7 @@ End Function
 
 ' HandleTicketRedemption - Processes login via ticket code (Proc_30_103)
 ' Allows users to log in by redeeming a ticket code
-Private Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleTicketRedemption(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oFile As Object
@@ -9576,7 +9576,7 @@ End Function
 ' Processes buying items from the catalogue, including regular items, posters,
 ' deals (bundles), trophies, pets, and gifting items to other users
 ' sData format: Chr(13) delimited - Page|Item|CustomText|IsGift|RecipientName|GiftMessage
-Private Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketIndex As Integer)
+Public Function HandleCataloguePurchase(ByVal sData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oFile As Object
@@ -10441,7 +10441,7 @@ End Function
 '
 ' Original P-Code: Proc_30_48_B78CDC
 ' =============================================================================
-Private Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integer) As String
+Public Function HandleHandUpdate(PacketCommand As Variant, SocketIndex As Integer) As String
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -10685,7 +10685,7 @@ End Function
 '
 ' Permission check: Must be room owner, admin, or manager
 ' ============================================================================
-Private Function HandleItemPickup(ByRef sPacketData As String, ByVal SocketIndex As Integer)
+Public Function HandleItemPickup(ByRef sPacketData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
@@ -11062,7 +11062,7 @@ End Function
 '   sPacketData - Format: "AZ [itemId] [newX] [newY] [rotation]"
 '   SocketIndex - Socket index of the user making the request
 ' ============================================================================
-Private Function HandleFurnitureMovePacket(ByRef sPacketData As String, ByVal SocketIndex As Integer)
+Public Function HandleFurnitureMovePacket(ByRef sPacketData As String, ByVal SocketIndex As Integer)
     On Error Resume Next
 
     Dim oTextStream As Object
